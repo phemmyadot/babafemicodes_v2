@@ -1,7 +1,7 @@
 /**
- * One round trip for the whole page, written against the original babafemi.codes
- * document shapes (profile / project / experience / skills). Each projection selects
- * only what the UI renders; "v2" fields are optional and coalesced.
+ * One round trip for the whole page, written against the profile / project / experience /
+ * skills document shapes. Each projection selects only what the UI renders; "v2" fields
+ * are optional and coalesced.
  */
 export const PORTFOLIO_QUERY = /* groq */ `{
   "profile": *[_type == "profile"][0]{

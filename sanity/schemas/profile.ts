@@ -1,7 +1,7 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 
 /**
- * Singleton. Field names match the original babafemi.codes schema; fields marked
+ * Singleton. Field names match the original babafemi.codes schema (content was copied over); fields marked
  * "v2" are optional additions used by the HUD site and ignored by the old one.
  */
 export const profileSchema = defineType({

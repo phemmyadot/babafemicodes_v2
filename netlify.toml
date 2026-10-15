@@ -1,4 +1,4 @@
-# Same setup as the original babafemi.codes site.
+# Netlify build for babafemicodes.dev (Next.js runtime plugin).
 [build]
   command = "npm run build"
   publish = ".next"

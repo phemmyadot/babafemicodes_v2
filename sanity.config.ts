@@ -10,7 +10,7 @@ const SINGLETONS = new Set(["profile"]);
 const PROFILE_ID = process.env.NEXT_PUBLIC_SANITY_PROFILE_ID || "c2e7b700-55af-4ccc-8dcc-b1e6cf5975c7";
 
 export default defineConfig({
-  name: "babafemi-codes",
+  name: "babafemicodes-v2",
   title: "babafemicodes.dev",
   projectId,
   dataset,

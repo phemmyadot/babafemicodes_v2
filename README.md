@@ -13,13 +13,13 @@ All content comes from Sanity. The site has no local copy of the content: an emp
 ## Content flow
 
 ```
-Sanity (project 3wxbn5sz / production) ──GROQ (one query)──▶ lib/portfolio.ts ──▶ app/page.tsx (Server Component, ISR 1h)
+Sanity (babafemicodes_v2 · dishu3ld / production) ──GROQ (one query)──▶ lib/portfolio.ts ──▶ app/page.tsx (Server Component, ISR 1h)
 ```
 
-The site uses **the same Sanity dataset as the original babafemi.codes site**. The schemas in
-`sanity/schemas/` are a **superset** of the originals (`profile`, `project`, `experience`, `skills`).
-Every original field keeps its name. New fields are optional and labelled "(v2)" in the Studio, so
-the old site keeps working while both sites are live.
+Content lives in its own Sanity project, **babafemicodes_v2 (`dishu3ld`)**. Its content was copied from the original
+babafemi.codes project (`3wxbn5sz`), including images and files; the old project was not changed. The schemas in
+`sanity/schemas/` keep the original field names (`profile`, `project`, `experience`, `skills`) and add optional
+fields labelled "(v2)" in the Studio.
 
 | Section            | Sanity source                                                         |
 | ------------------ | --------------------------------------------------------------------- |
@@ -32,20 +32,19 @@ the old site keeps working while both sites are live.
 
 ## Studio
 
-The Studio is embedded at **`/studio`**. To use it locally, add the dev URL (e.g. `http://localhost:3001`) as a
-CORS origin with credentials at https://www.sanity.io/manage/project/3wxbn5sz/api, or choose
-"Add development host" on the Studio's first screen. Do the same for the production domain after deploying.
+The Studio is embedded at **`/studio`**. CORS origins (with credentials) are already set for
+`http://localhost:3000`, `http://localhost:3001` and `https://babafemicodes.dev`. Add any other host at
+https://www.sanity.io/manage/project/dishu3ld/api.
 
 ## Migration (additive)
 
-`npm run migrate` does a dry run, which Sanity validates without writing anything. `npm run migrate -- --apply` commits.
+Already applied to `dishu3ld/production` on 2026-10-15. `npm run migrate` does a dry run, which Sanity validates without writing anything. `npm run migrate -- --apply` commits.
 Re-running it is safe.
 
 - `profile`: fills in `headline`, `phone`, `workStatus` and `education` with `setIfMissing`, so existing values are never changed.
 - Adds the 5 work projects from the brief as new documents with `createIfNotExists` (IDs `project-v2-*`).
-  They include every field the old site needs, so it will list them too.
 
-You need an **Editor** token in `SANITY_API_WRITE_TOKEN`. The existing `SANITY_API_TOKEN` is read-only.
+It uses the **Editor** token in `SANITY_API_WRITE_TOKEN`. The site itself uses only the read-only `SANITY_API_TOKEN`.
 
 ## On-demand revalidation
 
@@ -79,8 +78,8 @@ components/
   terminal/          Terminal (input/output, history, tab completion) and commands.tsx (command list)
   ui/                building blocks: Panel, Modal, HudButton, DecodeText, Sparkline, PortableBody
 lib/                 types, Sanity client + GROQ query, Sanity → UI mapping (portfolio.ts), site constants
-sanity/schemas/      Studio schemas (superset of the original site), sanity.config.ts at root
-scripts/migrate-sanity  additive migration of the shared dataset (dry run by default)
+sanity/schemas/      Studio schemas, sanity.config.ts at root
+scripts/migrate-sanity  adds the brief content to Sanity (dry run by default)
 ```
 
 To add a terminal command, add an entry to `COMMANDS` in `components/terminal/commands.tsx`. It will show up in `help` and in tab completion automatically.

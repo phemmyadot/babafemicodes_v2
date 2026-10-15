@@ -3,7 +3,6 @@ import { apiVersion, dataset, isSanityConfigured, projectId } from "./env";
 
 export { isSanityConfigured };
 
-// Same variable name as the original babafemi.codes project, so one .env works for both.
 const token = process.env.SANITY_API_TOKEN || undefined;
 
 /** `null` when no project is configured — callers fall back to bundled content. */

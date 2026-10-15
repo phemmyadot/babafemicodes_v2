@@ -1,11 +1,10 @@
 /**
- * Additive migration of the existing babafemi.codes dataset to the v2 (HUD) schema.
- *
- * Safe to run against the dataset the old site still reads:
+ * Adds the brief's content to the babafemicodes_v2 dataset (whose base content was
+ * imported from the original babafemi.codes project). Purely additive:
  *   - existing documents: only `setIfMissing` on new optional fields — no value is ever
  *     overwritten, renamed or removed;
  *   - new documents (the brief's work projects): `createIfNotExists` with fixed IDs,
- *     so re-running is a no-op. They carry every field the old site requires.
+ *     so re-running is a no-op.
  *
  *   npm run migrate            # dry run: prints the plan, validates with Sanity, writes nothing
  *   npm run migrate -- --apply # commits
