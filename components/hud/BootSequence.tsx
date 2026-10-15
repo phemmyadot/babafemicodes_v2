@@ -6,13 +6,13 @@ import { BOOT_STORAGE_KEY } from "@/lib/boot";
 
 
 /** One-time-per-session boot overlay. Skippable with any key/click; skipped for reduced motion. */
-export function BootSequence({ name, source }: { name: string; source: "sanity" | "fallback" }) {
+export function BootSequence({ name }: { name: string }) {
   const [visible, setVisible] = useState(true);
   const [step, setStep] = useState(0);
 
   const lines = [
-    "BIOS v8.0 // INITIALIZING OPERATOR PROFILE",
-    `MOUNTING CONTENT SOURCE ........ ${source === "sanity" ? "SANITY CMS [LIVE]" : "LOCAL CACHE"}`,
+    "BIOS v2.0 // INITIALIZING OPERATOR PROFILE",
+    "MOUNTING CONTENT SOURCE ........ SANITY CMS [LIVE]",
     "LOADING MODULES: telemetry systems arsenal uplink",
     "HANDSHAKE ...................... OK",
     `WELCOME. OPERATOR: ${name.toUpperCase()}`,

@@ -10,15 +10,6 @@ import { HudButton } from "../ui/HudButton";
 import { Brackets } from "../ui/Panel";
 import { StatusDot } from "../ui/StatusDot";
 
-const LOG_LINES = [
-  "[ok] offline queue flushed · 0 records lost",
-  "[ok] ble pairing · secure connections (LE SC)",
-  "[ok] rag index warm · source validation on",
-  "[ok] component registry · 10+ consumers",
-  "[ok] lambda cold start within budget",
-  "[ok] crash-free sessions nominal",
-];
-
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: 0.12 * i, duration: 0.6, ease: [0.2, 0.7, 0.2, 1] as const } }),
@@ -99,12 +90,14 @@ function Reticle({ avatarUrl, initials }: { avatarUrl?: string; initials: string
   );
 }
 
-function LogTicker() {
+function LogTicker({ lines }: { lines: string[] }) {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((n) => (n + 1) % LOG_LINES.length), 2400);
+    if (lines.length < 2) return;
+    const t = setInterval(() => setI((n) => (n + 1) % lines.length), 2400);
     return () => clearInterval(t);
-  }, []);
+  }, [lines.length]);
+  if (!lines.length) return null;
   return (
     <div className="relative h-5 overflow-hidden font-mono text-[11px] text-phosphor" aria-hidden>
       <AnimatePresence mode="popLayout">
@@ -116,7 +109,7 @@ function LogTicker() {
           transition={{ duration: 0.3 }}
           className="absolute inset-0 truncate"
         >
-          {LOG_LINES[i]}
+          {lines[i % lines.length]}
         </motion.div>
       </AnimatePresence>
     </div>
@@ -138,12 +131,23 @@ export function Hero() {
     .toUpperCase();
   const years = data.metrics.find((m) => /year|yrs/i.test(`${m.label} ${m.unit ?? ""}`));
 
-  const readouts: Array<[string, string]> = [
-    ["Class", titleMain ?? settings.title],
-    ["Specialty", "React Native · React · TypeScript"],
-    ["Domains", "Enterprise · Healthcare"],
-    ...(years ? [["Uptime", `${years.value} ${years.unit ?? "YRS"}`] as [string, string]] : []),
-    ...(settings.tagline ? [["Directive", settings.tagline] as [string, string]] : []),
+  const current = data.experience.find((e) => e.current);
+  const readouts = (
+    [
+      ["Class", titleMain],
+      ["Deployed", current && `${current.role} @ ${current.company}`],
+      ["Uptime", years && `${years.value} ${years.unit ?? "YRS"}`],
+      ["Systems", data.projects.length ? `${data.projects.length} online` : undefined],
+      ["Location", settings.location],
+      ["Directive", settings.tagline],
+    ] as Array<[string, string | undefined]>
+  ).filter((r): r is [string, string] => Boolean(r[1]));
+
+  // Status feed generated from CMS content.
+  const logLines = [
+    ...(current ? [`[ok] active deployment · ${current.company.toLowerCase()}`] : []),
+    ...data.projects.slice(0, 4).map((p) => `[ok] module online · ${p.slug}`),
+    ...data.credentials.filter((c) => c.kind === "certification").map((c) => `[ok] credential verified · ${c.code ?? c.title}`),
   ];
 
   return (
@@ -152,8 +156,7 @@ export function Hero() {
         <div className="lg:col-span-7">
           <motion.div initial="hidden" animate="show" custom={0} variants={fadeUp} className="label mb-6 flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="text-cyan-neon">// operator profile</span>
-            <span>ID: BA-0008</span>
-            <span className="hidden sm:inline">clearance: senior</span>
+            <span>ID: {initials}</span>
           </motion.div>
 
           <h1 className="font-display font-bold uppercase leading-[0.92] tracking-tight text-white">
@@ -222,7 +225,7 @@ export function Hero() {
         >
           <div className="panel p-5 sm:p-6">
             <div className="label mb-4 flex items-center justify-between">
-              <span className="text-cyan-neon">target // ba-0008</span>
+              <span className="text-cyan-neon">target // {initials.toLowerCase()}</span>
               <span className="flex items-center gap-2">
                 <StatusDot /> live
               </span>
@@ -237,7 +240,7 @@ export function Hero() {
               ))}
             </dl>
             <div className="mt-4">
-              <LogTicker />
+              <LogTicker lines={logLines} />
             </div>
           </div>
           <Brackets size={14} />

@@ -84,6 +84,7 @@ export function Projects() {
   );
   const [filter, setFilter] = useState("All");
   const visible = filter === "All" ? showcase : showcase.filter((p) => p.domain === filter);
+  if (!showcase.length) return null;
 
   return (
     <section id="systems" className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-20">

@@ -104,7 +104,9 @@ export function ContactModal({ open, onClose }: { open: boolean; onClose: () => 
           <div className="label mb-4 flex items-center gap-2 text-phosphor">
             <Lock size={12} /> direct channels
           </div>
-          <CopyField label="email" value={settings.email} href={`mailto:${settings.email}`} icon={<Mail size={16} />} />
+          {settings.email && (
+            <CopyField label="email" value={settings.email} href={`mailto:${settings.email}`} icon={<Mail size={16} />} />
+          )}
           {settings.phone && (
             <CopyField
               label="voice"

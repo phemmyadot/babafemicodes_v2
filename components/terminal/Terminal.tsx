@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useHud } from "../hud-context";
+import { SITE_DOMAIN } from "@/lib/site";
 import { COMMAND_NAMES, COMMANDS } from "./commands";
 
 interface Entry {
@@ -13,7 +14,7 @@ interface Entry {
 }
 
 const PROMPT_USER = "guest";
-const PROMPT_HOST = "babafemicodes.dev";
+const PROMPT_HOST = SITE_DOMAIN;
 const QUICK = ["help", "whoami", "skills", "projects", "experience", "contact", "gui"];
 
 function Prompt() {
@@ -30,15 +31,12 @@ function Prompt() {
 function Banner({ name }: { name: string }) {
   return (
     <div className="mb-3">
-      <pre className="overflow-x-auto text-[10px] leading-tight text-cyan-neon glow-text-cyan sm:text-xs" aria-hidden>
-{String.raw` ____    _      ____ __   __ ____
-| __ )  / \    / ___|\ \ / // ___|
-|  _ \ / _ \   \___ \ \ V / \___ \
-| |_) / ___ \ _ ___) | | |   ___) |
-|____/_/   \_(_)____/  |_|  |____/ `}
-      </pre>
+      <div className="inline-block border border-cyan-neon/40 px-4 py-2">
+        <div className="font-bold uppercase tracking-[0.3em] text-cyan-neon glow-text-cyan">{name}</div>
+        <div className="text-[11px] text-fog">{PROMPT_HOST} · interactive shell v2.0</div>
+      </div>
       <div className="mt-2 text-fog-light">
-        {name} — interactive shell v8.0. Type <span className="text-phosphor">help</span> to list commands.
+        Type <span className="text-phosphor">help</span> to list commands.
       </div>
     </div>
   );

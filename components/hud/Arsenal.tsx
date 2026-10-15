@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Boxes, Cloud, Code2, FlaskConical, Gauge, Globe, Layers, Server, Smartphone, type LucideIcon } from "lucide-react";
-import { useHud } from "../hud-context";
+import { hasSection, useHud } from "../hud-context";
 import { Panel } from "../ui/Panel";
 import { SectionHeader } from "../ui/SectionHeader";
 
@@ -24,6 +24,7 @@ const iconFor = (title: string) => ICON_RULES.find(([re]) => re.test(title))?.[1
 export function Arsenal() {
   const { data } = useHud();
   const groups = data.skills;
+  if (!hasSection(data, "arsenal")) return null;
   const total = groups.reduce((n, g) => n + g.skills.length, 0);
   const max = Math.max(...groups.map((g) => g.skills.length), 1);
 

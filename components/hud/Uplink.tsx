@@ -35,7 +35,7 @@ export function Uplink() {
                 <span className="text-cyan-neon glow-text-cyan">channel.</span>
               </h2>
               <p className="mt-5 max-w-xl text-fog-light">
-                Hiring for mobile, full-stack, or platform architecture? Transmit a message and it lands directly with me.
+                Transmit a message and it lands directly in my inbox.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <HudButton variant="primary" icon={<Radio size={14} />} onClick={openContact}>
@@ -48,6 +48,7 @@ export function Uplink() {
             </div>
 
             <ul className="space-y-px self-end border border-line bg-line lg:col-span-5">
+              {settings.email && (
               <li className="bg-obsidian-900">
                 <a href={`mailto:${settings.email}`} className="group flex items-center gap-4 p-4 hover:bg-obsidian-800">
                   <Mail size={16} className="text-cyan-neon" />
@@ -57,6 +58,7 @@ export function Uplink() {
                   </span>
                 </a>
               </li>
+              )}
               {settings.phone && (
                 <li className="bg-obsidian-900">
                   <a href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`} className="group flex items-center gap-4 p-4 hover:bg-obsidian-800">

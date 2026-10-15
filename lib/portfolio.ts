@@ -1,6 +1,4 @@
 import "server-only";
-import type { PortableTextBlock } from "@portabletext/types";
-import seed from "@/content/portfolio.json";
 import { sanityClient } from "./sanity/client";
 import { PORTFOLIO_QUERY, PORTFOLIO_TAG } from "./sanity/queries";
 import type { Credential, Experience, Metric, Portfolio, Project, Settings, Signal, SkillGroup } from "./types";
@@ -9,16 +7,6 @@ import type { Credential, Experience, Metric, Portfolio, Project, Settings, Sign
 export const REVALIDATE_SECONDS = 3600;
 
 const SIGNALS: Signal[] = ["rising", "steady", "spiky", "wave"];
-
-export function toBlocks(paragraphs: string[], keyPrefix: string): PortableTextBlock[] {
-  return paragraphs.map((text, i) => ({
-    _type: "block",
-    _key: `${keyPrefix}-${i}`,
-    style: "normal",
-    markDefs: [],
-    children: [{ _type: "span", _key: `${keyPrefix}-${i}-s`, text, marks: [] }],
-  }));
-}
 
 export function slugify(s: string) {
   return s
@@ -36,19 +24,6 @@ export function parseCertLabel(label: string) {
   const code = main.match(/\(([^)]+)\)\s*$/)?.[1];
   return { title: code ? main.replace(/\s*\([^)]+\)\s*$/, "") : main, code, issuer: issuer || undefined };
 }
-
-const fallback: Omit<Portfolio, "source"> = {
-  settings: seed.settings,
-  metrics: seed.metrics.map((m, i) => ({ ...m, id: `metric-${i}`, signal: m.signal as Signal })),
-  skills: seed.skills.map((g) => ({ ...g, id: slugify(g.title) })),
-  projects: seed.projects.map((p) => ({
-    ...p,
-    id: p.slug,
-    body: toBlocks(p.body, p.slug),
-  })),
-  experience: seed.experience.map((e, i) => ({ ...e, id: `exp-${i}` })),
-  credentials: seed.credentials.map((c, i) => ({ ...c, id: `cred-${i}`, kind: c.kind as Credential["kind"] })),
-};
 
 interface SanityProfile {
   firstName?: string;
@@ -79,34 +54,27 @@ interface SanityResult {
   experience: Experience[];
 }
 
-/** Drop null/empty fields so they don't overwrite fallback values. */
-function compact<T extends object>(obj: T): Partial<T> {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, v]) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && !v.length)),
-  ) as Partial<T>;
-}
+const opt = (v: string | null | undefined) => (v && v.trim() ? v.trim() : undefined);
 
-const orFallback = <T,>(list: T[] | null | undefined, fb: T[]) => (list && list.length ? list : fb);
-
-function mapSettings(p: SanityProfile | null): Partial<Settings> {
-  if (!p) return {};
-  return compact({
-    name: [p.firstName, p.lastName].filter(Boolean).join(" "),
-    title: p.headline ?? p.titles?.[0],
-    titles: clean(p.titles),
-    tagline: p.tagline,
-    bio: clean(p.bio),
-    avatarUrl: p.avatarUrl,
-    location: p.location,
-    workStatus: p.workStatus,
-    openToWork: p.openToWork,
-    email: p.email,
-    phone: p.phone,
-    githubUrl: p.github,
-    linkedinUrl: p.linkedin,
-    blogUrl: p.hashnode,
-    resumeUrl: p.resumeUrl,
-  });
+function mapSettings(p: SanityProfile | null): Settings {
+  const titles = clean(p?.titles);
+  return {
+    name: [p?.firstName, p?.lastName].filter(Boolean).join(" "),
+    title: opt(p?.headline) ?? titles[0] ?? "",
+    titles,
+    tagline: opt(p?.tagline),
+    bio: clean(p?.bio),
+    avatarUrl: opt(p?.avatarUrl),
+    location: opt(p?.location),
+    workStatus: opt(p?.workStatus),
+    openToWork: p?.openToWork,
+    email: opt(p?.email) ?? "",
+    phone: opt(p?.phone),
+    githubUrl: opt(p?.github),
+    linkedinUrl: opt(p?.linkedin),
+    blogUrl: opt(p?.hashnode),
+    resumeUrl: opt(p?.resumeUrl),
+  };
 }
 
 function mapMetrics(p: SanityProfile | null): Metric[] {
@@ -143,37 +111,29 @@ function mapProjects(list: SanityResult["projects"]): Project[] {
 }
 
 /**
- * Fetches all portfolio content from Sanity. Any section that is empty in the CMS —
- * or the whole payload, if Sanity is unconfigured or unreachable — falls back to
- * the bundled seed content so the site never renders blank.
+ * Fetches all portfolio content from Sanity — the single source of truth. Nothing is
+ * filled in from local data: an empty field stays empty and an empty section is hidden.
+ *
+ * Errors are thrown on purpose. During ISR regeneration Next keeps serving the last
+ * successfully rendered page, so a Sanity outage never swaps in different content.
  */
 export async function getPortfolio(): Promise<Portfolio> {
-  if (!sanityClient) return { ...fallback, source: "fallback" };
-
-  try {
-    const data = await sanityClient.fetch<SanityResult>(
-      PORTFOLIO_QUERY,
-      {},
-      { next: { revalidate: REVALIDATE_SECONDS, tags: [PORTFOLIO_TAG] } },
-    );
-
-    return {
-      settings: { ...fallback.settings, ...mapSettings(data.profile) },
-      metrics: orFallback(mapMetrics(data.profile), fallback.metrics),
-      skills: orFallback(
-        data.skills.map((g) => ({ ...g, skills: clean(g.skills) })).filter((g) => g.skills.length),
-        fallback.skills,
-      ),
-      projects: orFallback(mapProjects(data.projects), fallback.projects),
-      experience: orFallback(
-        data.experience.map((e) => ({ ...e, highlights: clean(e.highlights), techStack: clean(e.techStack) })),
-        fallback.experience,
-      ),
-      credentials: orFallback(mapCredentials(data.profile), fallback.credentials),
-      source: "sanity",
-    };
-  } catch (err) {
-    console.error("[portfolio] Sanity fetch failed, serving fallback content:", err);
-    return { ...fallback, source: "fallback" };
+  if (!sanityClient) {
+    throw new Error("Sanity is not configured: set NEXT_PUBLIC_SANITY_PROJECT_ID (and SANITY_API_TOKEN) in .env.local");
   }
+
+  const data = await sanityClient.fetch<SanityResult>(
+    PORTFOLIO_QUERY,
+    {},
+    { next: { revalidate: REVALIDATE_SECONDS, tags: [PORTFOLIO_TAG] } },
+  );
+
+  return {
+    settings: mapSettings(data.profile),
+    metrics: mapMetrics(data.profile),
+    skills: data.skills.map((g) => ({ ...g, skills: clean(g.skills) })).filter((g) => g.skills.length),
+    projects: mapProjects(data.projects),
+    experience: data.experience.map((e) => ({ ...e, highlights: clean(e.highlights), techStack: clean(e.techStack) })),
+    credentials: mapCredentials(data.profile),
+  };
 }

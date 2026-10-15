@@ -68,7 +68,7 @@ export function PortfolioShell({ data }: { data: Portfolio }) {
 
   return (
     <HudContext.Provider value={actions}>
-      <BootSequence name={data.settings.name} source={data.source} />
+      <BootSequence name={data.settings.name} />
       <BackgroundFX />
       <TopBar />
       <main className="relative z-10">

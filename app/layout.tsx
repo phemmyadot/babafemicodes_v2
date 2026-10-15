@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Chakra_Petch, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import { BOOT_PREPAINT_SCRIPT } from "@/lib/boot";
+import { SITE_DOMAIN } from "@/lib/site";
 import "./globals.css";
 
 const display = Chakra_Petch({
@@ -19,16 +20,8 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
-export const metadata: Metadata = {
-  title: "Babafemi Adojutelegan — Senior Software Engineer",
-  description:
-    "Senior Software Engineer specializing in React Native, React, TypeScript and cloud systems architecture. Offline-first mobile, BLE healthcare integrations, and enterprise component libraries.",
-  openGraph: {
-    title: "Babafemi Adojutelegan — Senior Software Engineer",
-    description: "Mobile & Full-Stack Systems Architecture. 8+ years shipping React Native, React and cloud systems.",
-    type: "website",
-  },
-};
+// Page-specific title/description come from Sanity via generateMetadata in app/page.tsx.
+export const metadata: Metadata = { title: SITE_DOMAIN };
 
 export const viewport: Viewport = {
   themeColor: "#07080a",

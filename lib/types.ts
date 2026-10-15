@@ -89,6 +89,4 @@ export interface Portfolio {
   projects: Project[];
   experience: Experience[];
   credentials: Credential[];
-  /** Where the data came from — surfaced in the HUD status bar. */
-  source: "sanity" | "fallback";
 }

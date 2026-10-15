@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import { ArrowUpRight, Award, GraduationCap } from "lucide-react";
-import { useHud } from "../hud-context";
+import { hasSection, useHud } from "../hud-context";
 import { Panel } from "../ui/Panel";
 import { SectionHeader } from "../ui/SectionHeader";
 
 export function Credentials() {
   const { data } = useHud();
+  if (!hasSection(data, "credentials")) return null;
 
   return (
     <section id="credentials" className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-20">

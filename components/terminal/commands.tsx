@@ -104,7 +104,7 @@ export const COMMANDS: Record<string, Command> = {
           SYSTEM STATUS: <G>ALL SYSTEMS OPERATIONAL</G>
         </div>
         <div>
-          content source: <C>{data.source === "sanity" ? "sanity cms (live)" : "local cache (fallback)"}</C>
+          content source: <C>sanity cms (live)</C>
         </div>
         <Head>telemetry</Head>
         {data.metrics.map((m) => (

@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, SquareTerminal, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
-import { SECTIONS, useHud, type SectionId } from "../hud-context";
+import { SITE_NAME, SITE_TLD } from "@/lib/site";
+import { hasSection, SECTIONS, useHud, type SectionId } from "../hud-context";
 import { StatusDot } from "../ui/StatusDot";
 
 function useUtcClock() {
@@ -51,7 +52,7 @@ export function TopBar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const nav = SECTIONS.filter((s) => s.id !== "operator");
+  const nav = SECTIONS.filter((s) => s.id !== "operator" && hasSection(data, s.id));
 
   return (
     <header
@@ -68,7 +69,7 @@ export function TopBar() {
             <span className="text-phosphor">System status:</span> all systems operational
           </span>
           <span className="flex items-center gap-6">
-            <span>SRC: {data.source === "sanity" ? "SANITY/LIVE" : "LOCAL/CACHE"}</span>
+            <span>SRC: SANITY/LIVE</span>
             <span>
               UTC <span className="text-cyan-neon tabular-nums">{clock}</span>
             </span>
@@ -87,7 +88,7 @@ export function TopBar() {
             BA
           </span>
           <span className="hidden font-mono text-xs uppercase tracking-[0.2em] text-white sm:block">
-            babafemicodes<span className="text-cyan-neon">.dev</span>
+            {SITE_NAME}<span className="text-cyan-neon">{SITE_TLD}</span>
           </span>
         </button>
 

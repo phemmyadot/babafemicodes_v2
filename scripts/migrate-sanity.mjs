@@ -38,7 +38,7 @@ const client = createClient({
   useCdn: false,
 });
 
-const seed = JSON.parse(readFileSync(new URL("../content/portfolio.json", import.meta.url), "utf8"));
+const seed = JSON.parse(readFileSync(new URL("./data/brief-content.json", import.meta.url), "utf8"));
 
 const key = (prefix, i) => `${prefix}${i}`.padEnd(12, "0").slice(0, 12);
 const blocks = (paragraphs, prefix) =>

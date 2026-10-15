@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
-import { useHud } from "../hud-context";
+import { hasSection, useHud } from "../hud-context";
 import { Panel } from "../ui/Panel";
 import { SectionHeader } from "../ui/SectionHeader";
 import { Sparkline } from "../ui/Sparkline";
@@ -13,6 +13,7 @@ const COLORS = ["#00f0ff", "#00ff66", "#00f0ff", "#ffb000"];
 export function TelemetryBar() {
   const { data } = useHud();
   const ticker = data.skills.flatMap((g) => g.skills);
+  if (!hasSection(data, "telemetry")) return null;
 
   return (
     <section id="telemetry" className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-20">
@@ -22,7 +23,7 @@ export function TelemetryBar() {
         title="Live Metrics"
         meta={
           <span className="inline-flex items-center gap-2">
-            <StatusDot /> stream: {data.source === "sanity" ? "sanity cms" : "local cache"} · {data.metrics.length} channels
+            <StatusDot /> stream: sanity cms · {data.metrics.length} channels
           </span>
         }
       />

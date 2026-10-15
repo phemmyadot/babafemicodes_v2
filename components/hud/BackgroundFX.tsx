@@ -36,7 +36,7 @@ export function BackgroundFX() {
         <span ref={coordRef}>X:0000  Y:00000</span>
       </div>
       <div className="absolute bottom-6 right-8 hidden font-mono text-[10px] tracking-[0.3em] text-cyan-neon/30 xl:block [writing-mode:vertical-rl]">
-        GRID-REF 08.YRS // SECTOR MOBILE-FULLSTACK
+        GRID-REF 00.00 // SECTOR HUD
       </div>
     </div>
   );

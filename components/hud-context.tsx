@@ -15,6 +15,24 @@ export const SECTIONS = [
 
 export type SectionId = (typeof SECTIONS)[number]["id"];
 
+/** Sections with nothing in Sanity are hidden (and dropped from the nav) rather than filled. */
+export function hasSection(data: Portfolio, id: SectionId) {
+  switch (id) {
+    case "telemetry":
+      return data.metrics.length > 0;
+    case "systems":
+      return data.projects.length > 0;
+    case "arsenal":
+      return data.skills.length > 0;
+    case "log":
+      return data.experience.length > 0;
+    case "credentials":
+      return data.credentials.length > 0;
+    default:
+      return true;
+  }
+}
+
 export interface HudActions {
   data: Portfolio;
   terminalOpen: boolean;
