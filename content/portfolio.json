@@ -1,0 +1,298 @@
+{
+  "settings": {
+    "name": "Babafemi Adojutelegan",
+    "title": "Senior Software Engineer | Mobile & Full-Stack Systems Architecture",
+    "titles": [
+      "Senior Software Engineer",
+      "Senior Mobile Developer",
+      "Full Stack Engineer",
+      "React Native Specialist",
+      "AWS Certified Solutions Architect"
+    ],
+    "tagline": "Engineering Experiences. Shipping Solutions.",
+    "bio": [
+      "Delivering high-performance React Native and React applications across enterprise and healthcare domains. Expert in offline-first architecture, complex BLE integrations, and high-scale component libraries."
+    ],
+    "location": "United States",
+    "workStatus": "US Permanent Resident",
+    "openToWork": true,
+    "email": "babafemiadojutelegan@gmail.com",
+    "phone": "7736412696",
+    "githubUrl": "https://github.com/phemmyadot",
+    "linkedinUrl": "https://www.linkedin.com/in/badojutelegan/",
+    "blogUrl": "https://blogs.babafemicodes.dev/",
+    "resumeUrl": "/resume.pdf"
+  },
+  "metrics": [
+    {
+      "value": "8+",
+      "unit": "YRS",
+      "label": "Engineering Experience",
+      "detail": "Mobile, web & cloud systems",
+      "signal": "rising"
+    },
+    {
+      "value": "10+",
+      "unit": "APPS",
+      "label": "Powered by Shared Component Library",
+      "detail": "Adopted by 10 engineering teams",
+      "signal": "steady"
+    },
+    {
+      "value": "< 2",
+      "unit": "MIN",
+      "label": "Document Review via RAG Pipeline",
+      "detail": "Per 1,000+ pages, down from hours",
+      "signal": "spiky"
+    },
+    {
+      "value": "MULTI",
+      "unit": "APP",
+      "label": "Enterprise Scale",
+      "detail": "ExxonMobil · Telus Digital · Rhaeos",
+      "signal": "wave"
+    }
+  ],
+  "projects": [
+    {
+      "title": "RAG Document Assistant & Chat Interface",
+      "slug": "rag-document-assistant",
+      "client": "Telus Digital",
+      "role": "Senior Software Engineer",
+      "domain": "AI",
+      "featured": true,
+      "summary": "React Native / Electron chat interfaces and a source-validation viewer for a retrieval-augmented generation pipeline, cutting document review from hours to under 2 minutes per 1,000+ pages.",
+      "metrics": [
+        "Review time: hours → < 2 min",
+        "1,000+ pages per review",
+        "Cross-platform: mobile + desktop"
+      ],
+      "techStack": [
+        "React Native",
+        "Electron",
+        "TypeScript",
+        "React"
+      ],
+      "body": [
+        "Built the client surface for a retrieval-augmented generation (RAG) document assistant: conversational chat interfaces shipped on React Native and Electron, backed by a source-validation viewer that lets reviewers jump from an answer straight to the passage it was grounded in.",
+        "The result turned a multi-hour manual review process into a guided, verifiable workflow — under 2 minutes per 1,000+ pages."
+      ],
+      "links": []
+    },
+    {
+      "title": "Enterprise Shared Component Library",
+      "slug": "enterprise-component-library",
+      "client": "Telus Digital",
+      "role": "Architect",
+      "domain": "Platform",
+      "featured": true,
+      "summary": "Architected a shared React Native component library from Figma designs, adopted by 10+ production apps and 10 engineering teams.",
+      "metrics": [
+        "10+ production apps",
+        "10 engineering teams",
+        "Figma → code parity"
+      ],
+      "techStack": [
+        "React Native",
+        "TypeScript",
+        "React Native Reanimated",
+        "Jest"
+      ],
+      "body": [
+        "Translated a Figma design system into a typed, themeable React Native component library that became the shared UI foundation across the organisation.",
+        "Adoption spread to 10+ production apps and 10 engineering teams, unifying visual language and removing duplicated UI work across product lines."
+      ],
+      "links": []
+    },
+    {
+      "title": "Offline-First Secure Mobile Core",
+      "slug": "offline-first-mobile-core",
+      "client": "Telus Digital",
+      "role": "Senior Software Engineer",
+      "domain": "Mobile",
+      "featured": true,
+      "summary": "Network-resilient mobile architecture featuring encrypted SQLite, biometric auth, and centralized state management to prevent data loss.",
+      "metrics": [
+        "Zero data loss on network drop",
+        "Encrypted at rest",
+        "Biometric auth"
+      ],
+      "techStack": [
+        "React Native",
+        "TypeScript",
+        "Redux",
+        "TanStack Query"
+      ],
+      "body": [
+        "Designed an offline-first core for field-ready mobile apps: an encrypted SQLite persistence layer, biometric authentication, and centralized state management that keeps work safe through flaky or absent connectivity.",
+        "The architecture treats the network as optional, so user data is never lost between sync windows."
+      ],
+      "links": []
+    },
+    {
+      "title": "BLE Healthcare Monitoring Platform",
+      "slug": "ble-healthcare-monitoring",
+      "client": "Rhaeos",
+      "role": "Software Engineer",
+      "domain": "Healthcare",
+      "featured": true,
+      "summary": "Patient- and CRA-facing iOS apps interfacing with medical hardware over Bluetooth LE, with Secure Connections and custom Swift native modules for HIPAA compliance.",
+      "metrics": [
+        "BLE Secure Connections",
+        "HIPAA-compliant data path",
+        "Custom Swift native modules"
+      ],
+      "techStack": [
+        "React Native",
+        "Swift",
+        "TypeScript",
+        "Sentry"
+      ],
+      "body": [
+        "Engineered patient-facing and clinical research associate (CRA)-facing iOS applications that communicate with medical monitoring hardware over Bluetooth Low Energy.",
+        "Implemented BLE Secure Connections pairing and wrote custom Swift native modules bridged into React Native to meet HIPAA requirements end to end."
+      ],
+      "links": []
+    },
+    {
+      "title": "Serverless Telemedicine Platform",
+      "slug": "serverless-telemedicine",
+      "client": "Eminent Technology",
+      "role": "Software Engineer",
+      "domain": "Cloud",
+      "featured": true,
+      "summary": "A serverless React Native telehealth ecosystem with real-time patient/provider scheduling and clinical workflows.",
+      "metrics": [
+        "Real-time scheduling",
+        "Serverless backend",
+        "Patient + provider apps"
+      ],
+      "techStack": [
+        "React Native",
+        "AWS Lambda",
+        "AWS API Gateway",
+        "AWS Cognito",
+        "Node.js"
+      ],
+      "body": [
+        "Engineered a serverless telehealth ecosystem with React Native clients and an AWS backend, supporting real-time scheduling between patients and providers and the workflows around each visit."
+      ],
+      "links": []
+    }
+  ],
+  "experience": [
+    {
+      "company": "Telus Digital",
+      "role": "Senior Software Engineer",
+      "startDate": "2024-10-21",
+      "current": true,
+      "highlights": [
+        "Architected modular, high-performance frontend systems within a shared monorepo, accelerating feature delivery by 40% and enabling code reuse across 5+ production applications",
+        "Engineered AI-powered chat interface with custom animated Markdown renderer and real-time streaming optimization, reducing latency by 60ms and improving user experience for 100K+ users",
+        "Collaborated with cross-functional AI and Product teams to architect and integrate complex WebSocket APIs into production mobile application, ensuring reliable message delivery under varying network conditions",
+        "Managed high-integrity release cycles by configuring Azure CI/CD pipelines to TestFlight, monitoring stability via App Insights and Crashlytics to maintain 99.9% uptime across secure application deployments",
+        "Implemented robust authentication suite utilizing OAuth and Multi-Factor Authentication (MFA) integrated with Biometric (FaceID/TouchID) protocols, securing access for 50K+ enterprise users handling sensitive data"
+      ],
+      "techStack": []
+    },
+    {
+      "company": "Rhaeos",
+      "role": "Mobile Application Developer",
+      "startDate": "2023-07-03",
+      "endDate": "2024-06-03",
+      "current": false,
+      "highlights": [
+        "Designed and implemented secure End-to-End Encryption protocol between mobile apps and hardware devices, ensuring data integrity and strict user privacy for medical-grade applications",
+        "Integrated BLE hardware with React Native mobile applications for high-reliability real-time data collection, enabling historical data visualization for 10K+ medical professionals",
+        "Built serverless data-processing pipelines using AWS Lambda and API Gateway to manage high-volume data streams processing 1M+ events daily for downstream analytics",
+        "Developed comprehensive E2E testing strategies using Detox and Jest with 85% code coverage, proactively identifying defects and reducing production bugs by 45% for mission-critical medical software",
+        "Optimized offline-first architecture with local data persistence, enabling uninterrupted workflows in low-connectivity environments and reducing data loss by 99%"
+      ],
+      "techStack": []
+    },
+    {
+      "company": "Eminent Technology",
+      "role": "Full Stack Developer",
+      "startDate": "2019-01-01",
+      "endDate": "2023-07-01",
+      "current": false,
+      "highlights": [
+        "Developed scalable microservice architectures using Node.js and REST APIs to streamline complex order placement workflows, improving operational efficiency by 35% and handling 500K+ transactions monthly",
+        "Built React Native mobile applications featuring robust background synchronization and real-time push notifications using WebSocket connections, ensuring uninterrupted workflows in low-connectivity environments",
+        "Architected cloud migration strategies and automated CI/CD pipelines in Azure DevOps with GitHub Actions, improving system uptime to 99.8% and reducing deployment time by 70%",
+        "Implemented state management solutions using Redux for complex data flows, reducing app crashes by 60% and improving startup time by 2.5 seconds",
+        "Mentored 3 junior developers on mobile architecture, React Native best practices, and debugging tools including, accelerating team velocity by 25%"
+      ],
+      "techStack": []
+    }
+  ],
+  "credentials": [
+    {
+      "title": "AWS Certified Solutions Architect – Associate",
+      "kind": "certification",
+      "issuer": "Amazon Web Services",
+      "code": "SAA-C03",
+      "verifyUrl": "https://www.credly.com/badges/7e115afe-7927-445e-bdf1-d8b8f7f88849/linked_in_profile"
+    },
+    {
+      "title": "Microsoft Certified: Azure AI Cloud Developer Associate",
+      "kind": "certification",
+      "issuer": "Microsoft",
+      "code": "AI-200",
+      "verifyUrl": "https://learn.microsoft.com/en-us/users/babafemiadojutelegan-1320/credentials/86e7517a157740b5"
+    },
+    {
+      "title": "BSc. Information Technology",
+      "kind": "education",
+      "issuer": "Accra Institute of Technology",
+      "year": "2019"
+    }
+  ],
+  "skills": [
+    {
+      "title": "Mobile & Frontend",
+      "skills": [
+        "React Native",
+        "Expo",
+        "React",
+        "Next.js",
+        "TypeScript",
+        "JavaScript",
+        "Swift",
+        "Redux",
+        "Zustand",
+        "TanStack Query",
+        "React Native Reanimated",
+        "Electron"
+      ]
+    },
+    {
+      "title": "Backend & Cloud",
+      "skills": [
+        "Node.js",
+        "Express.js",
+        "AWS Lambda",
+        "AWS S3",
+        "AWS Cognito",
+        "AWS API Gateway",
+        "Azure",
+        "Firebase",
+        "Docker",
+        "Kubernetes"
+      ]
+    },
+    {
+      "title": "Observability & Testing",
+      "skills": [
+        "Datadog",
+        "Sentry",
+        "Grafana",
+        "Azure Application Insights",
+        "Jest",
+        "Detox",
+        "Maestro",
+        "Cypress"
+      ]
+    }
+  ]
+}

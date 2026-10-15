@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-obsidian font-sans text-fog-light antialiased;
+  }
+  /* Hidden unless the pre-paint script opted in, so no-JS visitors never get stuck behind it. */
+  html:not([data-boot="run"]) .boot-overlay {
+    display: none;
+  }
+  ::selection {
+    background: rgba(0, 240, 255, 0.3);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 1px solid #00f0ff;
+    outline-offset: 3px;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #07080a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1b2027;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+  }
+}
+
+@layer components {
+  /* Chamfered panel: sharp cut corners top-left / bottom-right */
+  .panel {
+    @apply relative border border-line bg-obsidian-900/80 backdrop-blur-sm;
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+  .chamfer-sm {
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+  .label {
+    @apply font-mono text-[10px] uppercase tracking-[0.28em] text-fog;
+  }
+  .glow-text-cyan {
+    text-shadow: 0 0 18px rgba(0, 240, 255, 0.55);
+  }
+  .glow-text-green {
+    text-shadow: 0 0 14px rgba(0, 255, 102, 0.6);
+  }
+}
+
+@layer utilities {
+  .bg-hud-grid {
+    background-image:
+      linear-gradient(rgba(0, 240, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.045) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .bg-scanlines {
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.018) 0,
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  .mask-fade-b {
+    mask-image: linear-gradient(to bottom, #000 60%, transparent);
+  }
+  .mask-fade-x {
+    mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
