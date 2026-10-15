@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Chakra_Petch, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import { BOOT_PREPAINT_SCRIPT } from "@/lib/boot";
-import { SITE_DOMAIN } from "@/lib/site";
+import { SITE_DOMAIN, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const display = Chakra_Petch({
@@ -21,7 +21,11 @@ const mono = JetBrains_Mono({
 });
 
 // Page-specific title/description come from Sanity via generateMetadata in app/page.tsx.
-export const metadata: Metadata = { title: SITE_DOMAIN };
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: SITE_DOMAIN,
+  alternates: { canonical: "/" },
+};
 
 export const viewport: Viewport = {
   themeColor: "#07080a",

@@ -52,6 +52,23 @@ You need an **Editor** token in `SANITY_API_WRITE_TOKEN`. The existing `SANITY_A
 In Sanity → API → Webhooks, add `POST https://<domain>/api/revalidate` with the header
 `x-revalidate-secret: <SANITY_REVALIDATE_SECRET>`.
 
+## Deploy (babafemicodes.dev)
+
+The site and Studio deploy together to Netlify, set up the same way as the original site (`netlify.toml`):
+
+- Site: https://babafemicodes.dev
+- Studio: https://babafemicodes.dev/studio (excluded in `robots.txt`)
+
+1. **Netlify environment variables:** `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET=production`,
+   `SANITY_API_TOKEN`, and `SANITY_REVALIDATE_SECRET` (the value in `.env.local`).
+2. **Sanity CORS origins** (sanity.io/manage → API): `https://babafemicodes.dev` with credentials.
+   The old Studio already ran on this origin, so it is probably set already. Add `http://localhost:3001` for local Studio use.
+3. **Sanity webhook:** `POST https://babafemicodes.dev/api/revalidate`, header
+   `x-revalidate-secret: <SANITY_REVALIDATE_SECRET>`, triggered on create/update/delete. Without it,
+   edits take up to an hour to appear.
+
+The domain is set in one place, `lib/site.ts`. The canonical URL, the sitemap, `robots.txt`, the top bar and the terminal prompt all read it from there.
+
 ## Structure
 
 ```
