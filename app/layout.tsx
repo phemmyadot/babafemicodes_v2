@@ -1,5 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Chakra_Petch, IBM_Plex_Sans, Inter, JetBrains_Mono } from "next/font/google";
+import {
+  Bricolage_Grotesque,
+  Chakra_Petch,
+  IBM_Plex_Sans,
+  Instrument_Serif,
+  Inter,
+  JetBrains_Mono,
+} from "next/font/google";
 import { BOOT_PREPAINT_SCRIPT } from "@/lib/boot";
 import { SITE_DOMAIN, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -24,6 +31,16 @@ const kineticBody = Inter({
   weight: ["400", "500", "600"],
   variable: "--font-inter",
 });
+const electricDisplay = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+});
+const electricSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
+});
 
 // Page-specific title/description for the Classic edition come from Sanity via generateMetadata in app/classic/page.tsx.
 export const metadata: Metadata = {
@@ -41,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${display.variable} ${sans.variable} ${mono.variable} ${kineticBody.variable}`}
+      className={`${display.variable} ${sans.variable} ${mono.variable} ${kineticBody.variable} ${electricDisplay.variable} ${electricSerif.variable}`}
       suppressHydrationWarning
     >
       <head>

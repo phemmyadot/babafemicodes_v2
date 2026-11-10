@@ -702,6 +702,7 @@ export function SiteFooter() {
       <div className="wrap footer-inner">
         <span>© 2026 Babafemi Adojutelegan · Kinetic edition</span>
         <div className="footer-links">
+          <a href="/">Electric edition</a>
           <a href="/classic">Classic edition</a>
           <a href="#mission">Back to top</a>
         </div>

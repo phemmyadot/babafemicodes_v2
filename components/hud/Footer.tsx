@@ -12,7 +12,12 @@ export function Footer() {
           © {year} {data.settings.name}
         </span>
         <span className="flex flex-wrap gap-x-4 gap-y-1">
-          <span>next.js · sanity · framer motion</span>
+          <a href="/" className="transition-colors hover:text-white">
+            electric edition
+          </a>
+          <a href="/kinetic" className="transition-colors hover:text-white">
+            kinetic edition
+          </a>
           <span className="text-cyan-neon/60">press ` for terminal</span>
         </span>
       </div>

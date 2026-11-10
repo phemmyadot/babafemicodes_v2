@@ -69,6 +69,14 @@ export function TopBar() {
             <span className="text-phosphor">System status:</span> all systems operational
           </span>
           <span className="flex items-center gap-6">
+            <span className="hidden items-center gap-4 xl:flex">
+              <a href="/" className="transition-colors hover:text-white">
+                Electric edition
+              </a>
+              <a href="/kinetic" className="transition-colors hover:text-white">
+                Kinetic edition
+              </a>
+            </span>
             <span>SRC: SANITY/LIVE</span>
             <span>
               UTC <span className="text-cyan-neon tabular-nums">{clock}</span>
@@ -161,6 +169,14 @@ export function TopBar() {
                   {s.label}
                 </button>
               ))}
+            </div>
+            <div className="flex items-center gap-4 border-t border-line/60 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fog">
+              <a href="/" className="transition-colors hover:text-white">
+                Electric edition
+              </a>
+              <a href="/kinetic" className="transition-colors hover:text-white">
+                Kinetic edition
+              </a>
             </div>
             <div className="flex items-center justify-between px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fog">
               <span className="flex items-center gap-2">

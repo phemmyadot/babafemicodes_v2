@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { KineticPortfolio } from "@/components/kinetic/KineticPortfolio";
-import "./kinetic.css";
+import { ElectricPortfolio } from "@/components/electric/ElectricPortfolio";
+import "./electric.css";
 
-const title = "Babafemi Adojutelegan — Kinetic Edition";
+const title = "Babafemi Adojutelegan — Electric Editorial";
 const description =
-  "Kinetic edition portfolio of Babafemi Adojutelegan, a senior frontend and mobile engineer in Chicago working in React Native, React, Next.js, and design systems.";
+  "Electric Editorial: the bright, maximalist portfolio of Babafemi Adojutelegan, a senior frontend and mobile engineer in Chicago working in React Native, React, Next.js, and design systems.";
 
 export const metadata: Metadata = {
   title,
@@ -14,10 +14,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#04060A",
-  colorScheme: "dark",
+  themeColor: "#2B3BFF",
+  colorScheme: "light",
 };
 
 export default function HomePage() {
-  return <KineticPortfolio />;
+  return <ElectricPortfolio />;
 }

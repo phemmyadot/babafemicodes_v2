@@ -30,6 +30,10 @@ export function TopBar() {
           <span className="sys">
             <i aria-hidden="true" /> SYS Online
           </span>
+          <a className="version-link" href="/">
+            <ArrowRight size={12} />
+            <span>Electric</span>
+          </a>
           <a className="version-link" href="/classic">
             <ArrowRight size={12} />
             <span>Classic</span>
@@ -68,6 +72,9 @@ export function Drawer() {
         <a className="btn btn-primary" href={CONTACT.resume} download data-resume>
           <Download />
           Download Audited Resume (PDF)
+        </a>
+        <a className="btn btn-ghost" href="/">
+          View Electric Edition
         </a>
         <a className="btn btn-ghost" href="/classic">
           View Classic Edition
