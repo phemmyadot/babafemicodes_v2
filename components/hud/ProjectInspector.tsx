@@ -46,7 +46,7 @@ export function ProjectInspector({ project, onClose }: { project: Project | null
           {p.metrics.length > 0 && (
             <div className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-3">
               {p.metrics.map((m, i) => (
-                <div key={m} className="bg-obsidian-900 p-4">
+                <div key={`${m}-${i}`} className="bg-obsidian-900 p-4">
                   <div className="label mb-2">kpi-{String(i + 1).padStart(2, "0")}</div>
                   <div className="font-mono text-sm text-phosphor glow-text-green">{m}</div>
                 </div>
@@ -65,8 +65,8 @@ export function ProjectInspector({ project, onClose }: { project: Project | null
             <section className="mt-8">
               <h3 className="label mb-3 text-cyan-neon">// stack</h3>
               <div className="flex flex-wrap gap-2">
-                {p.techStack.map((t) => (
-                  <span key={t} className="chamfer-sm border border-cyan-neon/30 bg-cyan-neon/5 px-3 py-1.5 font-mono text-xs text-cyan-neon">
+                {p.techStack.map((t, ti) => (
+                  <span key={`${t}-${ti}`} className="chamfer-sm border border-cyan-neon/30 bg-cyan-neon/5 px-3 py-1.5 font-mono text-xs text-cyan-neon">
                     {t}
                   </span>
                 ))}

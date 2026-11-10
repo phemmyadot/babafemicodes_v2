@@ -77,7 +77,7 @@ export function Arsenal() {
                   <ul className="flex flex-wrap gap-2">
                     {group.skills.map((name, i) => (
                       <motion.li
-                        key={name}
+                        key={`${name}-${i}`}
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}

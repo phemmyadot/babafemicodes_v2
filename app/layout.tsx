@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Chakra_Petch, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { Chakra_Petch, IBM_Plex_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import { BOOT_PREPAINT_SCRIPT } from "@/lib/boot";
 import { SITE_DOMAIN, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -19,8 +19,13 @@ const mono = JetBrains_Mono({
   weight: ["400", "500", "700"],
   variable: "--font-mono",
 });
+const kineticBody = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+});
 
-// Page-specific title/description come from Sanity via generateMetadata in app/page.tsx.
+// Page-specific title/description for the Classic edition come from Sanity via generateMetadata in app/classic/page.tsx.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_DOMAIN,
@@ -28,13 +33,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07080a",
+  themeColor: "#04060A",
   colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${mono.variable} ${kineticBody.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: BOOT_PREPAINT_SCRIPT }} />
       </head>

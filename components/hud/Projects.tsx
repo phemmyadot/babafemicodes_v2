@@ -42,8 +42,8 @@ function ProjectCard({ project, index, wide }: { project: Project; index: number
 
         {project.metrics.length > 0 && (
           <ul className="mt-5 space-y-1.5">
-            {project.metrics.slice(0, wide ? 3 : 2).map((m) => (
-              <li key={m} className="flex items-start gap-2 font-mono text-xs text-phosphor">
+            {project.metrics.slice(0, wide ? 3 : 2).map((m, mi) => (
+              <li key={`${m}-${mi}`} className="flex items-start gap-2 font-mono text-xs text-phosphor">
                 <span className="mt-[3px] text-phosphor/60">▸</span>
                 {m}
               </li>
@@ -54,8 +54,8 @@ function ProjectCard({ project, index, wide }: { project: Project; index: number
         <div className="mt-auto pt-6">
           {project.techStack.length > 0 && (
             <div className="mb-5 flex flex-wrap gap-1.5">
-              {project.techStack.slice(0, wide ? 6 : 4).map((t) => (
-                <span key={t} className="border border-white/10 bg-white/[0.03] px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-fog-light">
+              {project.techStack.slice(0, wide ? 6 : 4).map((t, ti) => (
+                <span key={`${t}-${ti}`} className="border border-white/10 bg-white/[0.03] px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-fog-light">
                   {t}
                 </span>
               ))}

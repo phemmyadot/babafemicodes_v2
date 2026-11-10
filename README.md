@@ -1,19 +1,32 @@
 # babafemicodes.dev
 
 Portfolio for Babafemi Adojutelegan: Next.js 16 (App Router) + Sanity CMS + Tailwind + Framer Motion.
-It has a HUD-style graphical interface and a terminal mode (open it with `` ` ``, `Ctrl/⌘+K`, or the **CLI** button).
+
+There are two editions of the site:
+
+| Route      | Edition | Content | Notes |
+| ---------- | ------- | ------- | ----- |
+| `/`        | **Kinetic** | Static, in `components/kinetic/content.ts` | Dark starfield, radar HUD, case-study dialogs, drawer, copy-to-clipboard, resume download. |
+| `/classic` | **Classic** | Sanity (`dishu3ld` / `production`) | HUD-style graphical interface and a terminal mode (open it with `` ` ``, `Ctrl/⌘+K`, or the **CLI** button). |
+
+The Kinetic footer and top bar link to `/classic`; the Classic edition is otherwise unchanged.
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev        # http://localhost:3000 (Kinetic), /classic (HUD)
 ```
 
-All content comes from Sanity. The site has no local copy of the content: an empty field stays empty, and an empty section is hidden along with its nav tab. If Sanity can't be reached, the page errors, and Next keeps serving the last good version while it retries.
+The Kinetic edition's copy lives in `components/kinetic/content.ts`; update it there. Contact details
+(email, phone, socials) and the resume link are also defined in that file.
 
-## Content flow
+All **Classic** content comes from Sanity. That edition has no local copy of the content: an empty field
+stays empty, and an empty section is hidden along with its nav tab. If Sanity can't be reached, the page
+errors, and Next keeps serving the last good version while it retries.
+
+## Content flow (Classic)
 
 ```
-Sanity (babafemicodes_v2 · dishu3ld / production) ──GROQ (one query)──▶ lib/portfolio.ts ──▶ app/page.tsx (Server Component, ISR 1h)
+Sanity (babafemicodes_v2 · dishu3ld / production) ──GROQ (one query)──▶ lib/portfolio.ts ──▶ app/classic/page.tsx (Server Component, ISR 1h)
 ```
 
 Content lives in its own Sanity project, **babafemicodes_v2 (`dishu3ld`)**. Its content was copied from the original
@@ -71,15 +84,20 @@ The domain is set in one place, `lib/site.ts`. The canonical URL, the sitemap, `
 ## Structure
 
 ```
-app/                 layout (fonts, pre-paint boot script), page (Server Component), api/revalidate
+app/                 layout (fonts, pre-paint boot script), api/revalidate
+  page.tsx           Kinetic edition (static, client-side interactions)
+  classic/page.tsx   Classic HUD edition (Sanity, Server Component)
+  kinetic.css        Kinetic design CSS, scoped under .kinetic
 components/
-  PortfolioShell     client root: shared state for the terminal, contact modal and project inspector
-  hud/               the page sections: Hero, TelemetryBar, Projects, ProjectInspector, Arsenal, ServiceLog, Credentials, Uplink, ContactModal, …
+  kinetic/           Kinetic page: content, icons, sections, chrome (top bar, drawer, dialogs), client root
+  PortfolioShell     Classic client root: shared state for the terminal, contact modal and project inspector
+  hud/               Classic page sections: Hero, TelemetryBar, Projects, ProjectInspector, Arsenal, ServiceLog, Credentials, Uplink, ContactModal, …
   terminal/          Terminal (input/output, history, tab completion) and commands.tsx (command list)
   ui/                building blocks: Panel, Modal, HudButton, DecodeText, Sparkline, PortableBody
 lib/                 types, Sanity client + GROQ query, Sanity → UI mapping (portfolio.ts), site constants
 sanity/schemas/      Studio schemas, sanity.config.ts at root
 scripts/migrate-sanity  adds the brief content to Sanity (dry run by default)
+public/assets/       Babafemi-Adojutelegan-Resume.pdf (Kinetic download)
 ```
 
 To add a terminal command, add an entry to `COMMANDS` in `components/terminal/commands.tsx`. It will show up in `help` and in tab completion automatically.
@@ -87,4 +105,4 @@ To add a terminal command, add an entry to `COMMANDS` in `components/terminal/co
 ## Notes
 
 - The contact form is a **simulation**. After the "transmission" animation, it opens the visitor's email app with a message already filled in, so messages still arrive. To send email directly instead, replace the last step with an API route that uses a provider such as Resend or SES.
-- Accessibility: if the visitor's system asks for reduced motion, the site skips the boot sequence, the text scramble effect and the live charts. The terminal and modals can be used with the keyboard (Esc closes them, and focus goes back to where it was).
+- Accessibility: if the visitor's system asks for reduced motion, both editions skip their motion effects (boot sequence, text scramble, live charts, starfield, cursor, tilt). Dialogs, the mobile drawer and the terminal can be used with the keyboard (Esc closes them, and focus goes back to where it was).

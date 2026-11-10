@@ -1,22 +1,23 @@
-import type { Metadata } from "next";
-import { PortfolioShell } from "@/components/PortfolioShell";
-import { getPortfolio } from "@/lib/portfolio";
+import type { Metadata, Viewport } from "next";
+import { KineticPortfolio } from "@/components/kinetic/KineticPortfolio";
+import "./kinetic.css";
 
-// Must be a literal for Next to read it statically; keep in sync with REVALIDATE_SECONDS.
-export const revalidate = 3600;
+const title = "Babafemi Adojutelegan — Kinetic Edition";
+const description =
+  "Kinetic edition portfolio of Babafemi Adojutelegan, a senior frontend and mobile engineer in Chicago working in React Native, React, Next.js, and design systems.";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const { settings } = await getPortfolio();
-  const title = [settings.name, settings.title.split("|")[0]?.trim()].filter(Boolean).join(" — ");
-  const description = settings.bio[0];
-  return {
-    title,
-    description,
-    openGraph: { title, description, type: "website", images: settings.avatarUrl ? [settings.avatarUrl] : undefined },
-  };
-}
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: "/" },
+  openGraph: { title, description, type: "website" },
+};
 
-export default async function HomePage() {
-  const portfolio = await getPortfolio();
-  return <PortfolioShell data={portfolio} />;
+export const viewport: Viewport = {
+  themeColor: "#04060A",
+  colorScheme: "dark",
+};
+
+export default function HomePage() {
+  return <KineticPortfolio />;
 }

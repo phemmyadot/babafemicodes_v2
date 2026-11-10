@@ -136,8 +136,8 @@ export const COMMANDS: Record<string, Command> = {
             <div key={g.id} className="mb-1">
               <Head>{g.title}</Head>
               <div className="flex flex-wrap gap-x-3">
-                {g.skills.map((name) => (
-                  <span key={name}>
+                {g.skills.map((name, ni) => (
+                  <span key={`${name}-${ni}`}>
                     <G>▪</G> {name}
                   </span>
                 ))}

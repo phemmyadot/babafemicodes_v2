@@ -64,8 +64,8 @@ export function ServiceLog() {
                     </ul>
                     {e.techStack.length > 0 && (
                       <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 border-t border-line pt-3 font-mono text-[11px] uppercase tracking-wider text-fog">
-                        {e.techStack.map((t) => (
-                          <span key={t}>#{t.replace(/\s+/g, "")}</span>
+                        {e.techStack.map((t, ti) => (
+                          <span key={`${t}-${ti}`}>#{t.replace(/\s+/g, "")}</span>
                         ))}
                       </div>
                     )}
