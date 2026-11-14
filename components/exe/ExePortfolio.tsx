@@ -522,7 +522,7 @@ export function ExePortfolio() {
       <footer className="x-foot">
         <span>© 2026 Babafemi Adojutelegan · Arcade Edition</span>
         <span>
-          {otherEditions("/exe").map((e, i) => (
+          {otherEditions("/").map((e, i) => (
             <span key={e.href}>
               {i > 0 && " · "}
               <a href={e.href}>{e.name} edition</a>

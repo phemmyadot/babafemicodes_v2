@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { ElectricPortfolio } from "@/components/electric/ElectricPortfolio";
-import "./electric.css";
+import { ExePortfolio } from "@/components/exe/ExePortfolio";
+import { EXE_SESSION_KEY, EXE_SKIP_KEY } from "@/components/exe/data";
+import "./exe.css";
 
-const title = "Babafemi Adojutelegan — Electric Editorial";
+const title = "Babafemi Adojutelegan — Arcade Edition";
 const description =
-  "Electric Editorial: the bright, maximalist portfolio of Babafemi Adojutelegan, a senior frontend and mobile engineer in Chicago working in React Native, React, Next.js, and design systems.";
+  "BABAFEMI.exe: a game-inspired portfolio of Babafemi Adojutelegan, a senior software engineer in Chicago working in React Native, React, and TypeScript. Missions, skill tree, career log and a developer terminal.";
 
 export const metadata: Metadata = {
   title,
@@ -14,10 +15,18 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2B3BFF",
-  colorScheme: "light",
+  themeColor: "#080D18",
+  colorScheme: "dark",
 };
 
-export default function HomePage() {
-  return <ElectricPortfolio />;
+// Decides before first paint whether the boot overlay shows, so skippers never see it flash.
+const PREPAINT = `try{var s=localStorage.getItem('${EXE_SKIP_KEY}')==='1'||sessionStorage.getItem('${EXE_SESSION_KEY}')==='1'||matchMedia('(prefers-reduced-motion: reduce)').matches;document.documentElement.dataset.exeBoot=s?'skip':'run'}catch(e){document.documentElement.dataset.exeBoot='skip'}`;
+
+export default function ExePage() {
+  return (
+    <>
+      <script dangerouslySetInnerHTML={{ __html: PREPAINT }} />
+      <ExePortfolio />
+    </>
+  );
 }

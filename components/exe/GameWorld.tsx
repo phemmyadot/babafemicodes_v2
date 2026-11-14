@@ -47,25 +47,26 @@ export function Player({ gradId = "plv" }: { gradId?: string }) {
         </linearGradient>
       </defs>
       <ellipse cx="32" cy="97" rx="18" ry="3" fill="rgba(0,0,0,.35)" className="pl-shadow" />
+      {/* Side view: legs share one hip and arms one shoulder; shoes point the way the player faces. */}
       <g className="pl-body">
         <g className="pl-leg pl-leg-b">
-          <rect x="23" y="64" width="9" height="26" rx="4" fill="#2a1f5c" />
-          <rect x="19" y="86" width="15" height="8" rx="4" fill="#43D5FF" />
+          <rect x="27" y="64" width="9" height="26" rx="4" fill="#3a2d7a" stroke="#160d33" strokeWidth="1.2" />
+          <rect x="26" y="86" width="16" height="8" rx="4" fill="#FF4FD8" stroke="#160d33" strokeWidth="1.2" />
         </g>
         <g className="pl-arm pl-arm-b">
-          <rect x="22" y="40" width="8" height="22" rx="4" fill="#7b4fe0" />
+          <rect x="29" y="40" width="8" height="22" rx="4" fill="#8f66ff" stroke="#160d33" strokeWidth="1" />
         </g>
         <rect x="11" y="38" width="12" height="24" rx="4" fill="#FFD23F" />
         <line x1="15" y1="38" x2="11" y2="26" stroke="#FFD23F" strokeWidth="2" />
         <circle cx="11" cy="25" r="3" fill="#7CFF6B" className="pl-antenna" />
         <g className="pl-leg pl-leg-f">
-          <rect x="32" y="64" width="9" height="26" rx="4" fill="#3a2d7a" />
-          <rect x="31" y="86" width="15" height="8" rx="4" fill="#FF4FD8" />
+          <rect x="31" y="64" width="9" height="26" rx="4" fill="#3a2d7a" stroke="#160d33" strokeWidth="1.2" />
+          <rect x="30" y="86" width="16" height="8" rx="4" fill="#FF4FD8" stroke="#160d33" strokeWidth="1.2" />
         </g>
         <rect x="20" y="36" width="27" height="32" rx="10" fill="#A77BFF" />
         <rect x="20" y="50" width="27" height="4" fill="#FF4FD8" />
         <g className="pl-arm pl-arm-f">
-          <rect x="37" y="40" width="8" height="22" rx="4" fill="#8f66ff" />
+          <rect x="31" y="40" width="8" height="22" rx="4" fill="#8f66ff" stroke="#160d33" strokeWidth="1" />
         </g>
         <circle cx="34" cy="23" r="15" fill="#E8F0FC" />
         <rect x="30" y="16" width="20" height="11" rx="5.5" fill={`url(#${gradId})`} />
@@ -316,21 +317,28 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
         s.scale = Math.max(0.55, Math.min(1.25, vh / STAGE_H, vw / 500));
 
         let dir = Number(s.right) - Number(s.left);
+        let step = dir * WALK * dt;
         if (dir) s.target = null;
         else if (s.target !== null) {
           const d = s.target - s.x;
-          if (Math.abs(d) < 8 || reduce) {
-            s.x = s.target;
+          const max = AUTO_WALK * dt;
+          // Never step past the target: at low frame rates a full step overshot it,
+          // and the player flipped back and forth around it every frame (visible shake).
+          if (Math.abs(d) <= max || reduce) {
+            step = d;
             s.target = null;
             if (s.enter) {
               const e = s.enter;
               s.enter = null;
               go(e);
             }
-          } else dir = Math.sign(d);
+          } else {
+            dir = Math.sign(d);
+            step = dir * max;
+          }
         }
         if (dir) s.facing = dir;
-        s.x = Math.max(40, Math.min(WORLD_W - 40, s.x + dir * (s.target !== null ? AUTO_WALK : WALK) * dt));
+        s.x = Math.max(40, Math.min(WORLD_W - 40, s.x + step));
         s.vy -= 2300 * dt;
         s.y = Math.max(0, s.y + s.vy * dt);
         if (s.y === 0) s.vy = 0;

@@ -87,7 +87,7 @@ export function Drawer() {
         <a className="btn btn-acid" href={CONTACT.resume} download data-resume>
           Resume (PDF)
         </a>
-        {otherEditions("/").map((e) => (
+        {otherEditions("/electric").map((e) => (
           <a key={e.href} className="drawer-link" href={e.href}>
             {e.name} edition
           </a>
@@ -103,7 +103,7 @@ export function SiteFooter() {
       <div className="wrap footer-inner">
         <span>© 2026 Babafemi Adojutelegan · Electric Editorial</span>
         <div className="footer-links">
-          {otherEditions("/").map((e) => (
+          {otherEditions("/electric").map((e) => (
             <a key={e.href} href={e.href}>
               {e.name} edition
             </a>
