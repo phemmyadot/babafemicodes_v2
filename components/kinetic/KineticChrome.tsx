@@ -38,6 +38,10 @@ export function TopBar() {
             <ArrowRight size={12} />
             <span>Classic</span>
           </a>
+          <a className="version-link" href="/exe">
+            <ArrowRight size={12} />
+            <span>Arcade</span>
+          </a>
           <button
             className="menu-btn"
             type="button"
@@ -78,6 +82,9 @@ export function Drawer() {
         </a>
         <a className="btn btn-ghost" href="/classic">
           View Classic Edition
+        </a>
+        <a className="btn btn-ghost" href="/exe">
+          View Arcade Edition
         </a>
       </div>
     </div>

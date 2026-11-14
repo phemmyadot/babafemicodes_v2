@@ -76,6 +76,9 @@ export function TopBar() {
               <a href="/kinetic" className="transition-colors hover:text-white">
                 Kinetic edition
               </a>
+              <a href="/exe" className="transition-colors hover:text-white">
+                Arcade edition
+              </a>
             </span>
             <span>SRC: SANITY/LIVE</span>
             <span>
@@ -176,6 +179,9 @@ export function TopBar() {
               </a>
               <a href="/kinetic" className="transition-colors hover:text-white">
                 Kinetic edition
+              </a>
+              <a href="/exe" className="transition-colors hover:text-white">
+                Arcade edition
               </a>
             </div>
             <div className="flex items-center justify-between px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fog">

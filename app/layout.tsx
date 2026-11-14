@@ -6,6 +6,7 @@ import {
   Instrument_Serif,
   Inter,
   JetBrains_Mono,
+  Space_Grotesk,
 } from "next/font/google";
 import { BOOT_PREPAINT_SCRIPT } from "@/lib/boot";
 import { SITE_DOMAIN, SITE_URL } from "@/lib/site";
@@ -42,6 +43,12 @@ const electricSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
 });
 
+const exeDisplay = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-space",
+});
+
 // Page-specific title/description for the Classic edition come from Sanity via generateMetadata in app/classic/page.tsx.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -58,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${display.variable} ${sans.variable} ${mono.variable} ${kineticBody.variable} ${electricDisplay.variable} ${electricSerif.variable}`}
+      className={`${display.variable} ${sans.variable} ${mono.variable} ${kineticBody.variable} ${electricDisplay.variable} ${electricSerif.variable} ${exeDisplay.variable}`}
       suppressHydrationWarning
     >
       <head>

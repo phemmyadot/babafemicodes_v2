@@ -92,6 +92,9 @@ export function Drawer() {
         <a className="drawer-link" href="/kinetic">
           Kinetic edition
         </a>
+        <a className="drawer-link" href="/exe">
+          Arcade edition
+        </a>
       </div>
     </div>
   );
@@ -105,6 +108,7 @@ export function SiteFooter() {
         <div className="footer-links">
           <a href="/classic">Classic edition</a>
           <a href="/kinetic">Kinetic edition</a>
+          <a href="/exe">Arcade edition</a>
           <a href="#top">Back to top</a>
         </div>
       </div>
