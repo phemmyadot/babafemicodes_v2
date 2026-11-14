@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { SITE_NAME, SITE_TLD } from "@/lib/site";
 import { hasSection, SECTIONS, useHud, type SectionId } from "../hud-context";
 import { StatusDot } from "../ui/StatusDot";
+import { otherEditions } from "@/lib/editions";
 
 function useUtcClock() {
   const [now, setNow] = useState<string>("--:--:--");
@@ -70,15 +71,11 @@ export function TopBar() {
           </span>
           <span className="flex items-center gap-6">
             <span className="hidden items-center gap-4 xl:flex">
-              <a href="/" className="transition-colors hover:text-white">
-                Electric edition
-              </a>
-              <a href="/kinetic" className="transition-colors hover:text-white">
-                Kinetic edition
-              </a>
-              <a href="/exe" className="transition-colors hover:text-white">
-                Arcade edition
-              </a>
+              {otherEditions("/command").map((e) => (
+                <a key={e.href} href={e.href} className="transition-colors hover:text-white">
+                  {e.name} edition
+                </a>
+              ))}
             </span>
             <span>SRC: SANITY/LIVE</span>
             <span>
@@ -173,16 +170,12 @@ export function TopBar() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-4 border-t border-line/60 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fog">
-              <a href="/" className="transition-colors hover:text-white">
-                Electric edition
-              </a>
-              <a href="/kinetic" className="transition-colors hover:text-white">
-                Kinetic edition
-              </a>
-              <a href="/exe" className="transition-colors hover:text-white">
-                Arcade edition
-              </a>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line/60 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fog">
+              {otherEditions("/command").map((e) => (
+                <a key={e.href} href={e.href} className="transition-colors hover:text-white">
+                  {e.name} edition
+                </a>
+              ))}
             </div>
             <div className="flex items-center justify-between px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fog">
               <span className="flex items-center gap-2">

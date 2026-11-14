@@ -1,5 +1,6 @@
 import { CONTACT, DOSSIERS, NAV } from "./content";
 import { CloseIcon } from "./ElectricArt";
+import { otherEditions } from "@/lib/editions";
 
 export function SkipLink() {
   return (
@@ -86,15 +87,11 @@ export function Drawer() {
         <a className="btn btn-acid" href={CONTACT.resume} download data-resume>
           Resume (PDF)
         </a>
-        <a className="drawer-link" href="/classic">
-          Classic edition
-        </a>
-        <a className="drawer-link" href="/kinetic">
-          Kinetic edition
-        </a>
-        <a className="drawer-link" href="/exe">
-          Arcade edition
-        </a>
+        {otherEditions("/").map((e) => (
+          <a key={e.href} className="drawer-link" href={e.href}>
+            {e.name} edition
+          </a>
+        ))}
       </div>
     </div>
   );
@@ -106,9 +103,11 @@ export function SiteFooter() {
       <div className="wrap footer-inner">
         <span>© 2026 Babafemi Adojutelegan · Electric Editorial</span>
         <div className="footer-links">
-          <a href="/classic">Classic edition</a>
-          <a href="/kinetic">Kinetic edition</a>
-          <a href="/exe">Arcade edition</a>
+          {otherEditions("/").map((e) => (
+            <a key={e.href} href={e.href}>
+              {e.name} edition
+            </a>
+          ))}
           <a href="#top">Back to top</a>
         </div>
       </div>

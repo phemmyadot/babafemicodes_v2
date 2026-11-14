@@ -1,6 +1,7 @@
 "use client";
 
 import { useHud } from "../hud-context";
+import { otherEditions } from "@/lib/editions";
 
 export function Footer() {
   const { data } = useHud();
@@ -12,12 +13,11 @@ export function Footer() {
           © {year} {data.settings.name}
         </span>
         <span className="flex flex-wrap gap-x-4 gap-y-1">
-          <a href="/" className="transition-colors hover:text-white">
-            electric edition
-          </a>
-          <a href="/kinetic" className="transition-colors hover:text-white">
-            kinetic edition
-          </a>
+          {otherEditions("/command").map((e) => (
+            <a key={e.href} href={e.href} className="transition-colors hover:text-white">
+              {e.name} edition
+            </a>
+          ))}
           <span className="text-cyan-neon/60">press ` for terminal</span>
         </span>
       </div>

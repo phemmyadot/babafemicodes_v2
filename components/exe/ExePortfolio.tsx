@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Keyb
 import { CONTACT, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, MISSIONS, PROFILE, SECTIONS, type SectionId } from "./data";
 import { Achievements, Career, Comms, MissionDetail, Missions, Profile, ResumeButton, Skills, type Go } from "./ExeScreens";
 import { GameWorld, Player } from "./GameWorld";
+import { otherEditions } from "@/lib/editions";
 
 
 /* -------------------------------------------------------------- routing */
@@ -521,7 +522,12 @@ export function ExePortfolio() {
       <footer className="x-foot">
         <span>© 2026 Babafemi Adojutelegan · Arcade Edition</span>
         <span>
-          <a href="/">Electric edition</a> · <a href="/kinetic">Kinetic edition</a> · <a href="/classic">Classic edition</a>
+          {otherEditions("/exe").map((e, i) => (
+            <span key={e.href}>
+              {i > 0 && " · "}
+              <a href={e.href}>{e.name} edition</a>
+            </span>
+          ))}
         </span>
       </footer>
 

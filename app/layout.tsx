@@ -49,7 +49,7 @@ const exeDisplay = Space_Grotesk({
   variable: "--font-space",
 });
 
-// Page-specific title/description for the Classic edition come from Sanity via generateMetadata in app/classic/page.tsx.
+// Page-specific title/description for the Command edition come from Sanity via generateMetadata in app/command/page.tsx.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_DOMAIN,

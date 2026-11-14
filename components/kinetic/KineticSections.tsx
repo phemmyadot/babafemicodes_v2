@@ -10,6 +10,7 @@ import {
   type ModuleViz,
 } from "./content";
 import { ArrowRight, Download, ExternalLink, ShieldCheck, Verified } from "./icons";
+import { otherEditions } from "@/lib/editions";
 
 function Radar() {
   return (
@@ -702,8 +703,11 @@ export function SiteFooter() {
       <div className="wrap footer-inner">
         <span>© 2026 Babafemi Adojutelegan · Kinetic edition</span>
         <div className="footer-links">
-          <a href="/">Electric edition</a>
-          <a href="/classic">Classic edition</a>
+          {otherEditions("/kinetic").map((e) => (
+            <a key={e.href} href={e.href}>
+              {e.name} edition
+            </a>
+          ))}
           <a href="#mission">Back to top</a>
         </div>
       </div>

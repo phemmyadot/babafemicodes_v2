@@ -1,5 +1,5 @@
 import { CONTACT, DOSSIERS, NAV } from "./content";
-import { ArrowRight, Close, Download, Menu } from "./icons";
+import { Close, Download, Menu } from "./icons";
 
 export function TopBar() {
   return (
@@ -30,18 +30,6 @@ export function TopBar() {
           <span className="sys">
             <i aria-hidden="true" /> SYS Online
           </span>
-          <a className="version-link" href="/">
-            <ArrowRight size={12} />
-            <span>Electric</span>
-          </a>
-          <a className="version-link" href="/classic">
-            <ArrowRight size={12} />
-            <span>Classic</span>
-          </a>
-          <a className="version-link" href="/exe">
-            <ArrowRight size={12} />
-            <span>Arcade</span>
-          </a>
           <button
             className="menu-btn"
             type="button"
@@ -76,15 +64,6 @@ export function Drawer() {
         <a className="btn btn-primary" href={CONTACT.resume} download data-resume>
           <Download />
           Download Audited Resume (PDF)
-        </a>
-        <a className="btn btn-ghost" href="/">
-          View Electric Edition
-        </a>
-        <a className="btn btn-ghost" href="/classic">
-          View Classic Edition
-        </a>
-        <a className="btn btn-ghost" href="/exe">
-          View Arcade Edition
         </a>
       </div>
     </div>

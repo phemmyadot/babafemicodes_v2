@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: "/classic" },
+    alternates: { canonical: "/command" },
     openGraph: {
       title,
       description,
@@ -27,7 +27,7 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default async function ClassicPage() {
+export default async function CommandPage() {
   const portfolio = await getPortfolio();
   return <PortfolioShell data={portfolio} />;
 }

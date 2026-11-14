@@ -537,27 +537,8 @@ html.kinetic-html {
 }
 
 
-.kinetic .version-link {
-
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  font-family: var(--k-font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  transition: color 0.2s ease, border-color 0.2s ease;
-
-}
 
 
-.kinetic .version-link:hover {
- color: var(--cyan); border-color: var(--line-2); 
-}
 
 
 .kinetic .menu-btn {
@@ -2522,9 +2503,6 @@ html.kinetic-html {
  grid-template-columns: minmax(0, 1fr); 
 }
 
-  .kinetic .version-link {
- padding: 0 8px; 
-}
 
   .kinetic .brand {
  font-size: 11px; 
