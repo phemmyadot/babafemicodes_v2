@@ -3226,3 +3226,340 @@ html:not([data-exe-boot="run"]) .exe-boot {
   font-size: 14px;
   line-height: 1.5;
 }
+
+/* ============================================ motherboard: PCB, connectors, power */
+
+.lab-board {
+  /* room around the sockets for edge connectors */
+  padding: 58px 52px 50px 48px;
+  border-color: #1f6f63;
+  background:
+    radial-gradient(circle at 14px 14px, #e8c86a 0 5px, #0a2622 5px 7px, transparent 7px),
+    radial-gradient(circle at calc(100% - 14px) 14px, #e8c86a 0 5px, #0a2622 5px 7px, transparent 7px),
+    radial-gradient(circle at 14px calc(100% - 14px), #e8c86a 0 5px, #0a2622 5px 7px, transparent 7px),
+    radial-gradient(circle at calc(100% - 14px) calc(100% - 14px), #e8c86a 0 5px, #0a2622 5px 7px, transparent 7px),
+    radial-gradient(ellipse at 30% 20%, rgba(67, 213, 255, 0.07), transparent 60%),
+    linear-gradient(135deg, #0d3b38, #0a2c30 55%, #0b2338);
+}
+.lab-board-name {
+  left: auto;
+  right: 52px;
+  transform: none;
+  top: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.lab-socket {
+  position: relative;
+  z-index: 1;
+  background: rgba(5, 22, 22, 0.88);
+}
+.lab-socket::before {
+  content: attr(data-silk);
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  font: 600 9px var(--mono);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* empty slots look like their real connectors */
+.lab-slot {
+  display: block;
+  margin-bottom: 6px;
+}
+.lab-socket-cpu .lab-slot,
+.lab-socket-npu .lab-slot {
+  width: 64px;
+  height: 64px;
+  border: 3px solid #4a5a5a;
+  border-radius: 4px;
+  background: radial-gradient(circle, #c9a83f 0 1px, transparent 1.4px) 0 0 / 6px 6px, #11191b;
+}
+.lab-socket-npu .lab-slot {
+  width: 46px;
+  height: 46px;
+}
+.lab-socket-ram .lab-slot {
+  width: 16px;
+  height: 140px;
+  max-height: 55%;
+  border-radius: 2px;
+  background: repeating-linear-gradient(#0c0c0c 0 3px, #1b1b1b 3px 4px);
+  box-shadow: 0 -6px 0 -2px #e9e9ee, 0 6px 0 -2px #e9e9ee;
+}
+.lab-socket-gpu .lab-slot {
+  width: min(80%, 330px);
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #111 0 22%, #0d3b38 22% 23.5%, #111 23.5%);
+  box-shadow: inset 0 0 0 2px #2a2a30, 6px 0 0 -2px #e9e9ee;
+}
+.lab-socket-nic .lab-slot {
+  width: 70px;
+  height: 12px;
+  border-radius: 2px;
+  background: #111;
+  box-shadow: inset 0 0 0 2px #2a2a30;
+}
+.lab-socket-ssd .lab-slot {
+  width: 104px;
+  height: 10px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #111 0 18%, transparent 18% 86%, #c9a83f 86% 92%, transparent 92%);
+  box-shadow: inset 0 0 0 2px #2a2a30;
+}
+
+/* copper traces */
+.pcb-traces {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.pcb-traces path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pcb-trace-base path {
+  stroke: #c9a83f;
+  stroke-width: 1.6;
+  opacity: 0.45;
+}
+.pcb-trace-flow path {
+  stroke: #43d5ff;
+  stroke-width: 2;
+  stroke-dasharray: 6 10;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.lab-board.is-powered .pcb-trace-flow path {
+  opacity: 1;
+  animation: pcb-flow 0.7s linear infinite;
+  filter: drop-shadow(0 0 3px #43d5ff);
+}
+.pcb-vias path {
+  stroke: #e8c86a;
+  stroke-width: 5;
+}
+
+/* edge components */
+.pcb-io,
+.pcb-eps,
+.pcb-atx,
+.pcb-vrm,
+.pcb-caps,
+.pcb-bottom {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+.pcb-io b,
+.pcb-eps b,
+.pcb-atx b,
+.pcb-bottom b {
+  font: 600 8px var(--mono);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.6);
+}
+.pcb-io {
+  top: 12px;
+  left: 48px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pcb-io i {
+  display: block;
+  border: 1.5px solid #9aa3ad;
+  background: #1b1f26;
+}
+.pcb-io .io-usb {
+  width: 12px;
+  height: 18px;
+  border-radius: 2px;
+  box-shadow: inset 0 -6px 0 #2f63d8;
+}
+.pcb-io .io-hdmi {
+  width: 20px;
+  height: 10px;
+  clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%);
+  background: #9aa3ad;
+}
+.pcb-io .io-lan {
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  box-shadow: inset 0 -5px 0 #c9a83f;
+}
+.pins {
+  display: block;
+  border: 2px solid #0c0c0e;
+  border-radius: 2px;
+  background: radial-gradient(circle, #e8c86a 0 1.3px, transparent 1.8px) 0 0 / 6px 6px, #1d1d22;
+}
+.pcb-eps {
+  top: 12px;
+  left: 33%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.pcb-eps .pins {
+  width: 28px;
+  height: 16px;
+}
+.pcb-atx {
+  right: 10px;
+  top: 26%;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+.pcb-atx .pins {
+  width: 16px;
+  height: 76px;
+}
+.pcb-atx b {
+  writing-mode: vertical-rl;
+}
+.pcb-vrm {
+  left: 14px;
+  top: 16%;
+  display: grid;
+  gap: 5px;
+}
+.pcb-vrm i {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #3b3f46, #1c1e22);
+  box-shadow: inset 0 0 0 2px #555b63;
+}
+.pcb-caps {
+  left: 17px;
+  top: 52%;
+  display: grid;
+  gap: 4px;
+}
+.pcb-caps i {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #d9dde3, #7c838c 70%);
+  box-shadow: inset 0 0 0 1.5px #3b3f46;
+}
+.pcb-bottom {
+  left: 48px;
+  right: 52px;
+  bottom: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.pcb-bottom > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.pcb-cmos i {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f1f3f5, #9aa0a8 70%);
+  box-shadow: inset 0 0 0 2px #6b7078;
+}
+.pcb-pch i {
+  display: block;
+  width: 30px;
+  height: 22px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(90deg, #39404a 0 3px, #262b33 3px 5px);
+  box-shadow: inset 0 0 0 1.5px #555b63;
+}
+.pcb-sata > span {
+  display: flex;
+  gap: 3px;
+}
+.pcb-sata i {
+  display: block;
+  width: 11px;
+  height: 16px;
+  border-radius: 2px;
+  background: #1b1b20;
+  box-shadow: inset 0 0 0 1.5px #b52a35;
+}
+.pcb-fpanel .pins {
+  width: 34px;
+  height: 14px;
+}
+.pcb-pwr i {
+  display: block;
+}
+.pcb-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1f4d2b;
+  box-shadow: inset 0 0 0 1px #0c0c0e;
+  transition: background 200ms, box-shadow 200ms;
+}
+.pcb-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #c2303c;
+  box-shadow: inset 0 -3px 0 #7d1820, 0 0 0 2px #0c0c0e;
+}
+.lab-board.is-powered .pcb-led {
+  background: #7cff6b;
+  box-shadow: 0 0 10px #7cff6b, 0 0 0 1px #0c0c0e;
+}
+.lab-board.is-powered .pcb-btn {
+  box-shadow: inset 0 -1px 0 #7d1820, 0 0 0 2px #0c0c0e;
+  transform: translateY(1px);
+}
+
+/* fans and the network LED only run with power */
+.lab-art-gpu i,
+.lab-art-nic::after {
+  animation-play-state: paused;
+}
+.lab-board.is-powered .lab-art-gpu i,
+.lab-board.is-powered .lab-art-nic::after {
+  animation-play-state: running;
+}
+.lab-board.is-powered .lab-socket.is-on {
+  box-shadow: 0 0 26px -6px #43d5ff;
+}
+
+/* pressing the power button */
+.lab-hand.is-press svg {
+  transform: translateY(8px) scale(0.92);
+}
+
+@keyframes pcb-flow {
+  to { stroke-dashoffset: -16; }
+}
+
+@media (max-width: 760px) {
+  .lab-board {
+    padding: 52px 40px 46px 36px;
+  }
+  .pcb-vrm,
+  .pcb-caps,
+  .pcb-pch {
+    display: none;
+  }
+  .pcb-io b,
+  .pcb-sata b,
+  .pcb-fpanel b {
+    display: none;
+  }
+}

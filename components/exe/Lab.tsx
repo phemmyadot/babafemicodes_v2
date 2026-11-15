@@ -1,6 +1,6 @@
 "use client";
 
-import { Hand, HandGrab, RotateCcw } from "lucide-react";
+import { Hand, HandGrab, Pointer, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
 import { ATTRIBUTES, PROFILE, type PartSlot } from "./data";
@@ -22,6 +22,25 @@ const GRAB = 280;
 const CARRY = 340;
 const DROP = 660;
 const RELEASE = 780;
+// Copper traces and vias, in % of the board (the SVG stretches; strokes keep their width).
+// They run through the board margins and the gaps between sockets.
+const TRACES = [
+  "M95.5 32 V5 H58",
+  "M96.6 34 V6.6 H60",
+  "M95.5 62 V67.8 H81.4 V40.6 H41",
+  "M96.6 64 V68.8 H82.4",
+  "M40.8 40.6 V67.8 H6",
+  "M3 12 V88.5 H38",
+  "M4.2 14 V87.4 H36",
+  "M41.8 8 H20",
+  "M58 95.5 H90",
+  "M81.4 68.8 V94.4 H70",
+];
+const VIAS: Array<[number, number]> = [
+  [58, 5], [60, 6.6], [41, 40.6], [6, 67.8], [38, 88.5], [36, 87.4], [20, 8], [90, 95.5], [70, 94.4], [3, 12], [4.2, 14], [82.4, 68.8],
+];
+const SILK: Record<PartSlot, string> = { cpu: "CPU1", npu: "NPU1", ram: "DIMM_A1", ssd: "M2_1", nic: "PCIE_X1", gpu: "PCIE_X16" };
+
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Decorative part artwork, drawn in CSS (see .lab-art-* in exe.css). */
@@ -49,8 +68,11 @@ export function Profile() {
   const [installed, setInstalled] = useState<PartSlot[]>([]);
   const [phase, setPhase] = useState<Phase>("build");
   const [log, setLog] = useState<string[]>([]);
-  // Where the hand is, and what it holds: "reach" (empty), "carry" (holding the part), "drop" (lowering it in).
-  const [hand, setHand] = useState<{ x: number; y: number; slot: PartSlot; mode: "reach" | "carry" | "drop" } | null>(null);
+  // Where the hand is, and what it holds: "reach" (empty), "carry" (holding the part), "drop" (lowering it in),
+  // "press" (finger on the board's power button).
+  const [hand, setHand] = useState<{ x: number; y: number; slot: PartSlot | null; mode: "reach" | "carry" | "drop" | "press" } | null>(null);
+  const [powered, setPowered] = useState(false);
+  const powerRef = useRef<HTMLSpanElement>(null);
   const labRef = useRef<HTMLDivElement>(null);
   const socketRefs = useRef<Partial<Record<PartSlot, HTMLDivElement | null>>>({});
   const trayRefs = useRef<Partial<Record<PartSlot, HTMLLIElement | null>>>({});
@@ -73,6 +95,7 @@ export function Profile() {
   const assemble = useCallback(() => {
     cancel();
     setInstalled([]);
+    setPowered(false);
     setLog([]);
     setPhase("build");
     if (reduceMotion()) {
@@ -100,7 +123,19 @@ export function Profile() {
         go(slot, "socket", "reach");
       }, t + RELEASE);
     });
-    later(boot, START + ALL.length * STEP + 250);
+    // Every part seated: press the board's power button, let current flow, then boot.
+    const done = START + ALL.length * STEP;
+    const pressAt = (mode: "reach" | "press") => {
+      const p = centre(powerRef.current);
+      if (p) setHand({ ...p, slot: null, mode });
+    };
+    later(() => pressAt("reach"), done + 100);
+    later(() => {
+      pressAt("press");
+      setPowered(true);
+    }, done + 450);
+    later(() => pressAt("reach"), done + 650);
+    later(boot, done + 1600);
   }, [boot]);
 
   useEffect(() => {
@@ -201,9 +236,84 @@ export function Profile() {
     <>
       <Head index="01" title="Engineering lab" note="Assembling the engineer: every part is an attribute." />
       <div className="lab" ref={labRef}>
-        <section className="lab-board" aria-label={`Motherboard, ${installed.length} of ${ALL.length} parts installed`}>
+        <section
+          className={`lab-board${powered ? " is-powered" : ""}`}
+          aria-label={`Motherboard, ${installed.length} of ${ALL.length} parts installed${powered ? ", powered on" : ""}`}
+        >
+          {/* PCB artwork: traces, connectors and components. Decorative only. */}
+          <svg className="pcb-traces" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+            <g className="pcb-trace-base">
+              {TRACES.map((d) => (
+                <path key={d} d={d} vectorEffect="non-scaling-stroke" />
+              ))}
+            </g>
+            <g className="pcb-trace-flow">
+              {TRACES.map((d) => (
+                <path key={d} d={d} vectorEffect="non-scaling-stroke" />
+              ))}
+            </g>
+            <g className="pcb-vias">
+              {VIAS.map(([x, y]) => (
+                <path key={`${x}-${y}`} d={`M${x} ${y}h0`} vectorEffect="non-scaling-stroke" />
+              ))}
+            </g>
+          </svg>
           <span className="lab-board-name" aria-hidden>
             B-ADO · MOTHERBOARD · REV 8
+          </span>
+          <span className="pcb-io" aria-hidden>
+            <i className="io-usb" />
+            <i className="io-usb" />
+            <i className="io-hdmi" />
+            <i className="io-lan" />
+            <b>REAR_IO</b>
+          </span>
+          <span className="pcb-eps" aria-hidden>
+            <i className="pins" />
+            <b>CPU_PWR</b>
+          </span>
+          <span className="pcb-atx" aria-hidden>
+            <i className="pins" />
+            <b>ATX_24P</b>
+          </span>
+          <span className="pcb-vrm" aria-hidden>
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className="pcb-caps" aria-hidden>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <i key={i} />
+            ))}
+          </span>
+          <span className="pcb-bottom" aria-hidden>
+            <span className="pcb-cmos">
+              <i />
+              <b>BAT1</b>
+            </span>
+            <span className="pcb-pch">
+              <i />
+              <b>PCH</b>
+            </span>
+            <span className="pcb-sata">
+              <span>
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
+              <b>SATA3</b>
+            </span>
+            <span className="pcb-fpanel">
+              <i className="pins" />
+              <b>F_PANEL</b>
+            </span>
+            <span className="pcb-pwr" ref={powerRef}>
+              <i className="pcb-led" />
+              <i className="pcb-btn" />
+              <b>PWR</b>
+            </span>
           </span>
           {ATTRIBUTES.map((a) => {
             const on = installed.includes(a.slot);
@@ -214,6 +324,7 @@ export function Profile() {
                   socketRefs.current[a.slot] = el;
                 }}
                 className={`lab-socket lab-socket-${a.slot}${on ? " is-on" : ""}`}
+                data-silk={SILK[a.slot]}
               >
                 {on ? (
                   <span className="lab-part">
@@ -222,7 +333,10 @@ export function Profile() {
                     <span className="lab-part-attr">{a.name}</span>
                   </span>
                 ) : (
-                  <span className="lab-empty">{a.part} slot</span>
+                  <span className="lab-empty">
+                    <i className="lab-slot" aria-hidden />
+                    {a.part} slot
+                  </span>
                 )}
               </div>
             );
@@ -264,12 +378,18 @@ export function Profile() {
 
         {hand && (
           <span className={`lab-hand is-${hand.mode}`} style={{ transform: `translate(${hand.x}px, ${hand.y}px)` }} aria-hidden>
-            {hand.mode !== "reach" && (
+            {hand.slot && (hand.mode === "carry" || hand.mode === "drop") && (
               <span className="lab-carried">
                 <PartArt slot={hand.slot} />
               </span>
             )}
-            {hand.mode === "reach" ? <Hand size={42} strokeWidth={1.6} /> : <HandGrab size={42} strokeWidth={1.6} />}
+            {hand.mode === "press" ? (
+              <Pointer size={42} strokeWidth={1.6} />
+            ) : hand.mode === "reach" ? (
+              <Hand size={42} strokeWidth={1.6} />
+            ) : (
+              <HandGrab size={42} strokeWidth={1.6} />
+            )}
           </span>
         )}
       </div>
