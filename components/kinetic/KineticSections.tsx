@@ -1,14 +1,5 @@
-import {
-  CONTACT,
-  CREDENTIALS,
-  EXPERIENCE,
-  MARQUEE_A,
-  MARQUEE_B,
-  MODULES,
-  STACK,
-  STATS,
-  type ModuleViz,
-} from "./content";
+import { MARQUEE_A, MARQUEE_B, type ModuleContent } from "./content";
+import { useContent } from "./ContentContext";
 import { ArrowRight, Download, ExternalLink, ShieldCheck, Verified } from "./icons";
 import { otherEditions } from "@/lib/editions";
 
@@ -87,12 +78,13 @@ function Radar() {
 }
 
 export function Hero() {
+  const { CONTACT, LOCATION, LEDE, STATS } = useContent();
   return (
     <section className="hero" id="mission">
       <div className="wrap">
         <p className="hero-kicker">
           <span className="bar" aria-hidden="true" />
-          <span data-scramble>Portfolio · 2026 · Chicago_IL</span>
+          <span data-scramble>Portfolio · 2026{LOCATION ? ` · ${LOCATION.replace(/,?\s+/g, "_")}` : ""}</span>
         </p>
 
         <h1 className="hero-name" aria-label="Babafemi Adojutelegan">
@@ -112,18 +104,14 @@ export function Hero() {
             </span>{" "}
             React Native &amp; Design Systems
           </span>
-          <span className="chip">Chicago, IL</span>
+          {LOCATION && <span className="chip">{LOCATION}</span>}
           <span className="chip">US Permanent Resident</span>
           <span className="chip live">Open to Work</span>
         </div>
 
         <div className="hero-grid">
           <div className="hero-copy">
-            <p className="hero-lede">
-              Eight years turning hard product constraints into interfaces people trust — a{" "}
-              <strong>React Native design system now shared by ten teams</strong>, and an iOS release
-              pipeline cut from five hours to forty minutes.
-            </p>
+            <p className="hero-lede">{LEDE}</p>
 
             <div className="stat-row">
               {STATS.map((stat) => (
@@ -367,15 +355,10 @@ function KoilViz() {
   );
 }
 
-const VIZ_CAPTIONS: Record<ModuleViz, { start: string; end: string }> = {
-  flowsense: { start: "Secure BLE link", end: "Sensor · streaming" },
-  "design-system": { start: "Multi-tenant", end: "10 teams" },
-  rag: { start: "Polygon overlay", end: "Streaming" },
-  koil: { start: "Equities · crypto", end: "Screener" },
-};
 
-function ModuleVisual({ viz }: { viz: ModuleViz }) {
-  const caption = VIZ_CAPTIONS[viz];
+function ModuleVisual({ module }: { module: ModuleContent }) {
+  const { viz } = module;
+  const caption = { start: module.captionStart, end: module.captionEnd };
   return (
     <div className="module-viz" aria-hidden="true">
       {viz === "flowsense" && <FlowSenseViz />}
@@ -390,6 +373,7 @@ function ModuleVisual({ viz }: { viz: ModuleViz }) {
 }
 
 export function Modules() {
+  const { MODULES } = useContent();
   return (
     <section className="section section-ruled" id="modules">
       <div className="wrap">
@@ -401,8 +385,8 @@ export function Modules() {
             <h2>Mission modules</h2>
           </div>
           <p className="sec-note">
-            Four systems where frontend craft met hard constraints: encrypted medical hardware, ten
-            teams on one component contract, and real-time document verification.
+            Systems I&rsquo;ve designed and shipped, from trading pipelines to offline-first retail.
+            Open any module for its full dossier.
           </p>
         </div>
 
@@ -414,7 +398,7 @@ export function Modules() {
                   <span className="code">{module.code}</span>
                   <span>{module.category}</span>
                 </div>
-                <ModuleVisual viz={module.viz} />
+                <ModuleVisual module={module} />
                 <div className="module-body">
                   <h3>{module.title}</h3>
                   <div className="module-metric">
@@ -451,6 +435,7 @@ export function Modules() {
 }
 
 export function Stack() {
+  const { STACK } = useContent();
   return (
     <section className="section section-ruled" id="stack">
       <div className="wrap">
@@ -488,6 +473,7 @@ export function Stack() {
 }
 
 export function Timeline() {
+  const { EXPERIENCE, CREDENTIALS } = useContent();
   return (
     <section className="section section-ruled" id="timeline">
       <div className="wrap">
@@ -541,16 +527,18 @@ export function Timeline() {
                     </span>
                   </div>
                 </div>
-                <a
-                  className="cred-link"
-                  href={credential.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {credential.linkLabel}
-                  <ExternalLink size={12} />
-                  <span className="sr-only">(opens in a new tab)</span>
-                </a>
+                {credential.href && (
+                  <a
+                    className="cred-link"
+                    href={credential.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {credential.linkLabel}
+                    <ExternalLink size={12} />
+                    <span className="sr-only">(opens in a new tab)</span>
+                  </a>
+                )}
               </article>
             ))}
           </div>
@@ -561,6 +549,7 @@ export function Timeline() {
 }
 
 export function Uplink() {
+  const { CONTACT, LOCATION } = useContent();
   return (
     <section className="section section-ruled" id="uplink">
       <div className="wrap">
@@ -571,8 +560,8 @@ export function Uplink() {
             </p>
             <h2>Open a channel</h2>
             <p className="lede">
-              Open to senior frontend and mobile roles. Based in Chicago and available across US time
-              zones.
+              Open to senior frontend and mobile roles.{LOCATION ? ` Based in ${LOCATION} and` : ""} available
+              across US time zones.
             </p>
             <div className="signal" aria-hidden="true">
               <i />

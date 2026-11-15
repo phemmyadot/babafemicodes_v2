@@ -107,6 +107,23 @@ export const profileSchema = defineType({
       ],
     }),
     defineField({
+      name: "achievements",
+      title: "Achievements",
+      type: "array",
+      group: "telemetry",
+      description: "Measurable impact shown as trophies in the Arcade edition's Trophy Hall.",
+      of: [
+        defineArrayMember({
+          type: "object",
+          fields: [
+            defineField({ name: "title", title: "Title", type: "string", validation: (R) => R.required() }),
+            defineField({ name: "evidence", title: "Evidence", type: "string", description: 'e.g. "Design system adopted across 10+ apps"' }),
+          ],
+          preview: { select: { title: "title", subtitle: "evidence" } },
+        }),
+      ],
+    }),
+    defineField({
       name: "education",
       title: "Education (v2)",
       type: "array",

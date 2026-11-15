@@ -12,8 +12,10 @@ import {
   TopBar,
 } from "./KineticChrome";
 import { Hero, Marquees, Modules, SiteFooter, Stack, Timeline, Uplink } from "./KineticSections";
+import { ContentProvider } from "./ContentContext";
+import type { KineticContent } from "./content";
 
-export function KineticPortfolio() {
+export function KineticPortfolio({ content }: { content: KineticContent }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -780,6 +782,7 @@ export function KineticPortfolio() {
   }, []);
 
   return (
+    <ContentProvider value={content}>
     <div className="kinetic" ref={rootRef}>
       <a className="skip-link" href="#main">
         Skip to content
@@ -808,5 +811,6 @@ export function KineticPortfolio() {
       <LiveRegion />
       <Cursors />
     </div>
+    </ContentProvider>
   );
 }

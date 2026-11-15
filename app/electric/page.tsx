@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { ElectricPortfolio } from "@/components/electric/ElectricPortfolio";
+import { buildElectricContent } from "@/components/electric/content";
+import { getPortfolio } from "@/lib/portfolio";
 import "../electric.css";
 
 const title = "Babafemi Adojutelegan — Electric Editorial";
@@ -18,6 +20,9 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function ElectricPage() {
-  return <ElectricPortfolio />;
+// Must be a literal for Next to read it statically; keep in sync with REVALIDATE_SECONDS.
+export const revalidate = 3600;
+
+export default async function ElectricPage() {
+  return <ElectricPortfolio content={buildElectricContent(await getPortfolio())} />;
 }

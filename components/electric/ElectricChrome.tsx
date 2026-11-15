@@ -1,4 +1,5 @@
-import { CONTACT, DOSSIERS, NAV } from "./content";
+import { NAV } from "./content";
+import { useContent } from "./ContentContext";
 import { CloseIcon } from "./ElectricArt";
 import { otherEditions } from "@/lib/editions";
 
@@ -73,6 +74,7 @@ export function TopBar() {
 }
 
 export function Drawer() {
+  const { CONTACT } = useContent();
   return (
     <div className="drawer" id="drawer" hidden>
       <nav aria-label="Mobile">
@@ -116,6 +118,7 @@ export function SiteFooter() {
 }
 
 export function Dossiers() {
+  const { DOSSIERS } = useContent();
   return (
     <>
       {DOSSIERS.map((dossier) => (

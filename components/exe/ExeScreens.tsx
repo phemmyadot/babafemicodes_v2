@@ -4,22 +4,26 @@ import { ArrowLeft, ArrowRight, Award, Download, ExternalLink, Mail, ShieldCheck
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
 import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import {
-  ACHIEVEMENTS,
-  CAREER,
-  CERTIFICATIONS,
-  CONTACT,
   SECTIONS,
-  SKILL_BRANCHES,
   STATS,
+  type ArcadeData,
   type Mission,
   type SectionId,
 } from "./data";
 
 export type Go = (section: SectionId, id?: string) => void;
 
-/** Launch Pad missions come from Sanity (app/page.tsx) and are shared through context. */
-export const MissionsContext = createContext<Mission[]>([]);
-export const useMissions = () => useContext(MissionsContext);
+/** Arcade's Sanity content (built in app/page.tsx), shared with every screen through context. */
+export const ArcadeContext = createContext<ArcadeData>({
+  missions: [],
+  skills: [],
+  career: [],
+  achievements: [],
+  certifications: [],
+  contact: { email: "" },
+});
+export const useArcade = () => useContext(ArcadeContext);
+export const useMissions = () => useArcade().missions;
 const reduceMotion = () => typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function Head({ index, title, note }: { index: string; title: string; note?: string }) {
@@ -47,8 +51,10 @@ function Tags({ list }: { list: string[] }) {
 }
 
 export function ResumeButton({ className = "x-btn x-btn-primary" }: { className?: string }) {
+  const { resume } = useArcade().contact;
+  if (!resume) return null;
   return (
-    <a className={className} href={CONTACT.resume} download>
+    <a className={className} href={resume} download>
       <Download size={16} aria-hidden /> Resume PDF
     </a>
   );
@@ -117,15 +123,17 @@ export function Avatar() {
 /* --------------------------------------------------------------- skills */
 
 export function Skills() {
-  const [branchId, setBranchId] = useState(SKILL_BRANCHES[0].id);
-  const branch = SKILL_BRANCHES.find((b) => b.id === branchId)!;
+  const branches = useArcade().skills;
+  const [branchId, setBranchId] = useState(branches[0]?.id);
+  const branch = branches.find((b) => b.id === branchId) ?? branches[0];
+  if (!branch) return <Head index="02" title="Engineering skill tree" note="No skills published yet." />;
 
   return (
     <>
       <Head index="02" title="Engineering skill tree" note="Select a specialization to see its technologies." />
       <div className="x-tree">
         <div className="x-branches" role="tablist" aria-label="Specializations">
-          {SKILL_BRANCHES.map((b) => (
+          {branches.map((b) => (
             <button
               key={b.id}
               type="button"
@@ -268,12 +276,14 @@ export function MissionDetail({ mission: m, go, onClose }: { mission: Mission; g
 /* --------------------------------------------------------------- career */
 
 export function Career({ go, selected }: { go: Go; selected?: string }) {
-  const stage = CAREER.find((c) => c.id === selected) ?? CAREER[CAREER.length - 1];
+  const career = useArcade().career;
+  const stage = career.find((c) => c.id === selected) ?? career[career.length - 1];
+  if (!stage) return <Head index="04" title="Career log" note="No experience published yet." />;
   return (
     <>
       <Head index="04" title="Career log" note="A progression through engineering environments. Select a stage." />
       <ol className="x-timeline">
-        {CAREER.map((c, i) => (
+        {career.map((c, i) => (
           <li key={c.id} style={{ "--i": i } as CSSProperties}>
             <button type="button" aria-current={c.id === stage.id ? "step" : undefined} onClick={() => go("career", c.id)}>
               <span className="x-card-index">Stage {c.stage}</span>
@@ -285,12 +295,20 @@ export function Career({ go, selected }: { go: Go; selected?: string }) {
       </ol>
       <section className="x-panel x-stage" aria-live="polite" aria-label={`${stage.org} details`} key={stage.id}>
         <p className="x-kicker">
-          <span>Stage {stage.stage}</span> {stage.period ?? "Dates on the resume"}
+          <span>Stage {stage.stage}</span> {[stage.period, stage.location].filter(Boolean).join(" · ")}
         </p>
         <h2 className="x-h2">{stage.org}</h2>
         <p className="x-hero-role">{stage.role}</p>
-        {stage.summary ? <p>{stage.summary}</p> : <p className="x-muted">Details on the resume.</p>}
-        {stage.tech.length > 0 && <Tags list={stage.tech} />}
+        <div className="x-stage-body">
+          {stage.highlights.length > 0 && (
+            <ul className="x-list x-stage-list">
+              {stage.highlights.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          )}
+          {stage.tech.length > 0 && <Tags list={stage.tech} />}
+        </div>
       </section>
     </>
   );
@@ -309,12 +327,13 @@ function Burst() {
 }
 
 export function Achievements() {
+  const { achievements, certifications } = useArcade();
   const [fired, setFired] = useState<{ id: string; n: number } | null>(null);
   return (
     <>
       <Head index="05" title="Achievement room" note="Measurable impact and certifications held. Nothing here is decorative." />
       <ul className="x-achievements">
-        {ACHIEVEMENTS.map((a) => (
+        {achievements.map((a) => (
           <li key={a.id}>
             <div className={`x-panel x-badge ${fired?.id === a.id ? "is-fired" : ""}`}>
               <button
@@ -327,24 +346,26 @@ export function Achievements() {
                 {fired?.id === a.id && <Burst key={fired.n} />}
               </button>
               <h2 className="x-h3">{a.title}</h2>
-              <p className="x-muted">{a.evidence}</p>
+              {a.evidence && <p className="x-muted">{a.evidence}</p>}
             </div>
           </li>
         ))}
       </ul>
       <h2 className="x-h2 x-gap">Certifications</h2>
       <ul className="x-certs">
-        {CERTIFICATIONS.map((c) => (
-          <li key={c.title} className="x-panel">
+        {certifications.map((c) => (
+          <li key={c.id} className="x-panel">
             <ShieldCheck size={20} aria-hidden className="x-ok" />
             <div>
               <p className="x-card-title">{c.title}</p>
-              <p className="x-muted">{c.issuer}</p>
+              <p className="x-muted">{[c.code, c.issuer].filter(Boolean).join(" · ")}</p>
             </div>
-            <a className="x-btn x-btn-sm" href={c.href} target="_blank" rel="noopener noreferrer">
-              Verify <ExternalLink size={14} aria-hidden />
-              <span className="sr-only">{c.title} (opens in a new tab)</span>
-            </a>
+            {c.url && (
+              <a className="x-btn x-btn-sm" href={c.url} target="_blank" rel="noopener noreferrer">
+                Verify <ExternalLink size={14} aria-hidden />
+                <span className="sr-only">{c.title} (opens in a new tab)</span>
+              </a>
+            )}
           </li>
         ))}
       </ul>
@@ -355,6 +376,7 @@ export function Achievements() {
 /* ---------------------------------------------------------------- comms */
 
 export function Comms() {
+  const { contact } = useArcade();
   const [sent, setSent] = useState(false);
   return (
     <>
@@ -363,15 +385,21 @@ export function Comms() {
         <section className="x-panel">
           <p className="x-lede">Looking for an engineer to build something meaningful? Let&rsquo;s talk.</p>
           <div className="x-actions x-actions-col">
-            <a className="x-btn x-btn-primary" href={`mailto:${CONTACT.email}`}>
-              <Mail size={16} aria-hidden /> {CONTACT.email}
-            </a>
-            <a className="x-btn" href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">
-              <LinkedinIcon size={16} /> Connect on LinkedIn
-            </a>
-            <a className="x-btn" href={CONTACT.github} target="_blank" rel="noopener noreferrer">
-              <GithubIcon size={16} /> View GitHub
-            </a>
+            {contact.email && (
+              <a className="x-btn x-btn-primary" href={`mailto:${contact.email}`}>
+                <Mail size={16} aria-hidden /> {contact.email}
+              </a>
+            )}
+            {contact.linkedin && (
+              <a className="x-btn" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
+                <LinkedinIcon size={16} /> Connect on LinkedIn
+              </a>
+            )}
+            {contact.github && (
+              <a className="x-btn" href={contact.github} target="_blank" rel="noopener noreferrer">
+                <GithubIcon size={16} /> View GitHub
+              </a>
+            )}
             <ResumeButton className="x-btn" />
           </div>
         </section>
@@ -382,7 +410,7 @@ export function Comms() {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
             const body = `${f.get("message")}\n\n— ${f.get("name")} (${f.get("email")})`;
-            window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(String(f.get("subject")))}&body=${encodeURIComponent(body)}`;
+            window.location.href = `mailto:${contact.email}?subject=${encodeURIComponent(String(f.get("subject")))}&body=${encodeURIComponent(body)}`;
             setSent(true);
           }}
         >

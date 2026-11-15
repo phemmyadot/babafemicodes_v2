@@ -12,6 +12,7 @@ export const PORTFOLIO_QUERY = /* groq */ `{
     "resumeUrl": resume.asset->url,
     "stats": stats[]{ "id": _key, value, label, unit, detail, signal },
     "certifications": certifications[]{ "id": _key, label, url },
+    "achievements": achievements[]{ "id": _key, title, evidence },
     "education": education[]{ "id": _key, degree, institution, year }
   },
   "skills": *[_type == "skills"] | order(order asc){

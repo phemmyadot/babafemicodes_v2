@@ -3,8 +3,8 @@
 import { Hand, HandGrab, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
-import { ATTRIBUTES, CONTACT, PROFILE, type PartSlot } from "./data";
-import { Avatar, Head, ResumeButton } from "./ExeScreens";
+import { ATTRIBUTES, PROFILE, type PartSlot } from "./data";
+import { Avatar, Head, ResumeButton, useArcade } from "./ExeScreens";
 
 type Phase = "build" | "booting" | "on";
 
@@ -45,6 +45,7 @@ function PartArt({ slot }: { slot: PartSlot }) {
  * every pending step, so each visit starts from an empty board.
  */
 export function Profile() {
+  const { contact } = useArcade();
   const [installed, setInstalled] = useState<PartSlot[]>([]);
   const [phase, setPhase] = useState<Phase>("build");
   const [log, setLog] = useState<string[]>([]);
@@ -156,12 +157,16 @@ export function Profile() {
                     </dl>
                     <div className="x-actions">
                       <ResumeButton className="x-btn x-btn-primary x-btn-sm" />
-                      <a className="x-btn x-btn-sm" href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">
-                        <LinkedinIcon size={14} /> LinkedIn
-                      </a>
-                      <a className="x-btn x-btn-sm" href={CONTACT.github} target="_blank" rel="noopener noreferrer">
-                        <GithubIcon size={14} /> GitHub
-                      </a>
+                      {contact.linkedin && (
+                        <a className="x-btn x-btn-sm" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
+                          <LinkedinIcon size={14} /> LinkedIn
+                        </a>
+                      )}
+                      {contact.github && (
+                        <a className="x-btn x-btn-sm" href={contact.github} target="_blank" rel="noopener noreferrer">
+                          <GithubIcon size={14} /> GitHub
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -1,4 +1,5 @@
-import { CONTACT, DOSSIERS, NAV } from "./content";
+import { NAV } from "./content";
+import { useContent } from "./ContentContext";
 import { Close, Download, Menu } from "./icons";
 
 export function TopBar() {
@@ -51,6 +52,7 @@ export function TopBar() {
 }
 
 export function Drawer() {
+  const { CONTACT } = useContent();
   return (
     <div className="drawer" id="drawer" hidden>
       <nav aria-label="Mobile">
@@ -114,6 +116,7 @@ export function Cursors() {
 }
 
 export function Dossiers() {
+  const { DOSSIERS } = useContent();
   return (
     <>
       {DOSSIERS.map((dossier) => (

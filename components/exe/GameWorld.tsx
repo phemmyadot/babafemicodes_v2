@@ -2,8 +2,8 @@
 
 import { ChevronLeft, ChevronRight, ChevronsUp, Download, LogIn, Mail } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
-import { CONTACT, DISTRICTS, IDLE_TIPS, PROFILE, STATS, WORLD_W, type DistrictId } from "./data";
-import { Stat, useMissions, type Go } from "./ExeScreens";
+import { DISTRICTS, IDLE_TIPS, PROFILE, STATS, WORLD_W, type DistrictId } from "./data";
+import { Stat, useArcade, type Go } from "./ExeScreens";
 
 const STAGE_H = 600;
 const GROUND = 110;
@@ -414,12 +414,17 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
   }, [go]);
 
   const nearD = DISTRICTS.find((d) => d.id === near);
-  const missions = useMissions();
+  const { missions, skills, career, contact } = useArcade();
   const featured = missions.find((m) => m.featured) ?? missions[0];
-  const hint =
-    nearD?.id === "missions"
-      ? `${missions.length} missions inside${featured ? `, including ${featured.title}` : ""}.`
-      : nearD?.hint;
+  // Hints for Sanity-backed buildings are written from the live data.
+  const live: Partial<Record<DistrictId, string>> = {
+    skills: `${skills.length} branches, ${skills.reduce((n, b) => n + b.skills.length, 0)} technologies.`,
+    missions: `${missions.length} missions inside${featured ? `, including ${featured.title}` : ""}.`,
+    career: career.length
+      ? `${career.length} floors: from ${career[0].org} to ${career[career.length - 1].org}.`
+      : "",
+  };
+  const hint = nearD ? live[nearD.id] || nearD.hint : undefined;
   const hold = (side: "left" | "right") => ({
     onPointerDown: (e: PointerEvent) => {
       try {
@@ -546,10 +551,12 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
           </p>
         </div>
         <div className="gw-card-actions">
-          <a className="x-btn x-btn-primary x-btn-sm" href={CONTACT.resume} download aria-label="Download resume (PDF)">
+          {contact.resume && (
+          <a className="x-btn x-btn-primary x-btn-sm" href={contact.resume} download aria-label="Download resume (PDF)">
             <Download size={14} aria-hidden /> <span className="gw-btn-text">Resume</span>
           </a>
-          <a className="x-btn x-btn-sm" href={`mailto:${CONTACT.email}`} aria-label="Email Babafemi">
+          )}
+          <a className="x-btn x-btn-sm" href={`mailto:${contact.email}`} aria-label="Email Babafemi">
             <Mail size={14} aria-hidden /> <span className="gw-btn-text">Email</span>
           </a>
         </div>

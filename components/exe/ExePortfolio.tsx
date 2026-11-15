@@ -2,8 +2,8 @@
 
 import { ArrowLeft, Command, Home as HomeIcon, Layers, Mail, Rocket, SquareTerminal, Workflow } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
-import { type Mission, CONTACT, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, PROFILE, SECTIONS, type SectionId } from "./data";
-import { Achievements, Career, Comms, MissionDetail, Missions, MissionsContext, ResumeButton, Skills, useMissions, type Go } from "./ExeScreens";
+import { type ArcadeData, type Mission, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, PROFILE, SECTIONS, type SectionId } from "./data";
+import { Achievements, Career, Comms, MissionDetail, Missions, ArcadeContext, ResumeButton, Skills, useArcade, type Go } from "./ExeScreens";
 import { Profile } from "./Lab";
 import { GameWorld, Player } from "./GameWorld";
 import { otherEditions } from "@/lib/editions";
@@ -39,9 +39,10 @@ function useRoute() {
   return route;
 }
 
-function downloadResume() {
+function downloadResume(url?: string) {
+  if (!url) return;
   const a = document.createElement("a");
-  a.href = CONTACT.resume;
+  a.href = url;
   a.download = "";
   a.click();
 }
@@ -187,14 +188,14 @@ interface Action {
   run: () => void;
 }
 
-function useActions(openTerminal: () => void, missions: Mission[]): Action[] {
+function useActions(openTerminal: () => void, { missions, contact }: ArcadeData): Action[] {
   return [
     ...SECTIONS.map((s) => ({ label: `Open ${s.label}`, hint: s.blurb, run: () => go(s.id) })),
     ...missions.map((m) => ({ label: `Mission ${m.code}: ${m.title}`, hint: m.tech.join(" · "), run: () => go("missions", m.id) })),
-    { label: "Download Resume", hint: "PDF", run: downloadResume },
-    { label: "Contact Babafemi", hint: CONTACT.email, run: () => go("comms") },
-    { label: "Open LinkedIn", hint: "New tab", run: () => window.open(CONTACT.linkedin, "_blank", "noopener") },
-    { label: "Open GitHub", hint: "New tab", run: () => window.open(CONTACT.github, "_blank", "noopener") },
+    ...(contact.resume ? [{ label: "Download Resume", hint: "PDF", run: () => downloadResume(contact.resume) }] : []),
+    { label: "Contact Babafemi", hint: contact.email, run: () => go("comms") },
+    ...(contact.linkedin ? [{ label: "Open LinkedIn", hint: "New tab", run: () => window.open(contact.linkedin, "_blank", "noopener") }] : []),
+    ...(contact.github ? [{ label: "Open GitHub", hint: "New tab", run: () => window.open(contact.github, "_blank", "noopener") }] : []),
     { label: "Open Terminal", hint: "~", run: openTerminal },
   ];
 }
@@ -280,7 +281,7 @@ const help = (missions: Mission[]) => `Available commands:
   clear           Clear terminal
   exit            Close terminal`;
 
-export function runTerminal(line: string, close: () => void, missions: Mission[]): string | null {
+export function runTerminal(line: string, close: () => void, { missions, contact }: ArcadeData): string | null {
   const [cmd = "", arg] = line.trim().toLowerCase().split(/\s+/);
   if (!cmd) return "";
   if (cmd === "clear") return null;
@@ -290,7 +291,8 @@ export function runTerminal(line: string, close: () => void, missions: Mission[]
     return "";
   }
   if (cmd === "resume") {
-    downloadResume();
+    if (!contact.resume) return "resume: no resume is published yet.";
+    downloadResume(contact.resume);
     return "Downloading resume…";
   }
   if (cmd === "mission") {
@@ -310,7 +312,7 @@ export function runTerminal(line: string, close: () => void, missions: Mission[]
 }
 
 function Terminal({ close }: { close: () => void }) {
-  const missions = useMissions();
+  const data = useArcade();
   const [lines, setLines] = useState<string[]>(['BABAFEMI.exe shell — type "help" to list commands.']);
   const [history, setHistory] = useState<string[]>([]);
   const [cursor, setCursor] = useState(-1);
@@ -336,7 +338,7 @@ function Terminal({ close }: { close: () => void }) {
         className="x-term-in"
         onSubmit={(e) => {
           e.preventDefault();
-          const out = runTerminal(value, close, missions);
+          const out = runTerminal(value, close, data);
           setLines((ls) => (out === null ? [] : [...ls, `$ ${value}`, ...(out ? [out] : [])]));
           if (value.trim()) setHistory((h) => [value, ...h]);
           setCursor(-1);
@@ -374,14 +376,15 @@ const BOTTOM_NAV: Array<{ id: SectionId; icon: ReactNode }> = [
   { id: "comms", icon: <Mail size={18} aria-hidden /> },
 ];
 
-export function ExePortfolio({ missions }: { missions: Mission[] }) {
+export function ExePortfolio({ data }: { data: ArcadeData }) {
+  const { missions } = data;
   const route = useRoute();
   const [booting, setBooting] = useState(true);
   const [palette, setPalette] = useState(false);
   const [terminal, setTerminal] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const openTerminal = useCallback(() => setTerminal(true), []);
-  const actions = useActions(openTerminal, missions);
+  const actions = useActions(openTerminal, data);
   // Only navigate on close if the hash still names a mission; Back may already have moved on.
   const closeMission = () => parseHash().id && go("missions");
   const mission = route.section === "missions" && route.id ? missions.find((m) => m.id === route.id) : undefined;
@@ -461,7 +464,7 @@ export function ExePortfolio({ missions }: { missions: Mission[] }) {
   };
 
   return (
-    <MissionsContext.Provider value={missions}>
+    <ArcadeContext.Provider value={data}>
     <div className="exe">
       <a className="x-skip" href="#x-main">
         Skip to content
@@ -553,6 +556,6 @@ export function ExePortfolio({ missions }: { missions: Mission[] }) {
         <Terminal close={() => setTerminal(false)} />
       </Dialog>
     </div>
-    </MissionsContext.Provider>
+    </ArcadeContext.Provider>
   );
 }

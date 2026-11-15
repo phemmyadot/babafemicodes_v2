@@ -1,7 +1,7 @@
 import "server-only";
 import { sanityClient } from "./sanity/client";
 import { PORTFOLIO_QUERY, PORTFOLIO_TAG } from "./sanity/queries";
-import type { Credential, Experience, Metric, Portfolio, Project, Settings, Signal, SkillGroup } from "./types";
+import type { Achievement, Credential, Experience, Metric, Portfolio, Project, Settings, Signal, SkillGroup } from "./types";
 
 /** ISR window; on-demand revalidation via webhook makes publishes show up immediately. */
 export const REVALIDATE_SECONDS = 3600;
@@ -45,6 +45,7 @@ interface SanityProfile {
   stats?: Array<{ id: string; value?: string; label?: string; unit?: string; detail?: string; signal?: Signal }>;
   certifications?: Array<{ id: string; label?: string; url?: string }>;
   education?: Array<{ id: string; degree?: string; institution?: string; year?: string }>;
+  achievements?: Array<{ id: string; title?: string; evidence?: string }>;
 }
 
 interface SanityResult {
@@ -135,5 +136,8 @@ export async function getPortfolio(): Promise<Portfolio> {
     projects: mapProjects(data.projects),
     experience: data.experience.map((e) => ({ ...e, highlights: clean(e.highlights), techStack: clean(e.techStack) })),
     credentials: mapCredentials(data.profile),
+    achievements: (data.profile?.achievements ?? [])
+      .filter((a) => opt(a.title))
+      .map((a): Achievement => ({ id: a.id, title: a.title!.trim(), evidence: opt(a.evidence) })),
   };
 }

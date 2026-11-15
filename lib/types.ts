@@ -82,6 +82,12 @@ export interface Credential {
   verifyUrl?: string;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  evidence?: string;
+}
+
 export interface Portfolio {
   settings: Settings;
   metrics: Metric[];
@@ -89,4 +95,5 @@ export interface Portfolio {
   projects: Project[];
   experience: Experience[];
   credentials: Credential[];
+  achievements: Achievement[];
 }

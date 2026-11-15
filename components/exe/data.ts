@@ -1,6 +1,5 @@
 // BABAFEMI.exe content. Only facts from the approved brief and the existing Kinetic content —
 // no invented dates, awards or metrics. Optional fields render only when filled in.
-export { CONTACT } from "../kinetic/content";
 
 export const EXE_SKIP_KEY = "exe-skip-intro";
 export const EXE_SESSION_KEY = "exe-booted";
@@ -61,87 +60,38 @@ export interface Mission {
   links: Array<{ title: string; url: string }>;
 }
 
-export const SKILL_BRANCHES: Array<{ id: string; title: string; skills: string[] }> = [
-  {
-    id: "mobile",
-    title: "Mobile Engineering",
-    skills: ["React Native", "Expo / EAS", "Swift Native Modules", "BLE", "Offline-first", "Hermes"],
-  },
-  { id: "frontend", title: "Frontend Engineering", skills: ["React", "Next.js", "TypeScript", "Storybook", "Nx", "Tailwind CSS"] },
-  { id: "data", title: "State & Data", skills: ["Zustand", "TanStack Query", "Streaming", "RAG", "PDF processing", "Firebase"] },
-  { id: "cloud", title: "Cloud & Backend", skills: ["AWS", "Azure", "Node.js", "FastAPI", "Python", "Docker"] },
-  { id: "quality", title: "Quality Engineering", skills: ["Jest", "Detox", "Maestro", "Playwright", "OWASP MASVS"] },
-  { id: "delivery", title: "Delivery & Observability", skills: ["Fastlane", "Azure DevOps", "GitHub Actions", "TestFlight", "Sentry"] },
-];
-
-
 export interface Stage {
   id: string;
   stage: string;
   org: string;
   role: string;
-  /** Not in the brief; fill from the resume. */
-  period?: string;
-  summary?: string;
+  location?: string;
+  period: string;
+  highlights: string[];
   tech: string[];
 }
 
-export const CAREER: Stage[] = [
-  { id: "independent", stage: "01", org: "Independent Consulting", role: "Mobile App Developer", tech: [] },
-  {
-    id: "eminent",
-    stage: "02",
-    org: "Eminent Technology",
-    role: "Full Stack Developer",
-    summary:
-      "Enterprise web interfaces and reusable component work — the foundation for the multi-tenant UI patterns that came later.",
-    tech: ["React", "TypeScript", "Storybook"],
-  },
-  {
-    id: "rhaeos",
-    stage: "03",
-    org: "Rhaeos",
-    role: "Mobile Application Developer",
-    summary:
-      "Mobile delivery for FlowSense, bridging a Swift BLE module into React Native and shaping the encrypted health-data path around HIPAA expectations.",
-    tech: ["React Native", "Swift", "BLE", "AWS"],
-  },
-  {
-    id: "telus",
-    stage: "04",
-    org: "TELUS Digital / WillowTree",
-    role: "Senior Software Engineer",
-    summary:
-      "Senior IC work across React Native and web surfaces, including the shared design system and the release pipeline rebuild that cut iOS releases to forty minutes.",
-    tech: ["React Native", "Nx", "Storybook", "Playwright", "Fastlane", "Azure DevOps"],
-  },
-];
-
-export const ACHIEVEMENTS = [
-  { id: "architect", title: "Enterprise Architect", evidence: "Design system adopted across 10+ apps" },
-  { id: "release", title: "Release Engineer", evidence: "40-minute iOS release cycle" },
-  { id: "ai", title: "AI Engineer", evidence: "Clinical RAG assistant" },
-  { id: "medtech", title: "Medical Technology Engineer", evidence: "BLE secure native integration" },
-  { id: "cloud", title: "Cloud Engineer", evidence: "AWS and Azure production experience" },
-];
-
-export const CERTIFICATIONS = [
-  { title: "AWS Solutions Architect Associate", issuer: "Amazon Web Services", href: "https://www.credly.com" },
-  { title: "Microsoft Azure AI Cloud Developer Associate", issuer: "Microsoft", href: "https://learn.microsoft.com" },
-];
+/** Everything Arcade shows that lives in Sanity. Built in app/page.tsx, shared via context. */
+export interface ArcadeData {
+  missions: Mission[];
+  skills: Array<{ id: string; title: string; skills: string[] }>;
+  career: Stage[];
+  achievements: Array<{ id: string; title: string; evidence?: string }>;
+  certifications: Array<{ id: string; title: string; issuer?: string; code?: string; url?: string }>;
+  contact: { email: string; linkedin?: string; github?: string; resume?: string };
+}
 
 /* ---------------------------------------------------------------- game world */
 
 export type DistrictId = Exclude<SectionId, "home">;
 
-const techCount = SKILL_BRANCHES.reduce((n, b) => n + b.skills.length, 0);
-
-/** Buildings along the street, left to right. x/w are world units; the stage is 600 units tall. */
+/** Buildings along the street, left to right. x/w are world units; the stage is 600 units tall.
+ *  An empty hint is filled in from Sanity data by GameWorld. */
 export const DISTRICTS: Array<{ id: DistrictId; name: string; color: string; x: number; w: number; hint: string }> = [
   { id: "profile", name: "Engineer Lab", color: "#43D5FF", x: 900, w: 260, hint: `Meet the engineer: ${PROFILE.experience} with ${PROFILE.core.join(", ")}.` },
-  { id: "skills", name: "Skill Tree", color: "#7CFF6B", x: 1340, w: 280, hint: `${SKILL_BRANCHES.length} branches, ${techCount} technologies, each linked to where it was used.` },
+  { id: "skills", name: "Skill Tree", color: "#7CFF6B", x: 1340, w: 280, hint: "" },
   { id: "missions", name: "Launch Pad", color: "#FF9A57", x: 1820, w: 260, hint: "" },
-  { id: "career", name: "Career Tower", color: "#C4A8FF", x: 2280, w: 220, hint: `${CAREER.length} floors, ${CAREER.length} stages: from consulting to ${CAREER[CAREER.length - 1].org}.` },
+  { id: "career", name: "Career Tower", color: "#C4A8FF", x: 2280, w: 220, hint: "" },
   { id: "achievements", name: "Trophy Hall", color: "#FFD23F", x: 2700, w: 280, hint: "Design system adopted by 10 teams. iOS releases in 40 minutes." },
   { id: "comms", name: "Radio Tower", color: "#FF85E6", x: 3180, w: 220, hint: "Want to build something meaningful? Open a channel here." },
 ];

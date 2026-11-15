@@ -3201,3 +3201,28 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .lab-tray-item.is-done .lab-tray-state {
   color: var(--ok);
 }
+
+/* career: resume bullets scroll inside the stage panel so the room never does */
+.x-interior .x-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.x-stage-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  margin-top: 10px;
+  padding-right: 6px;
+}
+.x-stage-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}

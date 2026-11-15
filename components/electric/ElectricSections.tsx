@@ -1,14 +1,6 @@
 import { Fragment } from "react";
-import {
-  CONTACT,
-  CREDENTIALS,
-  LOG,
-  RIBBON_A,
-  RIBBON_B,
-  SHEETS,
-  STACK,
-  STATS,
-} from "./content";
+import { RIBBON_A, RIBBON_B } from "./content";
+import { useContent } from "./ContentContext";
 import {
   ArrowIcon,
   CheckIcon,
@@ -51,13 +43,14 @@ function Ribbon({
 }
 
 function Hero() {
+  const { CONTACT, LOCATION, LEDE, STATS } = useContent();
   return (
     <section className="hero" id="top">
       <div className="wrap hero-inner">
         <div className="hero-copy">
           <p className="eyebrow">
             <span className="eyebrow-dot" aria-hidden="true" />
-            Portfolio · 2026 · Chicago, IL
+            Portfolio · 2026{LOCATION ? ` · ${LOCATION}` : ""}
           </p>
 
           <h1 className="hero-name" aria-label="Babafemi Adojutelegan">
@@ -75,11 +68,7 @@ function Hero() {
             <em>React Native · React · design systems</em>
           </p>
 
-          <p className="hero-lede">
-            Eight years turning hard product constraints into interfaces people trust — a React
-            Native design system now shared by <strong>ten teams</strong>, and an iOS release
-            pipeline cut from five hours to <strong>forty minutes</strong>.
-          </p>
+          <p className="hero-lede">{LEDE}</p>
 
           <div className="hero-cta">
             <span className="magnetic">
@@ -100,9 +89,13 @@ function Hero() {
 
           <div className="hero-badges">
             <span className="sticker sticker-acid">Open to work</span>
-            <span className="sticker">Chicago, IL</span>
+            {LOCATION && <span className="sticker">{LOCATION}</span>}
             <span className="sticker">US permanent resident</span>
-            <span className="sticker sticker-mint">8+ years</span>
+            {STATS[0] && (
+              <span className="sticker sticker-mint">
+                {STATS[0].display} {STATS[0].label.toLowerCase()}
+              </span>
+            )}
           </div>
         </div>
 
@@ -124,6 +117,7 @@ function Hero() {
 }
 
 function Stats() {
+  const { STATS } = useContent();
   return (
     <section className="stats" aria-label="Career numbers">
       <div className="wrap stats-grid">
@@ -145,6 +139,7 @@ function Stats() {
 }
 
 function Work() {
+  const { SHEETS } = useContent();
   return (
     <section className="work" id="work">
       <div className="wrap">
@@ -154,8 +149,8 @@ function Work() {
             Built to be <em>felt</em>
           </h2>
           <p className="sec-note">
-            Four systems where the interface had to carry real weight: encrypted medical hardware,
-            ten teams on one component contract, and documents that prove themselves.
+            Systems I&rsquo;ve designed and shipped, from trading pipelines to offline-first retail.
+            Open any case for the full dossier.
           </p>
         </div>
 
@@ -197,7 +192,7 @@ function Work() {
                   data-cursor="view"
                   aria-label={sheet.visualLabel}
                 >
-                  <SheetVisual caseId={sheet.caseId} />
+                  <SheetVisual caseId={sheet.art} />
                   <span className="visual-tag">{sheet.visualTag}</span>
                   <span className="visual-tag end">{sheet.visualTagEnd}</span>
                 </button>
@@ -215,6 +210,7 @@ function Work() {
 }
 
 function Stack() {
+  const { STACK } = useContent();
   return (
     <section className="stack" id="stack">
       <div className="wrap">
@@ -249,6 +245,7 @@ function Stack() {
 }
 
 function Log() {
+  const { LOG, CREDENTIALS } = useContent();
   return (
     <section className="log" id="log">
       <div className="wrap">
@@ -297,16 +294,18 @@ function Log() {
                   <p>{credential.issuer}</p>
                 </div>
               </div>
-              <a
-                className="cred-link"
-                href={credential.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {credential.linkLabel}
-                <ExternalIcon />
-                <span className="sr-only">(opens in a new tab)</span>
-              </a>
+              {credential.href && (
+                <a
+                  className="cred-link"
+                  href={credential.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {credential.linkLabel}
+                  <ExternalIcon />
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+              )}
             </article>
           ))}
         </div>
@@ -316,6 +315,7 @@ function Log() {
 }
 
 function Contact() {
+  const { CONTACT, LOCATION } = useContent();
   return (
     <section className="contact" id="contact">
       <div className="wrap contact-inner">
@@ -327,8 +327,8 @@ function Contact() {
             something <em>loud</em>
           </h2>
           <p className="contact-note">
-            Open to senior frontend and mobile roles. Based in Chicago and available across US time
-            zones.
+            Open to senior frontend and mobile roles.{LOCATION ? ` Based in ${LOCATION} and` : ""} available
+            across US time zones.
           </p>
 
           <div className="contact-actions">

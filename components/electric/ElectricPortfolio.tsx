@@ -13,8 +13,10 @@ import {
   TopBar,
 } from "./ElectricChrome";
 import { ElectricSections } from "./ElectricSections";
+import { ContentProvider } from "./ContentContext";
+import type { ElectricContent } from "./content";
 
-export function ElectricPortfolio() {
+export function ElectricPortfolio({ content }: { content: ElectricContent }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -560,6 +562,7 @@ export function ElectricPortfolio() {
   }, []);
 
   return (
+    <ContentProvider value={content}>
     <div className="electric" ref={rootRef}>
       <SkipLink />
       <Curtain />
@@ -572,5 +575,6 @@ export function ElectricPortfolio() {
       <LiveRegion />
       <Cursor />
     </div>
+    </ContentProvider>
   );
 }
