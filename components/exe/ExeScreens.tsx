@@ -120,49 +120,6 @@ export function Avatar() {
   );
 }
 
-/* --------------------------------------------------------------- skills */
-
-export function Skills() {
-  const branches = useArcade().skills;
-  const [branchId, setBranchId] = useState(branches[0]?.id);
-  const branch = branches.find((b) => b.id === branchId) ?? branches[0];
-  if (!branch) return <Head index="02" title="Engineering skill tree" note="No skills published yet." />;
-
-  return (
-    <>
-      <Head index="02" title="Engineering skill tree" note="Select a specialization to see its technologies." />
-      <div className="x-tree">
-        <div className="x-branches" role="tablist" aria-label="Specializations">
-          {branches.map((b) => (
-            <button
-              key={b.id}
-              type="button"
-              role="tab"
-              aria-selected={b.id === branchId}
-              className="x-branch"
-              onClick={() => setBranchId(b.id)}
-            >
-              <span className="x-node-dot" aria-hidden />
-              <span>{b.title}</span>
-              <span className="x-muted">{b.skills.length} technologies</span>
-            </button>
-          ))}
-        </div>
-        <div className="x-panel x-branch-panel" role="tabpanel" aria-label={branch.title}>
-          <h2 className="x-h2">{branch.title}</h2>
-          <ul className="x-nodes" key={branch.id}>
-            {branch.skills.map((s, i) => (
-              <li key={s} className="x-skill" style={{ "--i": i } as CSSProperties}>
-                {s}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </>
-  );
-}
-
 /* ------------------------------------------------------------- missions */
 
 /** Mission content shared by the Mission select preview and the mission pop-up. */
