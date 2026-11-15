@@ -35,13 +35,16 @@ export const STATS = [
   { value: 40, suffix: "m", label: "iOS release (from ~5h)" },
 ];
 
-export const ATTRIBUTES = [
-  { name: "Architecture", evidence: "Enterprise design systems" },
-  { name: "Mobile engineering", evidence: "React Native + Swift" },
-  { name: "Cloud engineering", evidence: "AWS + Azure" },
-  { name: "AI engineering", evidence: "RAG assistant + document processing" },
-  { name: "Quality engineering", evidence: "Jest, Detox, Maestro" },
-  { name: "Technical leadership", evidence: "Cross-team design system adoption" },
+export type PartSlot = "cpu" | "gpu" | "ram" | "ssd" | "nic" | "npu";
+
+/** Engineering Lab: each attribute is a PC part the visitor installs on the motherboard. */
+export const ATTRIBUTES: Array<{ name: string; evidence: string; part: string; partName: string; slot: PartSlot }> = [
+  { name: "Architecture", evidence: "Enterprise design systems", part: "CPU", partName: "Processor", slot: "cpu" },
+  { name: "Mobile engineering", evidence: "React Native + Swift", part: "GPU", partName: "Graphics card", slot: "gpu" },
+  { name: "Technical leadership", evidence: "Cross-team design system adoption", part: "RAM", partName: "Memory", slot: "ram" },
+  { name: "Quality engineering", evidence: "Jest, Detox, Maestro", part: "SSD", partName: "Storage", slot: "ssd" },
+  { name: "Cloud engineering", evidence: "AWS + Azure", part: "NIC", partName: "Network card", slot: "nic" },
+  { name: "AI engineering", evidence: "RAG assistant + document processing", part: "NPU", partName: "AI accelerator", slot: "npu" },
 ];
 
 /** A Launch Pad mission, built from a Sanity project in app/page.tsx. */

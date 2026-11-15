@@ -3,7 +3,8 @@
 import { ArrowLeft, Command, Home as HomeIcon, Layers, Mail, Rocket, SquareTerminal, Workflow } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { type Mission, CONTACT, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, PROFILE, SECTIONS, type SectionId } from "./data";
-import { Achievements, Career, Comms, MissionDetail, Missions, MissionsContext, Profile, ResumeButton, Skills, useMissions, type Go } from "./ExeScreens";
+import { Achievements, Career, Comms, MissionDetail, Missions, MissionsContext, ResumeButton, Skills, useMissions, type Go } from "./ExeScreens";
+import { Profile } from "./Lab";
 import { GameWorld, Player } from "./GameWorld";
 import { otherEditions } from "@/lib/editions";
 

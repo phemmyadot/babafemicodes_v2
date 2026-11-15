@@ -5,11 +5,9 @@ import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
 import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ACHIEVEMENTS,
-  ATTRIBUTES,
   CAREER,
   CERTIFICATIONS,
   CONTACT,
-  PROFILE,
   SECTIONS,
   SKILL_BRANCHES,
   STATS,
@@ -24,7 +22,7 @@ export const MissionsContext = createContext<Mission[]>([]);
 export const useMissions = () => useContext(MissionsContext);
 const reduceMotion = () => typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function Head({ index, title, note }: { index: string; title: string; note?: string }) {
+export function Head({ index, title, note }: { index: string; title: string; note?: string }) {
   return (
     <header className="x-head">
       <p className="x-kicker">
@@ -94,7 +92,7 @@ export function Stat({ value, suffix, label }: (typeof STATS)[number]) {
   );
 }
 
-function Avatar() {
+export function Avatar() {
   return (
     <svg className="x-avatar" viewBox="0 0 200 220" role="img" aria-label="Stylized engineer avatar">
       <defs>
@@ -113,65 +111,6 @@ function Avatar() {
         <path d="M70 186h60" stroke="#A77BFF" strokeWidth="2" opacity=".7" />
       </g>
     </svg>
-  );
-}
-
-/* -------------------------------------------------------------- profile */
-
-export function Profile() {
-  const [open, setOpen] = useState(ATTRIBUTES[0].name);
-  const attr = ATTRIBUTES.find((x) => x.name === open)!;
-  const facts: Array<[string, ReactNode]> = [
-    ["Class", PROFILE.role],
-    ["Specialization", PROFILE.specialization],
-    ["Experience", PROFILE.experience],
-    ["Location", PROFILE.location],
-    ["Core tech", PROFILE.core.join(", ")],
-  ];
-  return (
-    <>
-      <Head index="01" title={PROFILE.name} note={PROFILE.intro} />
-      <div className="x-split">
-        <section className="x-panel x-sheet" aria-label="Profile sheet">
-          <div className="x-sheet-top">
-            <Avatar />
-            <dl className="x-facts">
-              {facts.map(([k, v]) => (
-                <div key={k}>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-          <div className="x-actions">
-            <ResumeButton />
-            <a className="x-btn" href={CONTACT.linkedin} target="_blank" rel="noopener noreferrer">
-              <LinkedinIcon size={16} /> LinkedIn
-            </a>
-            <a className="x-btn" href={CONTACT.github} target="_blank" rel="noopener noreferrer">
-              <GithubIcon size={16} /> GitHub
-            </a>
-          </div>
-        </section>
-        <section className="x-panel" aria-labelledby="x-attr">
-          <h2 id="x-attr" className="x-h2">
-            Attributes
-          </h2>
-          <div className="x-attr-grid">
-            {ATTRIBUTES.map((a) => (
-              <button key={a.name} type="button" className="x-attr" aria-pressed={open === a.name} onClick={() => setOpen(a.name)}>
-                {a.name}
-              </button>
-            ))}
-          </div>
-          <div className="x-attr-body" aria-live="polite" key={attr.name}>
-            <p className="x-label">Evidence</p>
-            <p>{attr.evidence}</p>
-          </div>
-        </section>
-      </div>
-    </>
   );
 }
 
