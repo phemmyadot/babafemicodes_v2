@@ -37,7 +37,15 @@ const NEAR = skyline(1600, 240, "#1d1442", "#ffd23f", 42);
 
 /* ---------------------------------------------------------- characters */
 
+/** Which character walks the city. Set to "classic" to bring back the astronaut. */
+const CHARACTER: "classic" | "baba" = "baba";
+
 export function Player({ gradId = "plv" }: { gradId?: string }) {
+  return CHARACTER === "baba" ? <BabaPlayer /> : <ClassicPlayer gradId={gradId} />;
+}
+
+/** The original astronaut-style engineer. */
+function ClassicPlayer({ gradId }: { gradId: string }) {
   return (
     <svg className="pl-svg" viewBox="0 0 64 100" width="64" height="100" aria-hidden>
       <defs>
@@ -71,6 +79,77 @@ export function Player({ gradId = "plv" }: { gradId?: string }) {
         <circle cx="34" cy="23" r="15" fill="#E8F0FC" />
         <rect x="30" y="16" width="20" height="11" rx="5.5" fill={`url(#${gradId})`} />
         <rect x="33" y="18" width="5" height="3" rx="1.5" fill="#fff" opacity=".8" />
+      </g>
+    </svg>
+  );
+}
+
+/**
+ * Babafemi: low fade, black rectangular glasses, goatee with a little grey, solid cyan-teal jacket.
+ * Side view facing right;
+ * keeps the pl-* groups the walk animation drives.
+ */
+function BabaPlayer() {
+  const skin = "#6b4026";
+  const skinShade = "#57331f";
+  const outline = "#1a0f0a";
+  // Solid jacket in the city's main accent (cyan-teal): it stands out against the purple/pink scene.
+  const jacket = "#1c9fc4";
+  const jacketDark = "#137594";
+  const beard = "#221611";
+  return (
+    <svg className="pl-svg" viewBox="0 0 64 100" width="64" height="100" aria-hidden>
+      <ellipse cx="32" cy="97" rx="18" ry="3" fill="rgba(0,0,0,.35)" className="pl-shadow" />
+      <g className="pl-body">
+        {/* back leg + dark sneaker */}
+        <g className="pl-leg pl-leg-b">
+          <rect x="27" y="66" width="9" height="24" rx="4" fill="#1b2136" stroke={outline} strokeWidth="1.1" />
+          <rect x="25" y="86" width="17" height="8" rx="4" fill="#2a2a33" stroke={outline} strokeWidth="1.1" />
+          <rect x="25.5" y="91.4" width="16" height="2" rx="1" fill="#d9d9de" />
+        </g>
+        {/* back sleeve */}
+        <g className="pl-arm pl-arm-b">
+          <rect x="29" y="40" width="9" height="22" rx="4.5" fill={jacketDark} stroke={outline} strokeWidth="1" />
+          <circle cx="33.5" cy="64.5" r="3" fill={skinShade} />
+        </g>
+        {/* front leg + dark sneaker */}
+        <g className="pl-leg pl-leg-f">
+          <rect x="31" y="66" width="9" height="24" rx="4" fill="#232a44" stroke={outline} strokeWidth="1.1" />
+          <rect x="29" y="86" width="17" height="8" rx="4" fill="#33333d" stroke={outline} strokeWidth="1.1" />
+          <rect x="29.5" y="91.4" width="16" height="2" rx="1" fill="#e4e4e8" />
+        </g>
+        {/* jacket: one solid colour, ribbing only hinted with faint lines */}
+        <rect x="19" y="37" width="28" height="33" rx="9" fill={jacket} stroke={outline} strokeWidth="1" />
+        <path d="M21 64.4 h24 M21 66.6 h24 M21 68.6 h24" stroke={jacketDark} strokeWidth=".5" />
+        <rect x="24" y="35" width="18" height="5" rx="2.5" fill={jacket} stroke={outline} strokeWidth=".8" />
+        {/* front sleeve */}
+        <g className="pl-arm pl-arm-f">
+          <rect x="31" y="40" width="9" height="22" rx="4.5" fill={jacket} stroke={outline} strokeWidth="1" />
+          <circle cx="35.5" cy="64.5" r="3" fill={skin} stroke={outline} strokeWidth="0.8" />
+        </g>
+        {/* neck */}
+        <rect x="30" y="29" width="9" height="9" rx="3" fill={skinShade} />
+        {/* head in profile: cranium, forehead, brow, nose, lips, chin, jaw */}
+        <path
+          d="M33 6.5 C41 6.5 45.4 10.4 46 15.6 L46.6 18.4 C47.6 20.4 50.2 22.4 50.2 23.8 C50.2 25.1 48.2 25.7 46.5 25.9 C47.5 27 47.7 28.4 46.9 29.2 C47.7 30 47.7 31.2 46.7 31.8 C46.9 33.8 45.7 36 42.6 36.4 C39.2 36.8 36.6 35.2 34 33.6 C31.6 33 30 32 29 31 C23 30 20.5 26 20.6 20 C20.8 12 26 6.5 33 6.5 Z"
+          fill={skin}
+          stroke={outline}
+          strokeWidth="1"
+          strokeLinejoin="round"
+        />
+        {/* low fade over the back and crown */}
+        <path d="M21.8 21.4 C21.3 12.4 26.4 7.2 33 7 C37 7 40 8 41.6 9.2 C37 8.6 32 9.4 28 12.2 C25 14.6 23.6 17.6 23.4 21.6 Z" fill="#20140e" opacity=".5" />
+        {/* ear */}
+        <ellipse cx="29" cy="21" rx="2.4" ry="3.4" fill={skinShade} stroke={outline} strokeWidth="0.8" />
+        {/* moustache and goatee: under the nose, around the lower lip and over the chin */}
+        <path d="M43.4 27.3 Q45.4 26.4 46.9 27.4" stroke={beard} strokeWidth="1.3" strokeLinecap="round" fill="none" />
+        <path d="M44 30.5 C45.1 31.3 46.2 31.7 46.8 31.8 C46.9 33.9 45.7 36.1 42.6 36.4 C41.1 36.5 40.3 35.4 40.7 34 C41.5 32.7 42.6 31.3 44 30.5 Z" fill={beard} />
+        <path d="M43 33.6 l.4 1.8 M44.9 33.2 l.2 1.8" stroke="#bdb6ad" strokeWidth=".6" strokeLinecap="round" />
+        {/* brow and glasses: lens on the face, arm back to the ear */}
+        <path d="M38.6 14.6 Q41.6 13.6 44.8 14.6" stroke="#140c08" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+        <line x1="30.6" y1="18.6" x2="38" y2="18.4" stroke="#0b0b0b" strokeWidth="1.4" strokeLinecap="round" />
+        <rect x="37.6" y="15.8" width="8.4" height="6" rx="1.5" fill="rgba(170,215,255,.22)" stroke="#0b0b0b" strokeWidth="1.5" />
+        <circle cx="42.4" cy="19" r="1" fill="#140c08" />
       </g>
     </svg>
   );
