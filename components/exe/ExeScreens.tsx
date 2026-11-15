@@ -2,15 +2,13 @@
 
 import { ArrowLeft, ArrowRight, Award, Download, ExternalLink, Mail, ShieldCheck, X } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ACHIEVEMENTS,
   ATTRIBUTES,
   CAREER,
   CERTIFICATIONS,
   CONTACT,
-  DEMO,
-  MISSIONS,
   PROFILE,
   SECTIONS,
   SKILL_BRANCHES,
@@ -21,7 +19,9 @@ import {
 
 export type Go = (section: SectionId, id?: string) => void;
 
-const missionById = (id: string) => MISSIONS.find((m) => m.id === id);
+/** Launch Pad missions come from Sanity (app/page.tsx) and are shared through context. */
+export const MissionsContext = createContext<Mission[]>([]);
+export const useMissions = () => useContext(MissionsContext);
 const reduceMotion = () => typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function Head({ index, title, note }: { index: string; title: string; note?: string }) {
@@ -45,16 +45,6 @@ function Tags({ list }: { list: string[] }) {
         <li key={t}>{t}</li>
       ))}
     </ul>
-  );
-}
-
-function MissionLink({ id, go }: { id: string; go: Go }) {
-  const m = missionById(id);
-  if (!m) return null;
-  return (
-    <button type="button" className="x-link" onClick={() => go("missions", id)}>
-      Mission {m.code} — {m.title} <ArrowRight size={14} aria-hidden />
-    </button>
   );
 }
 
@@ -228,201 +218,101 @@ export function Skills() {
 
 /* ------------------------------------------------------------- missions */
 
-export function Missions() {
-  const [sel, setSel] = useState(MISSIONS[0].id);
-  const m = missionById(sel)!;
+/** Mission content shared by the Mission select preview and the mission pop-up. */
+function MissionBody({ m, heading = true }: { m: Mission; heading?: boolean }) {
   return (
     <>
-      <Head index="03" title="Mission select" note="Pick a mission to see its briefing, architecture and implementation." />
-      <div className="x-select">
-        <ul className="x-select-list" aria-label="Missions">
-          {MISSIONS.map((x) => (
-            <li key={x.id}>
-              <button type="button" className="x-select-item" aria-pressed={x.id === sel} onClick={() => setSel(x.id)}>
-                <span className="x-select-code">{x.code}</span>
-                <span className="x-select-name">{x.title}</span>
-                {x.featured && <span className="x-pill">Featured</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <section className="x-panel x-select-preview" aria-live="polite" key={m.id}>
+      {heading && (
+        <>
           <p className="x-kicker">
-            <span>Mission {m.code}</span> {m.featured ? "Featured case study" : "Case study"}
+            <span>Mission {m.code}</span> {[m.domain, m.featured ? "Featured" : null].filter(Boolean).join(" · ") || "Project"}
           </p>
           <h2 className="x-h2">{m.title}</h2>
-          <Tags list={m.tech} />
-          <p>{m.briefing}</p>
-          <p className="x-achieve">{m.achievement}</p>
-          <Architecture stages={m.architecture} />
-          {m.implementation && (
-            <div>
-              <p className="x-label">Technical implementation</p>
-              <ul className="x-list">
-                {m.implementation.map((t) => (
-                  <li key={t}>{t}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
+        </>
+      )}
+      <Tags list={m.tech} />
+      <div className="x-mission-text">
+        {m.briefing.split(/\n\s*\n/).map((t, i) => (
+          <p key={i}>{t}</p>
+        ))}
+        {m.achievement && <p className="x-achieve">{m.achievement}</p>}
+        {m.implementation.length > 0 && (
+          <div>
+            <p className="x-label">Technical implementation</p>
+            <ul className="x-list">
+              {m.implementation.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
+      {m.links.length > 0 && (
+        <div className="x-actions x-mission-links">
+          {m.links.map((l) => (
+            <a key={l.url} className="x-btn x-btn-sm" href={l.url} target="_blank" rel="noopener noreferrer">
+              {l.title} <ExternalLink size={14} aria-hidden />
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
+          ))}
+        </div>
+      )}
     </>
   );
 }
 
-function Architecture({ stages }: { stages: string[] }) {
+export function Missions() {
+  const missions = useMissions();
+  const [sel, setSel] = useState(missions[0]?.id);
+  const m = missions.find((x) => x.id === sel) ?? missions[0];
   return (
-    <ol className="x-arch" aria-label="Architecture, in order">
-      {stages.map((s, i) => (
-        <li key={s} style={{ "--i": i } as CSSProperties}>
-          {s}
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function CitationDemo() {
-  const [active, setActive] = useState<string | null>(null);
-  const docRef = useRef<HTMLOListElement>(null);
-  const cites = DEMO.answer.filter((a) => a.cite).map((a) => a.cite!);
-  useEffect(() => {
-    if (active) docRef.current?.querySelector(`[data-p="${active}"]`)?.scrollIntoView({ block: "nearest", behavior: reduceMotion() ? "auto" : "smooth" });
-  }, [active]);
-  return (
-    <div className="x-demo">
-      <p className="x-label">Interactive demo · sanitized sample data</p>
-      <div className="x-demo-grid">
-        <div className="x-demo-chat">
-          <p className="x-demo-q">{DEMO.question}</p>
-          <p className="x-demo-a">
-            {DEMO.answer.map((a, i) => (
-              <span key={i}>
-                {a.text}
-                {a.cite && (
-                  <button
-                    type="button"
-                    className="x-cite"
-                    aria-pressed={active === a.cite}
-                    aria-label={`Citation ${cites.indexOf(a.cite) + 1}: show source passage`}
-                    onClick={() => setActive(active === a.cite ? null : a.cite!)}
-                  >
-                    {cites.indexOf(a.cite) + 1}
-                  </button>
-                )}
-              </span>
+    <>
+      <Head index="03" title="Mission select" note="Pick a mission to see its briefing, stack and links." />
+      {m ? (
+        <div className="x-select">
+          <ul className="x-select-list" aria-label="Missions">
+            {missions.map((x) => (
+              <li key={x.id}>
+                <button type="button" className="x-select-item" aria-pressed={x.id === m.id} onClick={() => setSel(x.id)}>
+                  <span className="x-select-code">{x.code}</span>
+                  <span className="x-select-name">{x.title}</span>
+                  {x.featured && <span className="x-pill">Featured</span>}
+                </button>
+              </li>
             ))}
-          </p>
+          </ul>
+          <section className="x-panel x-select-preview" aria-live="polite" key={m.id}>
+            <MissionBody m={m} />
+          </section>
         </div>
-        <ol className="x-demo-doc" ref={docRef} aria-label="Source document">
-          {DEMO.doc.map((p) => (
-            <li key={p.id} data-p={p.id} className={active === p.id ? "is-hit" : undefined}>
-              {active === p.id && <span className="sr-only">Cited passage: </span>}
-              {p.text}
-            </li>
-          ))}
-        </ol>
-      </div>
-    </div>
+      ) : (
+        <p className="x-muted">No missions published yet.</p>
+      )}
+    </>
   );
 }
 
 export function MissionDetail({ mission: m, go, onClose }: { mission: Mission; go: Go; onClose: () => void }) {
-  const list = (items: string[]) => (
-    <ul className="x-list">
-      {items.map((t) => (
-        <li key={t}>{t}</li>
-      ))}
-    </ul>
-  );
-  const block = (title: string, body: ReactNode) => (
-    <section className="x-brief" aria-label={title}>
-      <h3 className="x-h3">{title}</h3>
-      {body}
-    </section>
-  );
-  // Tabs keep every case study on one screen: no scrolling through a long page.
-  const tabs: Array<{ id: string; label: string; body: ReactNode }> = [
-    {
-      id: "briefing",
-      label: "Briefing",
-      body: (
-        <>
-          {block("Mission briefing", <p>{m.briefing}</p>)}
-          {m.problem && block("Problem statement", <p>{m.problem}</p>)}
-          {block("Results", <p className="x-achieve">{m.achievement}</p>)}
-        </>
-      ),
-    },
-    {
-      id: "systems",
-      label: "Systems",
-      body: (
-        <>
-          {block("Architecture", <Architecture stages={m.architecture} />)}
-          {m.implementation && block("Technical implementation", list(m.implementation))}
-          {m.challenges && block("Challenges", list(m.challenges))}
-        </>
-      ),
-    },
-    ...(m.demo === "citations" ? [{ id: "demo", label: "Live demo", body: <CitationDemo /> }] : []),
-    {
-      id: "debrief",
-      label: "Debrief",
-      body: (
-        <>
-          {m.lessons && block("Lessons learned", list(m.lessons))}
-          {block(
-            "Related missions",
-            <div className="x-related">
-              {m.related.map((id) => (
-                <MissionLink key={id} id={id} go={go} />
-              ))}
-            </div>,
-          )}
-        </>
-      ),
-    },
-  ];
-  const [tab, setTab] = useState(tabs[0].id);
-  const current = tabs.find((t) => t.id === tab) ?? tabs[0];
-  const i = MISSIONS.indexOf(m);
-  const prev = MISSIONS[(i - 1 + MISSIONS.length) % MISSIONS.length];
-  const next = MISSIONS[(i + 1) % MISSIONS.length];
+  const missions = useMissions();
+  const i = missions.indexOf(m);
+  const prev = missions[(i - 1 + missions.length) % missions.length];
+  const next = missions[(i + 1) % missions.length];
 
   return (
     <article className="x-detail">
       <header className="x-detail-head">
         <div>
           <p className="x-kicker">
-            <span>Mission {m.code}</span> {i + 1} of {MISSIONS.length}
+            <span>Mission {m.code}</span> {i + 1} of {missions.length}
           </p>
           <h2 className="x-title">{m.title}</h2>
-          <Tags list={m.tech} />
         </div>
         <button type="button" className="x-icon-btn" onClick={onClose} aria-label="Close mission">
           <X size={18} />
         </button>
       </header>
-      <div className="x-tabs" role="tablist" aria-label="Mission sections">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            id={`x-tab-${t.id}`}
-            aria-selected={t.id === current.id}
-            aria-controls="x-tabpanel"
-            className="x-tab"
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <div className="x-tabpanel" role="tabpanel" id="x-tabpanel" aria-labelledby={`x-tab-${current.id}`} key={current.id}>
-        {current.body}
+      <div className="x-tabpanel">
+        <MissionBody m={m} heading={false} />
       </div>
       <footer className="x-detail-foot">
         <button type="button" className="x-btn x-btn-sm" onClick={() => go("missions", prev.id)}>

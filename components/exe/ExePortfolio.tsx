@@ -2,8 +2,8 @@
 
 import { ArrowLeft, Command, Home as HomeIcon, Layers, Mail, Rocket, SquareTerminal, Workflow } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
-import { CONTACT, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, MISSIONS, PROFILE, SECTIONS, type SectionId } from "./data";
-import { Achievements, Career, Comms, MissionDetail, Missions, Profile, ResumeButton, Skills, type Go } from "./ExeScreens";
+import { type Mission, CONTACT, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, PROFILE, SECTIONS, type SectionId } from "./data";
+import { Achievements, Career, Comms, MissionDetail, Missions, MissionsContext, Profile, ResumeButton, Skills, useMissions, type Go } from "./ExeScreens";
 import { GameWorld, Player } from "./GameWorld";
 import { otherEditions } from "@/lib/editions";
 
@@ -186,10 +186,10 @@ interface Action {
   run: () => void;
 }
 
-function useActions(openTerminal: () => void): Action[] {
+function useActions(openTerminal: () => void, missions: Mission[]): Action[] {
   return [
     ...SECTIONS.map((s) => ({ label: `Open ${s.label}`, hint: s.blurb, run: () => go(s.id) })),
-    ...MISSIONS.map((m) => ({ label: `Mission ${m.code}: ${m.title}`, hint: m.tech.join(" · "), run: () => go("missions", m.id) })),
+    ...missions.map((m) => ({ label: `Mission ${m.code}: ${m.title}`, hint: m.tech.join(" · "), run: () => go("missions", m.id) })),
     { label: "Download Resume", hint: "PDF", run: downloadResume },
     { label: "Contact Babafemi", hint: CONTACT.email, run: () => go("comms") },
     { label: "Open LinkedIn", hint: "New tab", run: () => window.open(CONTACT.linkedin, "_blank", "noopener") },
@@ -265,11 +265,11 @@ const TERMINAL_ROUTES: Record<string, SectionId> = {
   contact: "comms",
 };
 
-const HELP = `Available commands:
+const help = (missions: Mission[]) => `Available commands:
   help            Show available commands
   whoami          Open profile
   projects        Open mission archive
-  mission <id>    Open a mission (${MISSIONS.map((m) => m.code).join(", ")} or slug)
+  mission <id>    Open a mission (${missions.map((m) => m.code).join(", ")} or slug)
   skills          Open skill tree
   experience      Open career history
   achievements    Open achievement room
@@ -279,11 +279,11 @@ const HELP = `Available commands:
   clear           Clear terminal
   exit            Close terminal`;
 
-export function runTerminal(line: string, close: () => void): string | null {
+export function runTerminal(line: string, close: () => void, missions: Mission[]): string | null {
   const [cmd = "", arg] = line.trim().toLowerCase().split(/\s+/);
   if (!cmd) return "";
   if (cmd === "clear") return null;
-  if (cmd === "help") return HELP;
+  if (cmd === "help") return help(missions);
   if (cmd === "exit") {
     close();
     return "";
@@ -293,8 +293,8 @@ export function runTerminal(line: string, close: () => void): string | null {
     return "Downloading resume…";
   }
   if (cmd === "mission") {
-    const m = MISSIONS.find((x) => x.code === arg || x.code === arg?.padStart(3, "0") || x.id === arg);
-    if (!m) return `mission: unknown id "${arg ?? ""}". Try: ${MISSIONS.map((x) => x.id).join(", ")}`;
+    const m = missions.find((x) => x.code === arg || x.code === arg?.padStart(3, "0") || x.id === arg);
+    if (!m) return `mission: unknown id "${arg ?? ""}". Try: ${missions.map((x) => x.id).join(", ")}`;
     go("missions", m.id);
     close();
     return `Opening mission ${m.code}: ${m.title}`;
@@ -309,6 +309,7 @@ export function runTerminal(line: string, close: () => void): string | null {
 }
 
 function Terminal({ close }: { close: () => void }) {
+  const missions = useMissions();
   const [lines, setLines] = useState<string[]>(['BABAFEMI.exe shell — type "help" to list commands.']);
   const [history, setHistory] = useState<string[]>([]);
   const [cursor, setCursor] = useState(-1);
@@ -334,7 +335,7 @@ function Terminal({ close }: { close: () => void }) {
         className="x-term-in"
         onSubmit={(e) => {
           e.preventDefault();
-          const out = runTerminal(value, close);
+          const out = runTerminal(value, close, missions);
           setLines((ls) => (out === null ? [] : [...ls, `$ ${value}`, ...(out ? [out] : [])]));
           if (value.trim()) setHistory((h) => [value, ...h]);
           setCursor(-1);
@@ -372,17 +373,17 @@ const BOTTOM_NAV: Array<{ id: SectionId; icon: ReactNode }> = [
   { id: "comms", icon: <Mail size={18} aria-hidden /> },
 ];
 
-export function ExePortfolio() {
+export function ExePortfolio({ missions }: { missions: Mission[] }) {
   const route = useRoute();
   const [booting, setBooting] = useState(true);
   const [palette, setPalette] = useState(false);
   const [terminal, setTerminal] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const openTerminal = useCallback(() => setTerminal(true), []);
-  const actions = useActions(openTerminal);
+  const actions = useActions(openTerminal, missions);
   // Only navigate on close if the hash still names a mission; Back may already have moved on.
   const closeMission = () => parseHash().id && go("missions");
-  const mission = route.section === "missions" && route.id ? MISSIONS.find((m) => m.id === route.id) : undefined;
+  const mission = route.section === "missions" && route.id ? missions.find((m) => m.id === route.id) : undefined;
   const district = DISTRICTS.find((d) => d.id === route.section);
   // Same guard as missions: only head home if the hash still points inside a building.
   const closeInterior = () => parseHash().section !== "home" && go("home");
@@ -459,6 +460,7 @@ export function ExePortfolio() {
   };
 
   return (
+    <MissionsContext.Provider value={missions}>
     <div className="exe">
       <a className="x-skip" href="#x-main">
         Skip to content
@@ -550,5 +552,6 @@ export function ExePortfolio() {
         <Terminal close={() => setTerminal(false)} />
       </Dialog>
     </div>
+    </MissionsContext.Provider>
   );
 }

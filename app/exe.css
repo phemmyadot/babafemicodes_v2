@@ -2724,3 +2724,29 @@ html:not([data-exe-boot="run"]) .exe-boot {
     display: none;
   }
 }
+
+/* Sanity-driven missions: long write-ups scroll inside the panel, links stay pinned */
+.x-select-preview {
+  min-height: 0;
+  overflow: hidden;
+}
+.x-mission-text {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding-right: 6px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.x-mission-text p {
+  margin: 0;
+}
+.x-mission-links {
+  margin-top: 4px;
+}
+.x-tabpanel .x-mission-text {
+  overflow: visible;
+}

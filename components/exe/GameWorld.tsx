@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, ChevronsUp, Download, LogIn, Mail } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { CONTACT, DISTRICTS, IDLE_TIPS, PROFILE, STATS, WORLD_W, type DistrictId } from "./data";
-import { Stat, type Go } from "./ExeScreens";
+import { Stat, useMissions, type Go } from "./ExeScreens";
 
 const STAGE_H = 600;
 const GROUND = 110;
@@ -414,6 +414,12 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
   }, [go]);
 
   const nearD = DISTRICTS.find((d) => d.id === near);
+  const missions = useMissions();
+  const featured = missions.find((m) => m.featured) ?? missions[0];
+  const hint =
+    nearD?.id === "missions"
+      ? `${missions.length} missions inside${featured ? `, including ${featured.title}` : ""}.`
+      : nearD?.hint;
   const hold = (side: "left" | "right") => ({
     onPointerDown: (e: PointerEvent) => {
       try {
@@ -507,7 +513,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
             <p className="gw-bubble" aria-hidden key={nearD?.id ?? `tip-${tip}`}>
               {nearD ? (
                 <>
-                  <strong style={{ color: nearD.color }}>{nearD.name}.</strong> {nearD.hint} <kbd>Enter ↵</kbd>
+                  <strong style={{ color: nearD.color }}>{nearD.name}.</strong> {hint} <kbd>Enter ↵</kbd>
                 </>
               ) : (
                 IDLE_TIPS[tip]
@@ -552,7 +558,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
       <p className="gw-tip-bar" aria-hidden>
         {nearD ? (
           <>
-            <strong style={{ color: nearD.color }}>{nearD.name}:</strong> {nearD.hint}
+            <strong style={{ color: nearD.color }}>{nearD.name}:</strong> {hint}
           </>
         ) : (
           IDLE_TIPS[tip]
