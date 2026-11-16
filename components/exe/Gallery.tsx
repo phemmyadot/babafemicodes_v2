@@ -1,9 +1,8 @@
 "use client";
 
-import { Award, ExternalLink, Volume2, VolumeX, X } from "lucide-react";
+import { Award, ExternalLink, X } from "lucide-react";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { playChime, startAmbient, stopAmbient } from "./ambient-sound";
-import { setSoundOff, soundOff } from "./crt-sound";
+import { sfx } from "./audio";
 import { Head, useArcade } from "./ExeScreens";
 import { Player } from "./GameWorld";
 
@@ -94,7 +93,6 @@ export function Gallery() {
   walkerRef.current = walker;
   const [sel, setSel] = useState<Pick | null>(null);
   const [panel, setPanel] = useState<Pick | null>(null);
-  const [muted, setMuted] = useState(false);
   const panelRef = useRef<HTMLElement | null>(null);
 
   const runId = useRef(0);
@@ -118,25 +116,12 @@ export function Gallery() {
       if (!w) return;
       const dur = reduceMotion() ? 0 : Math.max(200, (Math.abs(x - w.x) / SPEED) * 1000);
       place({ ...w, x, facing: x < w.x - 2 ? -1 : x > w.x + 2 ? 1 : w.facing, walking: dur > 0, dur });
+      sfx.walk(dur);
       await wait(dur);
       place({ ...walkerRef.current!, walking: false });
       await wait(30);
     };
     steps({ wait, walkTo }).catch(() => {});
-  };
-
-  // Ambient hall sound: starts with the scene, stops when it closes (or when muted).
-  useEffect(() => {
-    const off = soundOff();
-    setMuted(off);
-    if (!off) startAmbient();
-    return stopAmbient;
-  }, []);
-  const toggleSound = () => {
-    setSoundOff(!muted);
-    setMuted(!muted);
-    if (muted) startAmbient();
-    else stopAmbient();
   };
 
   // Entrance: the door opens, the engineer steps in and waits by it.
@@ -176,7 +161,8 @@ export function Gallery() {
       setStatus(`Walking to ${titleOf(p)}`);
       await walkTo(xOf(p) - (p.kind === "cert" ? 96 : 24));
       place({ ...walkerRef.current!, facing: 1 });
-      playChime();
+      sfx.spotlight(); // whoosh and shimmer as the light comes down
+      if (p.kind === "cert") sfx.glass();
       setPanel(p);
       setStatus(`${titleOf(p)} · spotlight on`);
     });
@@ -435,16 +421,6 @@ export function Gallery() {
           <span className="room-status" aria-live="polite">
             <b>{nC + nA}</b> {status || "Preparing the hall"}
           </span>
-          <button
-            type="button"
-            className="x-icon-btn"
-            aria-pressed={muted}
-            aria-label={muted ? "Sound is off. Turn sound on" : "Sound is on. Turn sound off"}
-            title={muted ? "Sound off" : "Sound on"}
-            onClick={toggleSound}
-          >
-            {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
-          </button>
         </div>
       </div>
     </>

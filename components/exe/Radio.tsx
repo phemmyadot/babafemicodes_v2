@@ -1,12 +1,11 @@
 "use client";
 
-import { Mail, Volume2, VolumeX } from "lucide-react";
+import { Mail } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
-import { setSoundOff, soundOff } from "./crt-sound";
+import { sfx } from "./audio";
 import { Head, useArcade } from "./ExeScreens";
 import { Player, skyline, Stars } from "./GameWorld";
-import { playTransmit } from "./radio-sound";
 
 // Radio Tower: the highest rooftop at dusk. The engineer climbs out of the stairwell door and stands at a
 // radio console. The terminal panel takes the message; "Transmit signal" swings the satellite dish round to
@@ -48,8 +47,6 @@ export function Radio() {
   const walkerRef = useRef(walker);
   walkerRef.current = walker;
   const [phase, setPhase] = useState<Phase>("idle");
-  const [muted, setMuted] = useState(false);
-  useEffect(() => setMuted(soundOff()), []);
 
   const runId = useRef(0);
   const timers = useRef<number[]>([]);
@@ -72,6 +69,7 @@ export function Radio() {
       if (!w) return;
       const dur = reduceMotion() ? 0 : Math.max(200, (Math.abs(x - w.x) / SPEED) * 1000);
       place({ ...w, x, facing: x < w.x - 2 ? -1 : x > w.x + 2 ? 1 : w.facing, walking: dur > 0, dur });
+      sfx.walk(dur);
       await wait(dur);
       place({ ...walkerRef.current!, walking: false });
       await wait(30);
@@ -152,15 +150,17 @@ export function Radio() {
       window.location.href = mail;
       return;
     }
-    playTransmit();
+    sfx.servo(1.4); // the dish swings round
     setPhase("lock");
     setStatus("Acquiring target…");
     later(() => {
       setPhase("send");
+      sfx.burstData(); // morse-style data burst
       setStatus("Transmitting…");
     }, 1500);
     later(() => {
       setPhase("ok");
+      sfx.confirm();
       setStatus("Signal locked · message ready in your mail app");
     }, 3100);
     later(() => {
@@ -299,7 +299,7 @@ export function Radio() {
         </div>
 
         {/* the terminal */}
-        <form className="hg-holo rt-term is-left" onSubmit={transmit} aria-label="Transmit a message">
+        <form className="hg-holo rt-term is-left" onSubmit={transmit} onKeyDown={(e) => !e.metaKey && !e.ctrlKey && !["Shift", "Control", "Alt", "Meta", "Tab", "CapsLock"].includes(e.key) && sfx.key()} aria-label="Transmit a message">
           <p className="rt-prompt">
             <span>&gt;</span> OPEN CHANNEL · looking for an engineer to build something meaningful? Let&rsquo;s talk.
           </p>
@@ -333,19 +333,6 @@ export function Radio() {
           <span className={`room-status${phase === "ok" ? " is-ok" : ""}`} aria-live="polite">
             <b>{phase === "ok" ? "✔" : "●"}</b> {status || "Preparing the roof"}
           </span>
-          <button
-            type="button"
-            className="x-icon-btn"
-            aria-pressed={muted}
-            aria-label={muted ? "Sound is off. Turn sound on" : "Sound is on. Turn sound off"}
-            title={muted ? "Sound off" : "Sound on"}
-            onClick={() => {
-              setSoundOff(!muted);
-              setMuted(!muted);
-            }}
-          >
-            {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
-          </button>
         </div>
       </div>
     </>

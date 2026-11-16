@@ -7,6 +7,8 @@ import { MissionDetail, ArcadeContext, ResumeButton, useArcade, type Go } from "
 import { Skills } from "./SkillTree";
 import { Profile } from "./Lab";
 import { Hangar } from "./Hangar";
+import { ambient, sfx, type Zone } from "./audio";
+import { SoundButton } from "./SoundButton";
 import { Tower } from "./Tower";
 import { Gallery } from "./Gallery";
 import { Radio } from "./Radio";
@@ -396,6 +398,11 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
   const [terminal, setTerminal] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const openTerminal = useCallback(() => setTerminal(true), []);
+  // Walking into a building: the door latch clicks.
+  const goWithLatch: Go = (section, id) => {
+    if (section !== "home") sfx.latch();
+    go(section, id);
+  };
   const actions = useActions(openTerminal, data);
   // Only navigate on close if the hash still names a mission; Back may already have moved on.
   const closeMission = () => parseHash().id && go("missions");
@@ -430,6 +437,12 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [scene]);
   const covered = !!scene && !scene.leaving;
+  // Each screen has its own ambient bed; it crossfades as you move between them.
+  useEffect(() => {
+    const zones: Partial<Record<SectionId, Zone>> = { home: "home", profile: "lab", skills: "skills", missions: "hangar", career: "tower", achievements: "gallery", comms: "radio" };
+    ambient(booting ? null : (zones[route.section] ?? "home"));
+  }, [route.section, booting]);
+  useEffect(() => () => ambient(null), []);
   const sceneDistrict = scene ? DISTRICTS.find((d) => d.id === scene.id) : undefined;
   const [visited, setVisited] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
@@ -534,12 +547,13 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
           <button type="button" className="x-icon-btn" onClick={openTerminal} aria-label="Open terminal (~)">
             <SquareTerminal size={16} aria-hidden />
           </button>
+          <SoundButton />
           <ResumeButton className="x-btn x-btn-primary x-btn-sm" />
         </div>
       </header>
 
       <main id="x-main" ref={mainRef} inert={covered}>
-        <GameWorld go={go} visited={visited} active={!booting && route.section === "home"} />
+        <GameWorld go={goWithLatch} visited={visited} active={!booting && route.section === "home"} />
         <Dialog
           open={!!district && !SCENES.includes(district.id)}
           onClose={closeInterior}
@@ -579,6 +593,9 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
                 <DoorOpen size={20} aria-hidden />
               </button>
               <span className="x-interior-name">{sceneDistrict.name}</span>
+              <span className="x-interior-sound">
+                <SoundButton />
+              </span>
             </div>
             <div className="x-main x-screen" key={scene.id}>
               {screen[scene.id]}

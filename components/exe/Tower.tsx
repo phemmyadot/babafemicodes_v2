@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { sfx } from "./audio";
 import { Head, useArcade } from "./ExeScreens";
 import { Player, Stars } from "./GameWorld";
 
@@ -110,7 +111,11 @@ export function Tower({ selected }: { selected?: string }) {
 
   const [status, setStatus] = useState("");
   const [exitDoor, setExitDoor] = useState(false);
-  const [doors, setDoors] = useState(false); // elevator doors
+  const [doors, setDoorsRaw] = useState(false); // elevator doors
+  const setDoors = (open: boolean) => {
+    setDoorsRaw(open);
+    sfx.slide();
+  };
   const [carF, setCarF] = useState(0); // floor the car is at / heading to
   const [shown, setShown] = useState(0); // the number on the counter
   const [ride, setRide] = useState(0); // ms of the current ride
@@ -146,6 +151,7 @@ export function Tower({ selected }: { selected?: string }) {
       if (!w) return;
       const dur = reduceMotion() ? 0 : Math.max(200, (Math.abs(x - w.x) / SPEED) * 1000);
       place({ ...w, x, facing: x < w.x - 2 ? -1 : x > w.x + 2 ? 1 : w.facing, walking: dur > 0, dur, riding: false });
+      sfx.walk(dur);
       await wait(dur);
       place({ ...walkerRef.current!, walking: false });
       await wait(30);
@@ -168,6 +174,7 @@ export function Tower({ selected }: { selected?: string }) {
       await wait(dur);
       if (ticker.current) clearInterval(ticker.current);
       setShown(f);
+      sfx.ding(); // brass ding on arrival
       await wait(60);
     };
     steps({ wait, walkTo, rideTo }).catch(() => {});
@@ -197,6 +204,7 @@ export function Tower({ selected }: { selected?: string }) {
       await walkTo(STAND_X);
       place({ ...walkerRef.current!, facing: 1 });
       setPanel(f);
+      sfx.keys();
       setStatus(`${label(f)} · terminal open`);
     });
   };
@@ -241,6 +249,7 @@ export function Tower({ selected }: { selected?: string }) {
         await walkTo(STAND_X);
         place({ ...walkerRef.current!, facing: 1 });
         setPanel(f);
+        sfx.keys();
         setStatus(`${label(f)} · terminal open`);
       });
     } else goFloor(f);

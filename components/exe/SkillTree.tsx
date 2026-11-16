@@ -1,5 +1,6 @@
 "use client";
 
+import { sfx } from "./audio";
 import {
   Building2,
   Cloud,
@@ -256,6 +257,7 @@ export function Skills() {
     const fit = fitView();
     const k = Math.min(fit.k * ZOOM_MAX, Math.max(fit.k, v.k * f));
     setSmooth(animate);
+    if (animate && f < 1 && v.k > fit.k * 1.02) sfx.bass(); // zooming out: a deep pulse
     setView(k <= fit.k * 1.002 ? null : { k, x: cx - ((cx - v.x) * k) / v.k, y: cy - ((cy - v.y) * k) / v.k });
   };
 
@@ -302,6 +304,7 @@ export function Skills() {
       const dur = reduce() ? 0 : Math.max(140, (d / SPEED) * 1000);
       const facing = x < from.x - 2 ? -1 : x > from.x + 2 ? 1 : from.facing;
       setWalker({ ...from, x, y, facing, walking: true, dur });
+      sfx.walk(dur);
       await wait(dur);
       setWalker((w) => w && { ...w, walking: false });
       await wait(25);
@@ -332,6 +335,8 @@ export function Skills() {
   /** Picking a room zooms the camera to it; the engineer stays in the lobby. */
   const goRoom = (i: number | null) => {
     setFocus(i);
+    if (i === null) sfx.bass();
+    else sfx.node(i); // crystalline ping, higher for each room further along
     setStatus(i === null ? "Hall · pick any room on the plan" : `${groups[i].title} · ${groups[i].skills.length} technologies`);
   };
 

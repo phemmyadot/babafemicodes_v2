@@ -3,6 +3,7 @@
 import { ExternalLink, Rocket, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { GithubIcon } from "../ui/BrandIcons";
+import { sfx } from "./audio";
 import type { Mission } from "./data";
 import { Head, useArcade } from "./ExeScreens";
 import { Player, Stars } from "./GameWorld";
@@ -111,6 +112,7 @@ export function Hangar() {
       const dur = reduceMotion() ? 0 : Math.max(200, (Math.abs(x - from.x) / SPEED) * 1000);
       const facing = x < from.x - 2 ? -1 : x > from.x + 2 ? 1 : from.facing;
       place({ ...from, x, facing, walking: dur > 0, dur });
+      sfx.walk(dur);
       await wait(dur);
       place({ ...walkerRef.current!, walking: false });
       await wait(30);
@@ -157,6 +159,7 @@ export function Hangar() {
       setStatus(`Walking to ${m.title}`);
       await walkTo(rocketX(i) - 84);
       place({ ...walkerRef.current!, facing: 1 });
+      sfx.lock(); // heavy mechanical lock as the blueprint opens
       setPanel(i);
       setStatus(`Mission ${m.code} · blueprint on screen`);
     });
@@ -208,6 +211,7 @@ export function Hangar() {
       setLaunch({ i, stage: "prep" }); // marks the pad busy
       await walkTo(Math.max(ENTRY_X, rocketX(i) - 300));
       place({ ...walkerRef.current!, facing: 1 });
+      sfx.klaxon();
       for (const t of [3, 2, 1]) {
         setCount(t);
         setStatus(`T-minus ${t}`);
@@ -216,6 +220,7 @@ export function Hangar() {
       }
       setCount(0);
       setStatus("Ignition");
+      sfx.roar(3);
       setLaunch({ i, stage: "ignite" });
       await wait(1000);
       setStatus("Liftoff");

@@ -6209,3 +6209,9 @@ html:not([data-exe-boot="run"]) .exe-boot {
 @media (prefers-reduced-motion: reduce) {
   .rt-light, .rt-scope i, .rt-dish.is-scan .rt-dish-sweep, .rt-target i { animation: none; }
 }
+.x-interior-bar .x-interior-name {
+  margin-left: auto;
+}
+.x-interior-sound {
+  display: flex;
+}

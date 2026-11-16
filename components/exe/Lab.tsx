@@ -1,9 +1,10 @@
 "use client";
 
-import { RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
-import { playCrtOn, setSoundOff, soundOff } from "./crt-sound";
+import { sfx } from "./audio";
+import { playCrtOn } from "./crt-sound";
 import { ATTRIBUTES, PROFILE, type PartSlot } from "./data";
 import { Avatar, Head, ResumeButton, useArcade } from "./ExeScreens";
 import { Player } from "./GameWorld";
@@ -110,8 +111,6 @@ export function Profile() {
   const [powered, setPowered] = useState(false);
   // Bumps when the last part seats: plays the LED sweep and spark burst once.
   const [fx, setFx] = useState(0);
-  const [muted, setMuted] = useState(false);
-  useEffect(() => setMuted(soundOff()), []);
   const [door, setDoor] = useState(false);
   const [status, setStatus] = useState("");
   const [walker, setWalker] = useState<{
@@ -151,6 +150,7 @@ export function Profile() {
     setLog([]);
     POST.forEach((line, i) => later(() => setLog((l) => [...l, line]), 150 + i * 170));
     later(() => setPhase("on"), 150 + POST.length * 170 + 450);
+    later(sfx.bootChime, 500);
   }, []);
 
   const finish = useCallback(() => {
@@ -188,6 +188,7 @@ export function Profile() {
       const facing = x < from.x - 2 ? -1 : x > from.x + 2 ? 1 : from.facing;
       // Functional update: a pose set just before this call may not have rendered yet.
       setWalker((w) => w && { ...w, x, facing, walking: true, dur, carry, press: false });
+      sfx.walk(dur);
       await wait(dur);
       if (!alive()) throw new Error("cancelled");
       set({ walking: false });
@@ -219,6 +220,7 @@ export function Profile() {
         set({ press: true });
         await wait(150);
         setInstalled((s) => [...s, a.slot]);
+        sfx.clack();
         set({ carry: null, press: false });
         await wait(150);
         if (a === ATTRIBUTES[ATTRIBUTES.length - 1]) {
@@ -232,7 +234,8 @@ export function Profile() {
       await walkTo(POWER_X, null);
       set({ press: true });
       setPowered(true);
-      playCrtOn();
+      sfx.whine();
+      later(playCrtOn, 700);
       await wait(360);
       set({ press: false });
       setStatus("Engineer stepping back");
@@ -265,6 +268,7 @@ export function Profile() {
         setDoor(true);
         const dur = Math.max(250, (Math.abs(w.x - DOOR_X) / SPEED) * 1000);
         setWalker((c) => c && { ...c, x: DOOR_X, facing: -1, walking: true, dur, carry: null, press: false });
+        sfx.walk(dur);
         await wait(dur);
         setWalker((c) => c && { ...c, walking: false, visible: false });
         await wait(420);
@@ -568,19 +572,6 @@ export function Profile() {
             {status || "Preparing the lab"}
           </span>
           <span className="room-hud-actions">
-            <button
-              type="button"
-              className="x-icon-btn"
-              aria-pressed={muted}
-              aria-label={muted ? "Sound is off. Turn sound on" : "Sound is on. Turn sound off"}
-              title={muted ? "Sound off" : "Sound on"}
-              onClick={() => {
-                setSoundOff(!muted);
-                setMuted(!muted);
-              }}
-            >
-              {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
-            </button>
             {done ? (
               <button type="button" className="x-btn x-btn-sm" onClick={assemble}>
                 <RotateCcw size={14} aria-hidden /> Rebuild PC

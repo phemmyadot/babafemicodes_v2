@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Download, LogIn, Mail } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
+import { sfx } from "./audio";
 import { DISTRICTS, IDLE_TIPS, PROFILE, STATS, WORLD_W, type DistrictId } from "./data";
 import { Stat, useArcade, type Go } from "./ExeScreens";
 
@@ -378,6 +379,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
     right: false,
     target: null as number | null,
     enter: null as DistrictId | null,
+    stepAcc: 0,
     droneX: SPAWN_X - 60,
     cam: 0,
     scale: 1,
@@ -437,7 +439,14 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
             step = dir * max;
           }
         }
-        if (dir) s.facing = dir;
+        if (dir) {
+          s.facing = dir;
+          s.stepAcc += Math.abs(step);
+          if (s.stepAcc > 46) {
+            s.stepAcc = 0;
+            sfx.step(); // one footstep per stride
+          }
+        }
         s.x = Math.max(40, Math.min(WORLD_W - 40, s.x + step));
         s.droneX += (s.x - s.facing * 70 - s.droneX) * Math.min(1, dt * 3);
 
