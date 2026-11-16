@@ -71,13 +71,17 @@ export function Gallery() {
   const { achievements, certifications } = useArcade();
   const nC = certifications.length;
   const nA = achievements.length;
-  const W = Math.max(nC, nA, 4) * PER;
-  const ROOM_W = FIRST + W + 140;
-  const certX = (i: number) => FIRST + ((i + 0.5) * W) / Math.max(1, nC);
-  const achX = (i: number) => FIRST + ((i + 0.5) * W) / Math.max(1, nA);
+  const [vp, setVp] = useState({ w: 0, h: 0 });
+  // On a phone the whole hall fits the screen: items stand closer together and the camera never pans.
+  const compact = vp.w > 0 && vp.w < 640;
+  const first = compact ? 300 : FIRST;
+  const W = Math.max(nC, nA, 4) * (compact ? 165 : PER);
+  const ROOM_W = first + W + (compact ? 80 : 140);
+  const plaque = compact ? { ...PLAQUE, w: 150 } : PLAQUE;
+  const certX = (i: number) => first + ((i + 0.5) * W) / Math.max(1, nC);
+  const achX = (i: number) => first + ((i + 0.5) * W) / Math.max(1, nA);
   const xOf = (p: Pick) => (p.kind === "cert" ? certX(p.i) : achX(p.i));
 
-  const [vp, setVp] = useState({ w: 0, h: 0 });
   const ro = useRef<ResizeObserver | null>(null);
   const viewportRef = useCallback((el: HTMLDivElement | null) => {
     ro.current?.disconnect();
@@ -252,8 +256,8 @@ export function Gallery() {
   }, [panel]);
 
   // Camera: the whole hall when it fits; on a narrow screen it keeps a readable size and follows the engineer.
-  const fit = vp.w ? Math.min(vp.w / ROOM_W, vp.h / ROOM_H) * 0.92 : 0.5;
-  const k = vp.w ? Math.max(fit, Math.min(0.55, (vp.h / ROOM_H) * 0.92)) : 0.5;
+  const fit = vp.w ? Math.min(vp.w / ROOM_W, vp.h / ROOM_H) * (compact ? 0.97 : 0.92) : 0.5;
+  const k = vp.w ? (compact ? fit : Math.max(fit, Math.min(0.55, (vp.h / ROOM_H) * 0.92))) : 0.5;
   const wx = walker?.x ?? ENTRY_X;
   const tx = ROOM_W * k <= vp.w ? (vp.w - ROOM_W * k) / 2 : Math.min(0, Math.max(vp.w - ROOM_W * k, vp.w / 2 - wx * k));
   const ty = (vp.h - ROOM_H * k) / 2;
@@ -270,7 +274,7 @@ export function Gallery() {
       <Head index="05" title="Trophy hall" note={`${nC} certifications in glass cases, ${nA} achievements on the wall. Walk up to one to inspect it.`} />
       <div className={`lab-viewport gl-viewport${sel ? " has-sel" : ""}`} ref={viewportRef}>
         <div
-          className="lab-room gl-room"
+          className={`lab-room gl-room${compact ? " is-compact" : ""}`}
           style={{ width: ROOM_W, height: ROOM_H, transform: `translate(${tx}px, ${ty}px) scale(${k})`, transition: `transform ${roomMove}ms linear` } as CSSProperties}
         >
           <span className="room-wall gl-wall" style={{ top: 0 }} aria-hidden />
@@ -309,7 +313,7 @@ export function Gallery() {
                 key={a.id}
                 type="button"
                 className={`gl-plaque${on ? " is-sel" : ""}`}
-                style={{ left: x - PLAQUE.w / 2, top: PLAQUE.top, width: PLAQUE.w, height: PLAQUE.h } as CSSProperties}
+                style={{ left: x - plaque.w / 2, top: plaque.top, width: plaque.w, height: plaque.h } as CSSProperties}
                 onClick={() => pick({ kind: "ach", i })}
                 aria-label={`Achievement: ${a.title}. Walk up and read the plaque`}
                 aria-pressed={on}

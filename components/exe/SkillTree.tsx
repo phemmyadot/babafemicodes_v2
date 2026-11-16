@@ -30,6 +30,8 @@ import { Player } from "./GameWorld";
 // No door overlay. No inner scrollbars. Entry aesthetic matches the home Skill Tree building.
 
 const COLORS = ["#43d5ff", "#a77bff", "#48d9a0", "#ffd23f", "#ff85e6", "#6ee7b7", "#93c5fd", "#f472b6"];
+const PORTRAIT_TOP = 56; // room for the status pill above a phone plan
+const PORTRAIT_BOTTOM = 76; // and for the room tabs below it
 const SPEED = 300; // walking speed, units per second (he only crosses the lobby)
 
 // Room chrome, matching the card CSS: header, body padding, a floor strip for the engineer, footer.
@@ -38,6 +40,7 @@ const CHIP_ROW = 44; // 36px chip + 8px gap
 const PAD_X = 36;
 const CHROME = 78 + 28 + 64 + 30;
 const LOBBY_W = 380;
+const LOBBY_P_H = 740; // the lobby's height when it sits on top of the rooms (phones)
 const WALL = 4; // each room is inset by this much, so neighbours leave an 8px wall
 const HOUSE_PAD = 16; // clear space between the house wall and the rooms inside it
 const DOOR = 56; // length of a door opening
@@ -121,7 +124,7 @@ function partition(items: Array<{ i: number; wt: number }>, r: Rect, out: Rect[]
  * follows the screen. Each room's area follows how much it has to hold, so rooms differ in size
  * and don't line up; the house grows until every room fits its chips.
  */
-export function planHouse(counts: number[], aspect: number) {
+export function planHouse(counts: number[], aspect: number, portrait = false) {
   const ideal = counts.map((c) => {
     const cols = Math.min(6, Math.max(2, Math.round(Math.sqrt(c * 1.3))));
     return (cols * (CHIP_W + 8) + 28) * (CHROME + Math.ceil(c / cols) * CHIP_ROW - 8);
@@ -129,11 +132,25 @@ export function planHouse(counts: number[], aspect: number) {
   const area = ideal.reduce((n, a) => n + a, 0) * 1.12;
   let H = Math.max(640, (LOBBY_W + Math.sqrt(LOBBY_W ** 2 + 4 * aspect * area)) / (2 * aspect));
   const rects: Rect[] = [];
-  for (let t = 0; t < 90; t++, H *= 1.03) {
-    partition(ideal.map((wt, i) => ({ i, wt })), { x: LOBBY_W, y: 0, w: aspect * H - LOBBY_W, h: H }, rects);
-    if (rects.every((r, i) => r.w >= 200 && r.h >= needH(counts[i], r.w))) break;
+  let W: number;
+  let lobby: Rect;
+  if (portrait) {
+    // Phones: the lobby on top, then every room full width in one column, as tall as its chips need.
+    W = LOBBY_W;
+    lobby = { x: 0, y: 0, w: W, h: LOBBY_P_H };
+    H = LOBBY_P_H;
+    counts.forEach((c, i) => {
+      rects[i] = { x: 0, y: H, w: W, h: needH(c, W) };
+      H += rects[i].h;
+    });
+  } else {
+    for (let t = 0; t < 90; t++, H *= 1.03) {
+      partition(ideal.map((wt, i) => ({ i, wt })), { x: LOBBY_W, y: 0, w: aspect * H - LOBBY_W, h: H }, rects);
+      if (rects.every((r, i) => r.w >= 200 && r.h >= needH(counts[i], r.w))) break;
+    }
+    W = LOBBY_W + rects.reduce((m, r) => Math.max(m, r.x + r.w - LOBBY_W), 0);
+    lobby = { x: 0, y: 0, w: LOBBY_W, h: H };
   }
-  const W = LOBBY_W + rects.reduce((m, r) => Math.max(m, r.x + r.w - LOBBY_W), 0);
   const rooms: RoomPlan[] = rects.map((r, i) => {
     const cx = (r.x + r.w / 2) / W;
     const cy = (r.y + r.h / 2) / H;
@@ -142,7 +159,7 @@ export function planHouse(counts: number[], aspect: number) {
   });
 
   // Doors on every wall two rooms share for at least MIN_SHARE; if that leaves a room cut off, relax it.
-  const all: Array<Rect & { id: number }> = [{ id: -1, x: 0, y: 0, w: LOBBY_W, h: H }, ...rooms.map((r) => ({ id: r.i, x: r.x, y: r.y, w: r.w, h: r.h }))];
+  const all: Array<Rect & { id: number }> = [{ id: -1, ...lobby }, ...rooms.map((r) => ({ id: r.i, x: r.x, y: r.y, w: r.w, h: r.h }))];
   const build = (min: number) => {
     const out: DoorPlan[] = [];
     for (let p = 0; p < all.length; p++)
@@ -175,7 +192,7 @@ export function planHouse(counts: number[], aspect: number) {
   let doors = build(MIN_SHARE);
   if (!connected(doors)) doors = build(DOOR);
   if (!connected(doors)) doors = build(1);
-  return { rooms, doors, W, H };
+  return { rooms, doors, lobby, W, H };
 }
 
 interface View {
@@ -210,7 +227,12 @@ export function Skills() {
   const [vp, setVp] = useState({ w: 0, h: 0 });
   // The house takes the screen's shape (rounded, so a small resize doesn't re-plan it).
   const aspect = vp.h ? Math.round(Math.min(2.2, Math.max(1.25, (vp.w / vp.h) * 0.92)) * 10) / 10 : 1.6;
-  const { rooms, W, H } = useMemo(() => planHouse(groups.map((g) => g.skills.length), aspect), [groups, aspect]);
+  // On a phone the plan is one tall column (lobby on top) that fills the width and scrolls by dragging.
+  const portrait = vp.w > 0 && vp.w < 640;
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const portraitRef = useRef(portrait);
+  portraitRef.current = portrait;
+  const { rooms, lobby, W, H } = useMemo(() => planHouse(groups.map((g) => g.skills.length), aspect, portrait), [groups, aspect, portrait]);
   const ro = useRef<ResizeObserver | null>(null);
   const viewportRef = useCallback((el: HTMLDivElement | null) => {
     ro.current?.disconnect();
@@ -226,17 +248,27 @@ export function Skills() {
 
   // Fits the entire 2D Floor Map onto the screen
   const fitView = (): View => {
+    if (portrait) {
+      const k = (vp.w - 24) / (W + HOUSE_PAD * 2);
+      return { k, x: (vp.w - W * k) / 2, y: PORTRAIT_TOP + HOUSE_PAD * k };
+    }
     // Leave room for the status bar on top and the room tabs along the bottom.
     const k = vp.w && vp.h ? Math.min((vp.w - 40) / (W + HOUSE_PAD * 2), (vp.h - 150) / (H + HOUSE_PAD * 2)) : 0.55;
     return { k, x: (vp.w - W * k) / 2, y: 74 + (vp.h - 150 - H * k) / 2 };
   };
 
-  const cam = view ?? fitView();
+  const cam = portrait ? fitView() : (view ?? fitView());
   const camRef = useRef(cam);
   camRef.current = cam;
 
   const setFocus = (i: number | null) => {
     setFocusRoom(i);
+    if (portrait) {
+      // The phone plan is a native scroller (smooth with momentum on iOS): jump it to the room.
+      const r = i === null ? null : rooms[i];
+      scrollRef.current?.scrollTo({ top: r ? (HOUSE_PAD + r.y) * fitView().k : 0, behavior: reduce() ? "auto" : "smooth" });
+      return;
+    }
     setSmooth(true);
     if (i === null) return setView(null);
     const r = rooms[i];
@@ -253,6 +285,7 @@ export function Skills() {
 
   /** Zoom by factor f around a screen point (default: center of screen). */
   const zoom = (f: number, cx = vp.w / 2, cy = vp.h / 2, animate = true) => {
+    if (portrait) return; // the phone plan scrolls instead
     const v = camRef.current;
     const fit = fitView();
     const k = Math.min(fit.k * ZOOM_MAX, Math.max(fit.k, v.k * f));
@@ -421,6 +454,7 @@ export function Skills() {
     const el = elRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      if (portraitRef.current) return; // let the phone plan scroll natively
       e.preventDefault();
       const r = el.getBoundingClientRect();
       const factor = Math.exp(-e.deltaY * 0.0016);
@@ -439,6 +473,7 @@ export function Skills() {
     return { d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   };
   const onPointerDown = (e: RPointerEvent<HTMLDivElement>) => {
+    if (portraitRef.current) return; // native scroll on phones
     if ((e.target as Element).closest(".room-hud, .sr-tabs, .sr-zoom, .sr-kiosk, button")) return;
     fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (fingers.current.size === 2) {
@@ -482,6 +517,8 @@ export function Skills() {
   if (!groups.length) return <Head index="02" title="Skill tree" note="No skills published yet." />;
 
   const zoomed = view !== null;
+  /** Height of the phone scroller: the plan at its fitted scale plus the room above and below it. */
+  const scrollH = PORTRAIT_TOP + (H + HOUSE_PAD * 2) * fitView().k + PORTRAIT_BOTTOM;
 
   return (
     <>
@@ -491,7 +528,7 @@ export function Skills() {
         note={`${groups.length} rooms · ${total} technologies. Pick a room and the engineer walks you there.`}
       />
       <div
-        className={`sr-viewport${zoomed ? " can-pan" : ""}`}
+        className={`sr-viewport${zoomed ? " can-pan" : ""}${portrait ? " is-portrait" : ""}`}
         ref={(el) => {
           elRef.current = el;
           viewportRef(el);
@@ -502,8 +539,11 @@ export function Skills() {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
+        {portrait ? (
+          <div className="sr-scroll" ref={scrollRef}>
+            <div style={{ height: scrollH }} aria-hidden />
         {/* fixed backdrop: it must not scale with the camera (a huge scaled layer flickers) */}
-        <div className="sr-blueprint-grid" aria-hidden />
+        <div className="sr-blueprint-grid" style={portrait ? { height: scrollH, bottom: "auto" } : undefined} aria-hidden />
         {/* rack focus: the room starts close and blurred behind a hologram veil, then pulls back into focus */}
         <div className="sr-veil" aria-hidden />
         <div className="sr-pull">
@@ -526,7 +566,7 @@ export function Skills() {
           {/* Central Lobby Wing (Sector 00 — Root Hub of the Facility) */}
           <div
             className={`sr-lobby-wing ${focus === null ? "is-focused" : ""}`}
-            style={{ left: WALL, top: WALL, width: LOBBY_W - WALL * 2, height: H - WALL * 2 }}
+            style={{ left: lobby.x + WALL, top: lobby.y + WALL, width: lobby.w - WALL * 2, height: lobby.h - WALL * 2 }}
           >
             <div className="sr-card-head">
               <div className="sr-card-meta">
@@ -689,6 +729,199 @@ export function Skills() {
 
         </div>
 
+          </div>
+        ) : (
+          <>
+        {/* fixed backdrop: it must not scale with the camera (a huge scaled layer flickers) */}
+        <div className="sr-blueprint-grid" style={portrait ? { height: scrollH, bottom: "auto" } : undefined} aria-hidden />
+        {/* rack focus: the room starts close and blurred behind a hologram veil, then pulls back into focus */}
+        <div className="sr-veil" aria-hidden />
+        <div className="sr-pull">
+        <div
+          ref={worldRef}
+          className={`sr-world${smooth ? " is-smooth" : ""}`}
+          style={{ width: W, height: H, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})` }}
+        >
+          {/* Blueprint backdrop: cyberpunk grid, coordinate marks, sector stamps */}
+          <div className="sr-blueprint-markers" style={{ width: W, height: H }} aria-hidden>
+            <span className="sr-mark sr-mark-tl">FLOOR MAP // 2D ARCHITECTURAL BLUEPRINT</span>
+            <span className="sr-mark sr-mark-tr">ELEVATION 0.00M // ALL SYSTEMS NOMINAL</span>
+            <span className="sr-mark sr-mark-bl">ROOT HUB: LOBBY // WINGS 01-0{groups.length}</span>
+            <span className="sr-mark sr-mark-br">GRID: 32PX // CAD_ACTIVE</span>
+          </div>
+
+          {/* The house: outer walls, then rooms sharing walls, with door openings between them */}
+          <div className="sr-house" style={{ left: -HOUSE_PAD, top: -HOUSE_PAD, width: W + HOUSE_PAD * 2, height: H + HOUSE_PAD * 2 }} aria-hidden />
+
+          {/* Central Lobby Wing (Sector 00 — Root Hub of the Facility) */}
+          <div
+            className={`sr-lobby-wing ${focus === null ? "is-focused" : ""}`}
+            style={{ left: lobby.x + WALL, top: lobby.y + WALL, width: lobby.w - WALL * 2, height: lobby.h - WALL * 2 }}
+          >
+            <div className="sr-card-head">
+              <div className="sr-card-meta">
+                <span className="sr-room-code sr-code-green">RM-00</span>
+              </div>
+              <div className="sr-room-title-row">
+                <Building2 size={18} className="sr-icon-green" aria-hidden />
+                <span className="sr-room-title">Entry</span>
+                <b className="sr-badge-green">{groups.length} ROOMS</b>
+              </div>
+              <div className="sr-card-divider sr-div-green" />
+            </div>
+
+            {/* Directory: one big button per room, filling the hall */}
+            <div className="sr-kiosk" role="region" aria-label="Rooms">
+              <div className="sr-kiosk-sub">SECTIONS</div>
+              <div className="sr-kiosk-items" role="list">
+                {groups.map((g, i) => {
+                  const Icon = iconFor(g.title);
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      className={`sr-kiosk-row ${focus === i ? "is-selected" : ""}`}
+                      style={{ "--bc": COLORS[i % COLORS.length] } as CSSProperties}
+                      onClick={clicked(() => goRoom(i))}
+                      aria-label={`${g.title}, ${g.skills.length} skills`}
+                    >
+                      <span className="sr-kiosk-icon">
+                        <Icon size={18} aria-hidden />
+                      </span>
+                      <div className="sr-kiosk-info">
+                        <span className="sr-kiosk-tag">
+                          RM-0{i + 1}
+                        </span>
+                        <span className="sr-kiosk-name">{g.title}</span>
+                      </div>
+                      <span className="sr-kiosk-count">{g.skills.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Lobby floor: the front door, with a little room to walk */}
+            <div className="sr-lobby-floor">
+              <button
+                type="button"
+                ref={doorRef}
+                className={`room-door sr-front-door${door ? " is-open" : ""}`}
+                onClick={(e) => exit(e.currentTarget)}
+                aria-label="Leave the skill house through the front door"
+              >
+                <span className="room-door-gap" />
+                <span className="room-door-panel">
+                  <i />
+                </span>
+                <span className="room-door-sign">Exit</span>
+              </button>
+            </div>
+
+            {/* Lobby Footer Status Bar */}
+            <div className="sr-card-foot">
+              <div className="sr-card-leds">
+                <span className="sr-led sr-led-ok" />
+                <span className="sr-led sr-led-act" />
+                <span className="sr-led sr-led-pwr" />
+              </div>
+              <span className="sr-lobby-concourse-exit">CONCOURSE ──▶</span>
+            </div>
+          </div>
+
+          {/* Connected Skill Rooms across 2D Space (North, South, East) */}
+          {groups.map((g, i) => {
+            const r = rooms[i];
+            if (!r) return null;
+            const Icon = iconFor(g.title);
+            const color = COLORS[i % COLORS.length];
+
+            return (
+              <div
+                key={g.id}
+                className={`sr-room ${focus === i ? "is-focus" : ""}`}
+                style={
+                  {
+                    left: r.x + WALL,
+                    top: r.y + WALL,
+                    width: r.w - WALL * 2,
+                    height: r.h - WALL * 2,
+                    "--bc": color,
+                    "--cols": r.cols,
+                  } as CSSProperties
+                }
+                onClick={clicked(() => goRoom(i))}
+                role="region"
+                aria-label={`Room 0${i + 1}: ${g.title}, ${g.skills.length} technologies`}
+              >
+                {/* Consistent Card Header */}
+                <div className="sr-card-head">
+                  <div className="sr-card-meta">
+                    <span className="sr-room-code">RM-0{i + 1}</span>
+                  </div>
+                  <div className="sr-room-title-row">
+                    <Icon size={18} className="sr-room-icon" aria-hidden />
+                    <span className="sr-room-title">{g.title}</span>
+                    <b className="sr-room-badge">{g.skills.length} TECH</b>
+                  </div>
+                  <div className="sr-card-divider" />
+                </div>
+
+                {/* Card Body: Consistent, balanced grid filling the card (NO SCROLLS!) */}
+                <div className="sr-card-body">
+                  <div className="sr-chips">
+                    {g.skills.map((s, n) => (
+                      <div
+                        key={s}
+                        className="sr-chip"
+                        title={s}
+                        // the last chip takes the rest of its row, so no empty cell is left over
+                        style={n === g.skills.length - 1 && g.skills.length % r.cols ? { gridColumn: `span ${r.cols - (g.skills.length % r.cols) + 1}` } : undefined}
+                      >
+                        <span className="sr-chip-indicator" />
+                        <span className="sr-chip-text">{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card Footer: Status Bar & Micro Diagnostics */}
+                <div className="sr-card-foot">
+                  <div className="sr-card-leds">
+                    <span className="sr-led sr-led-ok" />
+                    <span className="sr-led sr-led-act" />
+                    <span className="sr-led sr-led-pwr" />
+                  </div>
+                  <span className="sr-card-foot-text">NODE 0{i + 1} // ACTIVE</span>
+                </div>
+
+              </div>
+            );
+          })}
+
+          {/* The engineer in the lobby */}
+          {walker && (
+            <div
+              className={`sr-walker ${walker.walking ? "is-walking" : ""}${walker.visible ? "" : " is-hidden"}`}
+              style={{
+                transform: `translate(${walker.x}px, ${walker.y}px)`,
+                transitionDuration: `${walker.dur}ms`,
+              }}
+              aria-hidden
+            >
+              <div className="sr-walker-avatar" style={{ transform: `scale(${0.9 * walker.facing}, 0.9)` }}>
+                <Player gradId="plv-skills" />
+              </div>
+              <div className="sr-walker-shadow" />
+            </div>
+          )}
+        </div>
+
+        </div>
+
+          </>
+        )}
+
         {/* Status HUD Header */}
         <div className="room-hud">
           <span className="room-status" aria-live="polite">
@@ -698,6 +931,7 @@ export function Skills() {
         </div>
 
         {/* Zoom & View floating toolbar */}
+        {!portrait && (
         <div className="sr-zoom" role="toolbar" aria-label="Floor map zoom controls">
           <button type="button" onClick={() => zoom(1.3)} aria-label="Zoom in (+ or =)" title="Zoom in (+)">
             <Plus size={16} />
@@ -724,6 +958,7 @@ export function Skills() {
             <Building2 size={16} />
           </button>
         </div>
+        )}
 
         {/* Room Navigation Tabs along the bottom */}
         <div className="sr-tabs" role="tablist" aria-label="Facility Rooms">

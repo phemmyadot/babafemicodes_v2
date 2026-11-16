@@ -1206,7 +1206,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   .x-foot {
     justify-content: center;
     padding: 6px 12px;
-    font-size: 10px;
+    font-size: 11px;
   }
   .x-foot > span:first-child {
     display: none;
@@ -1928,7 +1928,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
     right: 10px;
     min-width: 0;
     padding: 8px 10px;
-    font-size: 10px;
+    font-size: 11px;
   }
   .gw-bubble {
     width: 180px;
@@ -2174,7 +2174,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-radius: 99px;
   border: 1.5px solid var(--accent);
   color: var(--accent);
-  font: 700 10px var(--mono);
+  font: 700 11px var(--mono);
   text-transform: uppercase;
 }
 .x-select-preview {
@@ -2505,7 +2505,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
     gap: 10px;
     padding: 5px 10px;
     border-radius: 99px;
-    font-size: 10px;
+    font-size: 11px;
   }
   .gw-progress .gw-bar {
     display: none;
@@ -3081,7 +3081,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   position: absolute;
   top: 5px;
   left: 8px;
-  font: 600 9px var(--mono);
+  font: 600 11px var(--mono);
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.55);
 }
@@ -3183,7 +3183,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .pcb-eps b,
 .pcb-atx b,
 .pcb-bottom b {
-  font: 600 8px var(--mono);
+  font: 600 11px var(--mono);
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.6);
 }
@@ -3945,7 +3945,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .sr-mark {
   position: absolute;
-  font: 600 10px var(--mono);
+  font: 600 11px var(--mono);
   color: rgba(67, 213, 255, 0.45);
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -3987,7 +3987,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .sr-badge-green {
   background: #7cff6b !important;
   color: #050a14 !important;
-  font: 700 10.5px var(--mono);
+  font: 700 11px var(--mono);
   letter-spacing: 0.08em;
   padding: 2px 8px;
   border-radius: 4px;
@@ -4052,7 +4052,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 
 .sr-kiosk-sub {
-  font: 600 8.5px var(--mono);
+  font: 600 11px var(--mono);
   color: #7b8fae;
   letter-spacing: 0.14em;
   margin-bottom: 8px;
@@ -4117,19 +4117,19 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 
 .sr-kiosk-tag {
-  font: 700 8.5px var(--mono);
+  font: 700 11px var(--mono);
   color: var(--bc);
 }
 
 .sr-kiosk-name {
-  font: 600 10.5px var(--body);
+  font: 600 11px var(--body);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .sr-kiosk-count {
-  font: 700 9px var(--mono);
+  font: 700 11px var(--mono);
   padding: 1px 5px;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.45);
@@ -4144,7 +4144,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   position: absolute;
   right: 14px;
   bottom: 12px;
-  font: 700 9px var(--mono);
+  font: 700 11px var(--mono);
   color: #7cff6b;
   letter-spacing: 0.16em;
   text-shadow: 0 0 8px rgba(124, 255, 107, 0.7);
@@ -4201,7 +4201,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 
 .sr-room-code {
-  font: 700 10px var(--mono);
+  font: 700 11px var(--mono);
   color: var(--bc, #43d5ff);
   padding: 2px 7px;
   border-radius: 4px;
@@ -4211,7 +4211,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 
 .sr-room-wing {
-  font: 700 9.5px var(--mono);
+  font: 700 11px var(--mono);
   color: #8da2c4;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -4243,7 +4243,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-radius: 4px;
   background: var(--bc, #43d5ff);
   color: #050a14;
-  font: 700 10.5px var(--mono);
+  font: 700 11px var(--mono);
   letter-spacing: 0.08em;
   flex: none;
 }
@@ -4290,7 +4290,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-radius: 6px;
   background: rgba(12, 8, 30, 0.88);
   color: #f4eeff;
-  font: 600 11.5px / 1.2 var(--body);
+  font: 600 11.11px / 1.2 var(--body);
   transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast);
   overflow: hidden;
   box-sizing: border-box;
@@ -4339,7 +4339,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .sr-led-pwr { background: #ffd23f; box-shadow: 0 0 5px #ffd23f; }
 
 .sr-card-foot-text {
-  font: 700 9px var(--mono);
+  font: 700 11px var(--mono);
   color: #7a8fae;
   letter-spacing: 0.14em;
 }
@@ -4450,7 +4450,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-color: var(--bc, #43d5ff) !important;
 }
 .sr-tab-code {
-  font: 700 10px var(--mono);
+  font: 700 11px var(--mono);
   color: var(--bc, #43d5ff);
 }
 .sr-tab-btn b {
@@ -4505,7 +4505,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
     color: var(--bc);
   }
   .sr-panel-count {
-    font: 700 10px var(--mono);
+    font: 700 11px var(--mono);
     color: #94a3b8;
   }
   .sr-panel-skills {
@@ -4596,7 +4596,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: clip;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.15;
 }
 /* tabs: centred when they fit, scrollable from the left edge when they don't (no clipped first tab) */
@@ -4616,7 +4616,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   gap: 6px;
 }
 .sr-tab-btn .sr-tab-code {
-  font-size: 9px !important;
+  font-size: 11px !important;
 }
 
 /* ================================ skill house: hall with a front door, rooms with no blank space */
@@ -4641,7 +4641,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 12px;
 }
 .sr-kiosk-sub {
-  font: 700 10px var(--mono);
+  font: 700 11px var(--mono);
   letter-spacing: 0.16em;
   color: #67e8f9;
 }
@@ -4666,7 +4666,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   white-space: normal;
 }
 .sr-lobby-wing .sr-kiosk-tag {
-  font: 700 9px var(--mono);
+  font: 700 11px var(--mono);
   letter-spacing: 0.1em;
   color: color-mix(in srgb, var(--bc) 80%, #fff);
 }
@@ -4712,7 +4712,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   min-height: 0;
 }
 .sr-room .sr-chip-text {
-  font-size: 12.5px;
+  font-size: 12.11px;
   line-height: 1.15;
 }
 
@@ -4839,7 +4839,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .lab-id-text .x-kicker {
   margin: 0;
-  font-size: 10px;
+  font-size: 11px;
 }
 .lab-name {
   margin: 0;
@@ -4863,7 +4863,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .lab-facts dt {
   margin: 0;
-  font: 600 9px var(--mono);
+  font: 600 11px var(--mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -5371,7 +5371,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .ct-sign small {
   display: block;
   margin-top: 4px;
-  font: 600 13px var(--mono);
+  font: 600 14px var(--mono);
   letter-spacing: 0.12em;
   text-shadow: none;
   color: #cbd5e1;
@@ -5457,7 +5457,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-radius: 2px;
   background: #e8dcc0;
   color: #3a2a1c;
-  font: 700 9px var(--mono);
+  font: 700 11px var(--mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6365,4 +6365,84 @@ html:not([data-exe-boot="run"]) .exe-boot {
 @media (prefers-reduced-motion: reduce) {
   .x-iris, .sr-pull, .sr-veil, .ct-streaks { animation: none; }
   .hg-viewport.is-ignite, .hg-viewport.is-lift { animation: none; }
+}
+
+/* Touch targets: 44px on phones where the layout has room; footer links get the 24px WCAG 2.2 minimum so the footer stays one strip. */
+@media (max-width: 760px) {
+  .x-icon-btn {
+    min-width: 44px;
+    height: 44px;
+  }
+  .x-door-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .x-btn-sm {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .x-logo {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .x-foot a {
+    display: inline-block;
+    padding-block: 6px;
+  }
+  .sr-tab-btn,
+  .sr-kiosk-row,
+  .ct-btn,
+  .rt-fields input,
+  .rt-dial {
+    min-height: 44px;
+  }
+  .sr-zoom button,
+  .ct-btn,
+  .rt-dial {
+    min-width: 44px;
+  }
+  .sr-zoom button {
+    height: 44px;
+  }
+}
+
+/* Phones: the tall plan scrolls natively (GPU-composited, with iOS momentum) instead of being dragged by script. */
+.sr-viewport.is-portrait {
+  touch-action: auto;
+}
+.sr-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+.sr-scroll .sr-pull {
+  animation: none; /* the blurred rack-focus entrance repaints a huge layer */
+}
+.sr-scroll .sr-veil {
+  display: none;
+}
+
+/* Phones: the whole hangar is scaled to about a third, so labels are set larger in design units and wrap under their rocket. */
+.hg-room.is-compact .hg-tag {
+  font-size: 24px;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.hg-room.is-compact .hg-tag b {
+  display: block;
+  margin: 0;
+}
+
+/* Phones: the whole hall is scaled to about a third, so plaque text is set larger in design units. */
+.gl-room.is-compact .gl-plaque {
+  font-size: 22px;
+}
+.gl-room.is-compact .gl-plaque span {
+  -webkit-line-clamp: 4;
 }

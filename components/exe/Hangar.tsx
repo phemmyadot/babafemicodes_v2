@@ -24,7 +24,6 @@ const SPEED = 780;
 const LIFT_EASE = "cubic-bezier(0.45, 0, 0.9, 0.6)"; // matches the rocket's own climb in exe.css
 const COLORS = ["#43d5ff", "#a77bff", "#48d9a0", "#ffd23f", "#ff85e6", "#ff9a57", "#93c5fd", "#f472b6"];
 
-const rocketX = (i: number) => FIRST + i * GAP;
 const rocketH = (i: number) => 300 + (i % 3) * 34;
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -65,9 +64,13 @@ type Launch = { i: number; stage: "prep" | "ignite" | "lift" | "gone" | "back" }
 export function Hangar() {
   const missions = useArcade().missions;
   const n = missions.length;
-  const ROOM_W = Math.max(1200, FIRST + Math.max(0, n - 1) * GAP + 220);
-
   const [vp, setVp] = useState({ w: 0, h: 0 });
+  // On a phone the whole hangar fits the screen: rockets stand closer together and the camera never pans.
+  const compact = vp.w > 0 && vp.w < 640;
+  const first = compact ? 330 : FIRST;
+  const gap = compact ? 140 : GAP;
+  const rocketX = (i: number) => first + i * gap;
+  const ROOM_W = compact ? first + Math.max(0, n - 1) * gap + 110 : Math.max(1200, FIRST + Math.max(0, n - 1) * GAP + 220);
   const ro = useRef<ResizeObserver | null>(null);
   const viewportRef = useCallback((el: HTMLDivElement | null) => {
     ro.current?.disconnect();
@@ -298,8 +301,8 @@ export function Hangar() {
   }, []);
 
   // Camera: the whole hangar when it fits; on a narrow screen it keeps a readable size and follows the engineer.
-  const fit = vp.w ? Math.min(vp.w / ROOM_W, vp.h / ROOM_H) * 0.92 : 0.5;
-  const k = vp.w ? Math.max(fit, Math.min(0.55, (vp.h / ROOM_H) * 0.92)) : 0.5;
+  const fit = vp.w ? Math.min(vp.w / ROOM_W, vp.h / ROOM_H) * (compact ? 0.97 : 0.92) : 0.5;
+  const k = vp.w ? (compact ? fit : Math.max(fit, Math.min(0.55, (vp.h / ROOM_H) * 0.92))) : 0.5;
   const wx = walker?.x ?? ENTRY_X;
   const tx = ROOM_W * k <= vp.w ? (vp.w - ROOM_W * k) / 2 : Math.min(0, Math.max(vp.w - ROOM_W * k, vp.w / 2 - wx * k));
   const ty = (vp.h - ROOM_H * k) / 2;
@@ -324,7 +327,7 @@ export function Hangar() {
       <div className={`lab-viewport hg-viewport${launch ? ` is-${launch.stage}` : ""}`} ref={viewportRef}>
         <Stars />
         <div
-          className="lab-room hg-room"
+          className={`lab-room hg-room${compact ? " is-compact" : ""}`}
           style={{ width: ROOM_W, height: ROOM_H, transform: `translate(${tx}px, ${tyCam}px) scale(${k})`, transition: lifting ? `transform 2600ms ${LIFT_EASE}` : `transform ${roomMove}ms linear` } as CSSProperties}
         >
           <span className="room-wall hg-wall" style={{ top: ROOF }} aria-hidden />
@@ -371,7 +374,7 @@ export function Hangar() {
                   <RocketArt h={h} kind={i} />
                   <span className="hg-flame" aria-hidden />
                 </button>
-                <span className="hg-tag" style={{ left: x - 110, top: FLOOR + 22, width: 220, "--bc": COLORS[i % COLORS.length] } as CSSProperties} aria-hidden>
+                <span className="hg-tag" style={{ left: x - (compact ? gap - 8 : 220) / 2, top: FLOOR + 22, width: compact ? gap - 8 : 220, "--bc": COLORS[i % COLORS.length] } as CSSProperties} aria-hidden>
                   <b>{m.code}</b> {m.title}
                 </span>
               </span>

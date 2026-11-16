@@ -344,11 +344,14 @@ export function Tower({ selected }: { selected?: string }) {
   }, [panel]);
 
   // Camera: the car stays centred while the building scrolls; on a narrow screen it also follows the engineer sideways.
-  const k = vp.w ? Math.max(Math.min(vp.w / ROOM_W, vp.h / (FLOOR_H * 2.6)) * 0.95, Math.min(0.55, (vp.h / (FLOOR_H * 2.6)) * 0.95)) : 0.5;
+  // On a phone the whole tower fits the screen, so the camera neither rides with the car nor pans.
+  const compact = vp.w > 0 && vp.w < 640;
+  const k = vp.w ? (compact ? Math.min(vp.w / ROOM_W, (vp.h - 120 - 16) / TOTAL) * 0.96 : Math.max(Math.min(vp.w / ROOM_W, vp.h / (FLOOR_H * 2.6)) * 0.95, Math.min(0.55, (vp.h / (FLOOR_H * 2.6)) * 0.95))) : 0.5;
   const camY = floorLine(carF) - FLOOR_H / 2;
   const wx = walker?.x ?? CAR.x;
   const tx = ROOM_W * k <= vp.w ? (vp.w - ROOM_W * k) / 2 : Math.min(0, Math.max(vp.w - ROOM_W * k, vp.w / 2 - wx * k));
-  const ty = vp.h / 2 - camY * k;
+  // 120 clears the floor buttons. With a floor's panel open (about 395px tall, from the bottom) the tower slides up so that floor stays in view.
+  const ty = compact ? (panel !== null && panel >= 1 ? (120 + Math.max(200, vp.h - 395)) / 2 - camY * k : Math.max(120, (vp.h - TOTAL * k) / 2)) : vp.h / 2 - camY * k;
 
   const open = panel !== null && panel >= 1 ? career[panel - 1] : null;
 
