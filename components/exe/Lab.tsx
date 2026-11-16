@@ -1,10 +1,11 @@
 "use client";
 
-import { Hand, HandGrab, Pointer, RotateCcw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { RotateCcw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
 import { ATTRIBUTES, PROFILE, type PartSlot } from "./data";
 import { Avatar, Head, ResumeButton, useArcade } from "./ExeScreens";
+import { Player } from "./GameWorld";
 
 type Phase = "build" | "booting" | "on";
 
@@ -14,14 +15,38 @@ const POST = [
   ...ATTRIBUTES.map((a) => `${a.part.padEnd(4)} ${a.name.padEnd(22, ".")} OK`),
   "Booting engineer profile...",
 ];
-// Pick-and-place timing per part (ms from the part's start): reach the bench, grab,
-// carry to the socket, lower it in, let go. Transitions in exe.css match these gaps.
-const START = 400;
-const STEP = 860;
-const GRAB = 280;
-const CARRY = 340;
-const DROP = 660;
-const RELEASE = 780;
+// Room geometry in design units; the room scales to fit the screen. Side view: door on the
+// left, the PC table in the middle (open test-bench board + monitor), the parts shelf on the right.
+const ROOM_W = 1200;
+const ROOM_H = 640;
+const FLOOR = 560;
+const DOOR = { x: 40, w: 130, h: 270 };
+const DOOR_X = DOOR.x + DOOR.w / 2;
+const BOARD = { x: 380, y: 60, w: 320, h: 360 };
+const SCREEN = { x: 735, y: 268, w: 160, h: 112 };
+// After power-on, in the same room: the board shrinks on the desk and the monitor grows so the
+// profile on it is readable. The engineer waits by the door.
+const BOARD_DONE = { x: 236, y: 250, w: 150, h: 170 };
+const SCREEN_DONE = { x: 400, y: 8, w: 530, h: 394 };
+const DESK = { x: 210, w: 720 };
+const STAND_X = 190;
+const POWER_X = 680;
+const SHELF = { x: 940, y: 196, w: 232 };
+const SHELF_ROWS = [300, 400, 500];
+/** Where each part sits on the shelf (centre x, shelf-board y) and where he stands to fit it. */
+const ON_SHELF: Record<PartSlot, { x: number; y: number }> = {
+  cpu: { x: 996, y: SHELF_ROWS[0] },
+  gpu: { x: 1104, y: SHELF_ROWS[0] },
+  ram: { x: 996, y: SHELF_ROWS[1] },
+  ssd: { x: 1104, y: SHELF_ROWS[1] },
+  nic: { x: 996, y: SHELF_ROWS[2] },
+  npu: { x: 1104, y: SHELF_ROWS[2] },
+};
+const FIT_X: Record<PartSlot, number> = { cpu: 470, npu: 570, ram: 650, ssd: 470, nic: 570, gpu: 520 };
+// Walking speed in room units per second; each trip's duration comes from its distance.
+const SPEED = 780;
+// Wait for the scene's entrance animation before the door opens.
+const ENTER_DELAY = 700;
 // Copper traces and vias, in % of the board (the SVG stretches; strokes keep their width).
 // They run through the board margins and the gaps between sockets.
 const TRACES = [
@@ -59,37 +84,66 @@ function PartArt({ slot }: { slot: PartSlot }) {
 }
 
 /**
- * Engineering Lab (Profile). On open, a hand assembles the PC by clicking each socket,
- * then it boots into the engineer profile. Closing the room unmounts this and cancels
- * every pending step, so each visit starts from an empty board.
+ * Engineering Lab (Profile): a side-view room. The engineer comes in through the door, fetches
+ * each part from the shelf and fits it on the open test bench, presses power, walks back out,
+ * and the camera zooms into the monitor as it boots into the profile. The door (or the button
+ * in the profile view) leaves the lab. Leaving unmounts this and cancels every pending step.
  */
 export function Profile() {
   const { contact } = useArcade();
   const [installed, setInstalled] = useState<PartSlot[]>([]);
   const [phase, setPhase] = useState<Phase>("build");
   const [log, setLog] = useState<string[]>([]);
-  // Where the hand is, and what it holds: "reach" (empty), "carry" (holding the part), "drop" (lowering it in),
-  // "press" (finger on the board's power button).
-  const [hand, setHand] = useState<{ x: number; y: number; slot: PartSlot | null; mode: "reach" | "carry" | "drop" | "press" } | null>(null);
   const [powered, setPowered] = useState(false);
-  const powerRef = useRef<HTMLSpanElement>(null);
-  const labRef = useRef<HTMLDivElement>(null);
-  const socketRefs = useRef<Partial<Record<PartSlot, HTMLDivElement | null>>>({});
-  const trayRefs = useRef<Partial<Record<PartSlot, HTMLLIElement | null>>>({});
+  const [door, setDoor] = useState(false);
+  const [status, setStatus] = useState("");
+  const [walker, setWalker] = useState<{
+    x: number;
+    facing: 1 | -1;
+    walking: boolean;
+    dur: number;
+    carry: PartSlot | null;
+    press: boolean;
+    visible: boolean;
+  } | null>(null);
+  const walkerRef = useRef(walker);
+  walkerRef.current = walker;
+  const runId = useRef(0);
   const timers = useRef<number[]>([]);
+
+  // Room viewport size, for fitting the room and for the monitor zoom.
+  const [vp, setVp] = useState({ w: 0, h: 0 });
+  const ro = useRef<ResizeObserver | null>(null);
+  const viewportRef = useCallback((el: HTMLDivElement | null) => {
+    ro.current?.disconnect();
+    if (!el) return;
+    ro.current = new ResizeObserver(() => setVp({ w: el.clientWidth, h: el.clientHeight }));
+    ro.current.observe(el);
+  }, []);
 
   const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
   const cancel = () => {
+    runId.current++;
     timers.current.forEach(clearTimeout);
     timers.current = [];
   };
 
   const boot = useCallback(() => {
-    setHand(null);
+    setStatus("System online");
     setPhase("booting");
     setLog([]);
     POST.forEach((line, i) => later(() => setLog((l) => [...l, line]), 150 + i * 170));
     later(() => setPhase("on"), 150 + POST.length * 170 + 450);
+  }, []);
+
+  const finish = useCallback(() => {
+    cancel();
+    setInstalled(ALL);
+    setPowered(true);
+    setDoor(false);
+    setWalker({ x: STAND_X, facing: 1, walking: false, dur: 0, carry: null, press: false, visible: true });
+    setStatus("System online");
+    setPhase("on");
   }, []);
 
   const assemble = useCallback(() => {
@@ -97,301 +151,368 @@ export function Profile() {
     setInstalled([]);
     setPowered(false);
     setLog([]);
+    setDoor(false);
+    setWalker(null);
+    setStatus("");
     setPhase("build");
     if (reduceMotion()) {
-      setInstalled(ALL);
-      setPhase("on");
+      finish();
       return;
     }
-    const centre = (el: Element | null | undefined) => {
-      const box = labRef.current?.getBoundingClientRect();
-      const r = el?.getBoundingClientRect();
-      return box && r ? { x: r.left - box.left + r.width / 2, y: r.top - box.top + r.height / 2 } : null;
+    const run = runId.current;
+    const wait = (ms: number) => new Promise<void>((res) => later(res, ms));
+    const alive = () => runId.current === run;
+    const set = (patch: Partial<NonNullable<typeof walker>>) => setWalker((w) => w && { ...w, ...patch });
+    const walkTo = async (x: number, carry: PartSlot | null) => {
+      const from = walkerRef.current;
+      if (!from) return;
+      const dur = Math.max(200, (Math.abs(x - from.x) / SPEED) * 1000);
+      const facing = x < from.x - 2 ? -1 : x > from.x + 2 ? 1 : from.facing;
+      // Functional update: a pose set just before this call may not have rendered yet.
+      setWalker((w) => w && { ...w, x, facing, walking: true, dur, carry, press: false });
+      await wait(dur);
+      if (!alive()) throw new Error("cancelled");
+      set({ walking: false });
+      await wait(40);
     };
-    const go = (slot: PartSlot, at: "tray" | "socket", mode: "reach" | "carry" | "drop") => {
-      const p = centre(at === "tray" ? trayRefs.current[slot] : socketRefs.current[slot]);
-      if (p) setHand({ ...p, slot, mode });
-    };
-    ALL.forEach((slot, i) => {
-      const t = START + i * STEP;
-      later(() => go(slot, "tray", "reach"), t);
-      later(() => go(slot, "tray", "carry"), t + GRAB);
-      later(() => go(slot, "socket", "carry"), t + CARRY);
-      later(() => go(slot, "socket", "drop"), t + DROP);
-      later(() => {
-        setInstalled((s) => [...s, slot]);
-        go(slot, "socket", "reach");
-      }, t + RELEASE);
-    });
-    // Every part seated: press the board's power button, let current flow, then boot.
-    const done = START + ALL.length * STEP;
-    const pressAt = (mode: "reach" | "press") => {
-      const p = centre(powerRef.current);
-      if (p) setHand({ ...p, slot: null, mode });
-    };
-    later(() => pressAt("reach"), done + 100);
-    later(() => {
-      pressAt("press");
+    (async () => {
+      await wait(ENTER_DELAY);
+      setStatus("Engineer entering the lab");
+      setDoor(true);
+      await wait(380);
+      setWalker({ x: DOOR_X, facing: 1, walking: false, dur: 0, carry: null, press: false, visible: false });
+      await wait(40);
+      set({ visible: true });
+      await wait(260);
+      let first = true;
+      for (const a of ATTRIBUTES) {
+        setStatus(`Fetching the ${a.partName.toLowerCase()} · ${a.name}`);
+        await walkTo(ON_SHELF[a.slot].x, null);
+        if (first) {
+          setDoor(false);
+          first = false;
+        }
+        set({ press: true });
+        await wait(170);
+        set({ carry: a.slot, press: false });
+        await wait(120);
+        setStatus(`Fitting the ${a.part} · ${a.name}`);
+        await walkTo(FIT_X[a.slot], a.slot);
+        set({ press: true });
+        await wait(150);
+        setInstalled((s) => [...s, a.slot]);
+        set({ carry: null, press: false });
+        await wait(150);
+      }
+      setStatus("Powering on");
+      await walkTo(POWER_X, null);
+      set({ press: true });
       setPowered(true);
-    }, done + 450);
-    later(() => pressAt("reach"), done + 650);
-    later(boot, done + 1600);
-  }, [boot]);
+      await wait(360);
+      set({ press: false });
+      setStatus("Engineer stepping back");
+      await walkTo(STAND_X, null);
+      set({ facing: 1 });
+      await wait(200);
+      if (alive()) boot();
+    })().catch(() => {});
+  }, [boot, finish]);
 
   useEffect(() => {
     assemble();
     return cancel;
   }, [assemble]);
 
-  const skip = () => {
+  const skip = finish;
+
+  /** Leave the lab: the scene's exit wipe closes in on whatever was clicked (the door). */
+  const exitLab = (el: Element) => {
     cancel();
-    setHand(null);
-    setInstalled(ALL);
-    setPhase("on");
+    const scene = el.closest<HTMLElement>(".scene");
+    const r = el.getBoundingClientRect();
+    scene?.style.setProperty("--iris-x", `${r.left + r.width / 2}px`);
+    scene?.style.setProperty("--iris-y", `${r.top + r.height / 2}px`);
+    window.location.hash = "/home";
   };
 
-  if (phase !== "build") {
-    return (
-      <>
-        <Head index="01" title="Engineering lab" note="System online. The engineer profile is loaded." />
-        <div className="lab-on">
-          <section className="lab-monitor" aria-label="Monitor">
-            <div className="lab-screen">
-              {phase === "booting" ? (
-                <pre className="lab-post" aria-live="polite">
-                  {log.join("\n")}
-                  <span className="lab-cursor">_</span>
-                </pre>
-              ) : (
-                <div className="lab-profile">
-                  <Avatar />
-                  <div>
-                    <p className="x-kicker">
-                      <span className="x-dot" aria-hidden /> Available for opportunities
-                    </p>
-                    <h2 className="lab-name">{PROFILE.name}</h2>
-                    <p className="lab-role">{PROFILE.role}</p>
-                    <p className="lab-intro">{PROFILE.intro}</p>
-                    <dl className="lab-facts">
-                      <div>
-                        <dt>Specialization</dt>
-                        <dd>{PROFILE.specialization}</dd>
-                      </div>
-                      <div>
-                        <dt>Experience</dt>
-                        <dd>{PROFILE.experience}</dd>
-                      </div>
-                      <div>
-                        <dt>Location</dt>
-                        <dd>{PROFILE.location}</dd>
-                      </div>
-                      <div>
-                        <dt>Core tech</dt>
-                        <dd>{PROFILE.core.join(", ")}</dd>
-                      </div>
-                    </dl>
-                    <div className="x-actions">
-                      <ResumeButton className="x-btn x-btn-primary x-btn-sm" />
-                      {contact.linkedin && (
-                        <a className="x-btn x-btn-sm" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
-                          <LinkedinIcon size={14} /> LinkedIn
-                        </a>
-                      )}
-                      {contact.github && (
-                        <a className="x-btn x-btn-sm" href={contact.github} target="_blank" rel="noopener noreferrer">
-                          <GithubIcon size={14} /> GitHub
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            <span className="lab-stand" aria-hidden />
-          </section>
-
-          <aside className="x-panel lab-specs" aria-label="System specs">
-            <h2 className="x-h2">System specs</h2>
-            <ul>
-              {ATTRIBUTES.map((a) => (
-                <li key={a.slot}>
-                  <span className={`lab-tag lab-tag-${a.slot}`}>{a.part}</span>
-                  <span>
-                    <strong>{a.name}</strong>
-                    <span className="x-muted">{a.evidence}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="x-btn x-btn-sm" onClick={assemble}>
-              <RotateCcw size={14} aria-hidden /> Rebuild PC
-            </button>
-          </aside>
-        </div>
-      </>
-    );
-  }
+  // The room is scaled to fit; the board/monitor swap sizes once the PC is on.
+  const k = vp.w ? Math.min(vp.w / ROOM_W, vp.h / ROOM_H) : 0.5;
+  const off = { x: (vp.w - ROOM_W * k) / 2, y: (vp.h - ROOM_H * k) / 2 };
+  const done = phase !== "build";
+  const board = done ? BOARD_DONE : BOARD;
+  const screen = done ? SCREEN_DONE : SCREEN;
+  // The monitor's content is real-size HTML laid over the screen (not scaled with the room), so
+  // it stays readable. On narrow screens it takes the whole viewport instead.
+  const BEZEL = 10;
+  let ui = { left: off.x + (screen.x + BEZEL) * k, top: off.y + (screen.y + BEZEL) * k, width: (screen.w - BEZEL * 2) * k, height: (screen.h - BEZEL * 2) * k };
+  if (ui.width < 440) ui = { left: 10, top: 56, width: vp.w - 20, height: vp.h - 66 };
 
   return (
     <>
-      <Head index="01" title="Engineering lab" note="Assembling the engineer: every part is an attribute." />
-      <div className="lab" ref={labRef}>
-        <section
-          className={`lab-board${powered ? " is-powered" : ""}`}
-          aria-label={`Motherboard, ${installed.length} of ${ALL.length} parts installed${powered ? ", powered on" : ""}`}
+      <Head index="01" title="Engineering lab" note={done ? "System online. The engineer profile is on screen." : "Watch the engineer build the rig: every part is an attribute."} />
+      <div className="lab-viewport" ref={viewportRef}>
+        <div
+          className={`lab-room${done ? " is-done" : ""}`}
+          style={{ width: ROOM_W, height: ROOM_H, transform: `translate(${off.x}px, ${off.y}px) scale(${k})` }}
         >
-          {/* PCB artwork: traces, connectors and components. Decorative only. */}
-          <svg className="pcb-traces" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-            <g className="pcb-trace-base">
-              {TRACES.map((d) => (
-                <path key={d} d={d} vectorEffect="non-scaling-stroke" />
-              ))}
-            </g>
-            <g className="pcb-trace-flow">
-              {TRACES.map((d) => (
-                <path key={d} d={d} vectorEffect="non-scaling-stroke" />
-              ))}
-            </g>
-            <g className="pcb-vias">
-              {VIAS.map(([x, y]) => (
-                <path key={`${x}-${y}`} d={`M${x} ${y}h0`} vectorEffect="non-scaling-stroke" />
-              ))}
-            </g>
-          </svg>
-          <span className="lab-board-name" aria-hidden>
-            B-ADO · MOTHERBOARD · REV 8
+          <span className="room-wall" aria-hidden />
+          <span className="room-sign" aria-hidden>
+            B-ADO LAB
           </span>
-          <span className="pcb-io" aria-hidden>
-            <i className="io-usb" />
-            <i className="io-usb" />
-            <i className="io-hdmi" />
-            <i className="io-lan" />
-            <b>REAR_IO</b>
-          </span>
-          <span className="pcb-eps" aria-hidden>
-            <i className="pins" />
-            <b>CPU_PWR</b>
-          </span>
-          <span className="pcb-atx" aria-hidden>
-            <i className="pins" />
-            <b>ATX_24P</b>
-          </span>
-          <span className="pcb-vrm" aria-hidden>
-            <i />
-            <i />
+          <span className="room-lamp" style={{ left: 540 }} aria-hidden />
+          <span className="room-floor" style={{ top: FLOOR }} aria-hidden />
+
+          <button
+            type="button"
+            className={`room-door${door ? " is-open" : ""}`}
+            style={{ left: DOOR.x, top: FLOOR - DOOR.h, width: DOOR.w, height: DOOR.h }}
+            onClick={(e) => exitLab(e.currentTarget)}
+            aria-label="Leave the lab through the door"
+          >
+            <span className="room-door-gap" />
+            <span className="room-door-panel">
+              <i />
+            </span>
+            <span className="room-door-sign">Exit</span>
+          </button>
+
+          {/* PC table: open test-bench motherboard + monitor */}
+          <span className="room-desk" style={{ left: DESK.x, top: BOARD.y + BOARD.h, width: DESK.w, height: FLOOR - BOARD.y - BOARD.h }} aria-hidden>
             <i />
             <i />
           </span>
-          <span className="pcb-caps" aria-hidden>
-            {[0, 1, 2, 3, 4].map((i) => (
-              <i key={i} />
+          <div className="room-bench" style={{ left: board.x, top: board.y, width: board.w, height: board.h }}>
+            <div className="room-board-scale" style={{ transform: `scale(${board.w / 640})` }}>
+              <section
+                className={`lab-board${powered ? " is-powered" : ""}`}
+                aria-label={`Motherboard, ${installed.length} of ${ALL.length} parts installed${powered ? ", powered on" : ""}`}
+              >
+                {/* PCB artwork: traces, connectors and components. Decorative only. */}
+                <svg className="pcb-traces" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                  <g className="pcb-trace-base">
+                    {TRACES.map((d) => (
+                      <path key={d} d={d} vectorEffect="non-scaling-stroke" />
+                    ))}
+                  </g>
+                  <g className="pcb-trace-flow">
+                    {TRACES.map((d) => (
+                      <path key={d} d={d} vectorEffect="non-scaling-stroke" />
+                    ))}
+                  </g>
+                  <g className="pcb-vias">
+                    {VIAS.map(([x, y]) => (
+                      <path key={`${x}-${y}`} d={`M${x} ${y}h0`} vectorEffect="non-scaling-stroke" />
+                    ))}
+                  </g>
+                </svg>
+                <span className="lab-board-name" aria-hidden>
+                  B-ADO · MOTHERBOARD · REV 8
+                </span>
+                <span className="pcb-io" aria-hidden>
+                  <i className="io-usb" />
+                  <i className="io-usb" />
+                  <i className="io-hdmi" />
+                  <i className="io-lan" />
+                  <b>REAR_IO</b>
+                </span>
+                <span className="pcb-eps" aria-hidden>
+                  <i className="pins" />
+                  <b>CPU_PWR</b>
+                </span>
+                <span className="pcb-atx" aria-hidden>
+                  <i className="pins" />
+                  <b>ATX_24P</b>
+                </span>
+                <span className="pcb-vrm" aria-hidden>
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                <span className="pcb-caps" aria-hidden>
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <i key={i} />
+                  ))}
+                </span>
+                <span className="pcb-bottom" aria-hidden>
+                  <span className="pcb-cmos">
+                    <i />
+                    <b>BAT1</b>
+                  </span>
+                  <span className="pcb-pch">
+                    <i />
+                    <b>PCH</b>
+                  </span>
+                  <span className="pcb-sata">
+                    <span>
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    <b>SATA3</b>
+                  </span>
+                  <span className="pcb-fpanel">
+                    <i className="pins" />
+                    <b>F_PANEL</b>
+                  </span>
+                  <span className="pcb-pwr">
+                    <i className="pcb-led" />
+                    <i className="pcb-btn" />
+                    <b>PWR</b>
+                  </span>
+                </span>
+                {ATTRIBUTES.map((a) => {
+                  const on = installed.includes(a.slot);
+                  return (
+                    <div
+                      key={a.slot}
+                      className={`lab-socket lab-socket-${a.slot}${on ? " is-on" : ""}`}
+                      data-silk={SILK[a.slot]}
+                    >
+                      {on ? (
+                        <span className="lab-part">
+                          <PartArt slot={a.slot} />
+                          <span className="lab-part-code">{a.part}</span>
+                          <span className="lab-part-attr">{a.name}</span>
+                        </span>
+                      ) : (
+                        <span className="lab-empty">
+                          <i className="lab-slot" aria-hidden />
+                          {a.part} slot
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </section>
+            </div>
+          </div>
+          <div className={`room-monitor${powered ? " is-on" : ""}`} style={{ left: screen.x, top: screen.y, width: screen.w, height: screen.h }} aria-hidden>
+            <span className="room-screen">{powered && !done ? "BOOT_" : ""}</span>
+            <span className="room-monitor-stand" />
+          </div>
+
+          {/* parts shelf */}
+          <span className="room-shelf" style={{ left: SHELF.x, top: SHELF.y, width: SHELF.w, height: FLOOR - SHELF.y }} aria-hidden>
+            {SHELF_ROWS.map((y) => (
+              <i key={y} style={{ top: y - SHELF.y }} />
             ))}
           </span>
-          <span className="pcb-bottom" aria-hidden>
-            <span className="pcb-cmos">
-              <i />
-              <b>BAT1</b>
-            </span>
-            <span className="pcb-pch">
-              <i />
-              <b>PCH</b>
-            </span>
-            <span className="pcb-sata">
-              <span>
-                <i />
-                <i />
-                <i />
-                <i />
+          {ATTRIBUTES.map((a) =>
+            installed.includes(a.slot) || walker?.carry === a.slot ? null : (
+              <span key={a.slot} className={`room-shelf-part room-shelf-${a.slot}`} style={{ left: ON_SHELF[a.slot].x, top: ON_SHELF[a.slot].y }} aria-hidden>
+                <PartArt slot={a.slot} />
               </span>
-              <b>SATA3</b>
+            ),
+          )}
+          {ATTRIBUTES.filter((a) => !installed.includes(a.slot)).map((a) => (
+            <span key={a.slot} className="room-shelf-tag" style={{ left: ON_SHELF[a.slot].x, top: ON_SHELF[a.slot].y + 12 } as CSSProperties} aria-hidden>
+              {a.part}
             </span>
-            <span className="pcb-fpanel">
-              <i className="pins" />
-              <b>F_PANEL</b>
-            </span>
-            <span className="pcb-pwr" ref={powerRef}>
-              <i className="pcb-led" />
-              <i className="pcb-btn" />
-              <b>PWR</b>
-            </span>
-          </span>
-          {ATTRIBUTES.map((a) => {
-            const on = installed.includes(a.slot);
-            return (
-              <div
-                key={a.slot}
-                ref={(el) => {
-                  socketRefs.current[a.slot] = el;
-                }}
-                className={`lab-socket lab-socket-${a.slot}${on ? " is-on" : ""}`}
-                data-silk={SILK[a.slot]}
-              >
-                {on ? (
-                  <span className="lab-part">
-                    <PartArt slot={a.slot} />
-                    <span className="lab-part-code">{a.part}</span>
-                    <span className="lab-part-attr">{a.name}</span>
-                  </span>
-                ) : (
-                  <span className="lab-empty">
-                    <i className="lab-slot" aria-hidden />
-                    {a.part} slot
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </section>
+          ))}
 
-        <aside className="x-panel lab-bench" aria-label="Parts bench">
-          <h2 className="x-h2">Parts bench</h2>
-          <div className="lab-bench-meta">
-            <p className="x-muted" aria-live="polite">
-              {installed.length}/{ALL.length} installed
-            </p>
-            <button type="button" className="x-link" onClick={skip}>
+          {walker && (
+            <span
+              className={`lab-walker${walker.walking ? " is-walking" : ""}${walker.press ? " is-press" : ""}${walker.visible ? "" : " is-hidden"}`}
+              style={{ transform: `translate(${walker.x}px, ${FLOOR}px)`, transitionDuration: `${walker.dur}ms` }}
+              aria-hidden
+            >
+              {walker.carry && (
+                <span className="lab-walker-carry">
+                  <PartArt slot={walker.carry} />
+                </span>
+              )}
+              <span className="lab-walker-body" style={{ transform: `scaleX(${walker.facing})` }}>
+                <Player gradId="plv-lab" />
+              </span>
+            </span>
+          )}
+        </div>
+
+        {done && (
+          <section className="room-screen-ui" style={ui} aria-label="Monitor">
+            {phase === "booting" ? (
+              <pre className="lab-post" aria-live="polite">
+                {log.join("\n")}
+                <span className="lab-cursor">_</span>
+              </pre>
+            ) : (
+            <div className="lab-desktop">
+              <div className="lab-profile">
+                <Avatar />
+                <div>
+                  <p className="x-kicker">
+                    <span className="x-dot" aria-hidden /> Available for opportunities
+                  </p>
+                  <h2 className="lab-name">{PROFILE.name}</h2>
+                  <p className="lab-role">{PROFILE.role}</p>
+                  <p className="lab-intro">{PROFILE.intro}</p>
+                  <dl className="lab-facts">
+                    <div>
+                      <dt>Specialization</dt>
+                      <dd>{PROFILE.specialization}</dd>
+                    </div>
+                    <div>
+                      <dt>Experience</dt>
+                      <dd>{PROFILE.experience}</dd>
+                    </div>
+                    <div>
+                      <dt>Location</dt>
+                      <dd>{PROFILE.location}</dd>
+                    </div>
+                    <div>
+                      <dt>Core tech</dt>
+                      <dd>{PROFILE.core.join(", ")}</dd>
+                    </div>
+                  </dl>
+                  <div className="x-actions">
+                    <ResumeButton className="x-btn x-btn-primary x-btn-sm" />
+                    {contact.linkedin && (
+                      <a className="x-btn x-btn-sm" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
+                        <LinkedinIcon size={14} /> LinkedIn
+                      </a>
+                    )}
+                    {contact.github && (
+                      <a className="x-btn x-btn-sm" href={contact.github} target="_blank" rel="noopener noreferrer">
+                        <GithubIcon size={14} /> GitHub
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <ul className="lab-speclist" aria-label="System specs">
+                {ATTRIBUTES.map((a) => (
+                  <li key={a.slot}>
+                    <span>
+                      <strong>{a.name}</strong>
+                      <span>{a.evidence}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            )}
+          </section>
+        )}
+
+        <div className="room-hud">
+          <span className="room-status" aria-live="polite">
+            <b>
+              {installed.length}/{ALL.length}
+            </b>{" "}
+            {status || "Preparing the lab"}
+          </span>
+          {done ? (
+            <button type="button" className="x-btn x-btn-sm" onClick={assemble}>
+              <RotateCcw size={14} aria-hidden /> Rebuild PC
+            </button>
+          ) : (
+            <button type="button" className="x-btn x-btn-sm" onClick={skip}>
               Skip to profile
             </button>
-          </div>
-          <ul className="lab-tray">
-            {ATTRIBUTES.map((a) => {
-              const on = installed.includes(a.slot);
-              return (
-                <li
-                  key={a.slot}
-                  ref={(el) => {
-                    trayRefs.current[a.slot] = el;
-                  }}
-                  className={`lab-tray-item${on ? " is-done" : ""}${!on && hand?.slot === a.slot && hand.mode !== "reach" ? " is-picked" : ""}`}
-                >
-                  <span className={`lab-tag lab-tag-${a.slot}`}>{a.part}</span>
-                  <span className="lab-tray-text">
-                    <strong>{a.partName}</strong>
-                    <span>{a.name}</span>
-                  </span>
-                  <span className="lab-tray-state">{on ? "✓" : hand?.slot === a.slot && hand.mode !== "reach" ? "moving" : "…"}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </aside>
-
-        {hand && (
-          <span className={`lab-hand is-${hand.mode}`} style={{ transform: `translate(${hand.x}px, ${hand.y}px)` }} aria-hidden>
-            {hand.slot && (hand.mode === "carry" || hand.mode === "drop") && (
-              <span className="lab-carried">
-                <PartArt slot={hand.slot} />
-              </span>
-            )}
-            {hand.mode === "press" ? (
-              <Pointer size={42} strokeWidth={1.6} />
-            ) : hand.mode === "reach" ? (
-              <Hand size={42} strokeWidth={1.6} />
-            ) : (
-              <HandGrab size={42} strokeWidth={1.6} />
-            )}
-          </span>
-        )}
+          )}
+        </div>
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Command, Home as HomeIcon, Layers, Mail, Rocket, SquareTerminal, Workflow } from "lucide-react";
+import { Command, DoorOpen, Home as HomeIcon, Layers, Mail, Rocket, SquareTerminal, Workflow } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { type ArcadeData, type Mission, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, PROFILE, SECTIONS, type SectionId } from "./data";
 import { Achievements, Career, Comms, MissionDetail, Missions, ArcadeContext, ResumeButton, useArcade, type Go } from "./ExeScreens";
@@ -91,6 +91,10 @@ function Dialog({
     </dialog>
   );
 }
+
+/** Rooms that open as full-page game scenes instead of overlays. */
+const SCENES: SectionId[] = ["profile", "skills"];
+const SCENE_EXIT_MS = 480;
 
 const MISSION_COLOR = DISTRICTS.find((d) => d.id === "missions")!.color;
 
@@ -392,6 +396,30 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
   const district = DISTRICTS.find((d) => d.id === route.section);
   // Same guard as missions: only head home if the hash still points inside a building.
   const closeInterior = () => parseHash().section !== "home" && go("home");
+
+  // Full-page scenes (not overlays): kept mounted while their exit animation plays.
+  const [scene, setScene] = useState<{ id: SectionId; leaving: boolean } | null>(null);
+  useEffect(() => {
+    if (SCENES.includes(route.section)) setScene({ id: route.section, leaving: false });
+    else setScene((s) => (s && !s.leaving ? { ...s, leaving: true } : s));
+  }, [route.section]);
+  useEffect(() => {
+    if (!scene?.leaving) return;
+    const t = window.setTimeout(() => setScene(null), SCENE_EXIT_MS);
+    return () => clearTimeout(t);
+  }, [scene]);
+  useEffect(() => {
+    if (!scene || scene.leaving) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+      if (e.target instanceof Element && e.target.closest("input, textarea")) return;
+      closeInterior();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [scene]);
+  const covered = !!scene && !scene.leaving;
+  const sceneDistrict = scene ? DISTRICTS.find((d) => d.id === scene.id) : undefined;
   const [visited, setVisited] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
 
@@ -444,15 +472,16 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // New screen: start at the top and move focus to its title for keyboard and screen-reader users.
+  // New screen: move focus to its title for keyboard and screen-reader users.
   const firstRender = useRef(true);
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
       return;
     }
-    mainRef.current?.querySelector<HTMLElement>("[data-screen-title]")?.focus({ preventScroll: true });
-  }, [route.section]);
+    const root: ParentNode | null = covered ? document.querySelector(".scene:not(.is-leaving)") : mainRef.current;
+    root?.querySelector<HTMLElement>("[data-screen-title]")?.focus({ preventScroll: true });
+  }, [route.section, covered]);
 
   const screen: Record<SectionId, ReactNode> = {
     home: null,
@@ -472,7 +501,7 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
       </a>
       {booting && <Boot onDone={() => setBooting(false)} />}
 
-      <header className="x-bar">
+      <header className="x-bar" inert={covered}>
         <a className="x-logo" href="#/home" aria-label="babafemicodes.dev — back to the city">
           babafemicodes<span>.dev</span>
         </a>
@@ -498,21 +527,21 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
         </div>
       </header>
 
-      <main id="x-main" ref={mainRef}>
+      <main id="x-main" ref={mainRef} inert={covered}>
         <GameWorld go={go} visited={visited} active={!booting && route.section === "home"} />
         <Dialog
-          open={!!district}
+          open={!!district && !SCENES.includes(district.id)}
           onClose={closeInterior}
           label={district ? `${district.name}: ${SECTIONS.find((s) => s.id === district.id)!.label}` : "Building"}
           className="x-dialog x-interior"
           color={district?.color ?? "#43D5FF"}
         >
-          {district && (
+          {district && !SCENES.includes(district.id) && (
             <div>
               <div className="x-interior-bar">
-                <button type="button" className="x-btn x-btn-sm" onClick={closeInterior}>
-                  <ArrowLeft size={14} aria-hidden /> Back to the city
-                </button>
+                <button type="button" className="x-icon-btn x-door-btn" onClick={closeInterior} aria-label="Back to the city" title="Back to the city">
+                <DoorOpen size={20} aria-hidden />
+              </button>
                 <span className="x-interior-name">{district.name}</span>
               </div>
               <div className="x-main x-screen" key={route.section}>
@@ -526,7 +555,31 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
         {toast}
       </p>
 
-      <footer className="x-foot">
+      {scene && sceneDistrict && (
+        <section
+          className={`x-dialog x-interior scene scene-${scene.id}${scene.leaving ? " is-leaving" : ""}`}
+          style={{ "--c": sceneDistrict.color } as CSSProperties}
+          aria-label={sceneDistrict.name}
+          inert={scene.leaving}
+        >
+          <div>
+            <div className="x-interior-bar">
+              <button type="button" className="x-icon-btn x-door-btn" onClick={closeInterior} aria-label="Back to the city" title="Back to the city">
+                <DoorOpen size={20} aria-hidden />
+              </button>
+              <span className="x-interior-name">{sceneDistrict.name}</span>
+            </div>
+            <div className="x-main x-screen" key={scene.id}>
+              {screen[scene.id]}
+            </div>
+          </div>
+          <p className="scene-banner" aria-hidden>
+            <span>Entering</span> {sceneDistrict.name}
+          </p>
+        </section>
+      )}
+
+      <footer className="x-foot" inert={covered}>
         <span>© 2026 Babafemi Adojutelegan · Arcade Edition</span>
         <span>
           {otherEditions("/").map((e, i) => (
@@ -538,7 +591,7 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
         </span>
       </footer>
 
-      <nav className="x-bottom" aria-label="Primary (mobile)">
+      <nav className="x-bottom" aria-label="Primary (mobile)" inert={covered}>
         {BOTTOM_NAV.map(({ id, icon }) => (
           <a key={id} href={`#/${id}`} aria-current={route.section === id ? "page" : undefined}>
             {icon}
