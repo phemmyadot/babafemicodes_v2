@@ -6,14 +6,14 @@
 import { useSyncExternalStore } from "react";
 import { setSoundOff, soundOff } from "./crt-sound";
 
-export type Zone = "home" | "lab" | "skills" | "hangar" | "tower" | "gallery" | "radio";
+export type Zone =
+  "home" | "lab" | "skills" | "hangar" | "tower" | "gallery" | "radio";
 
 let ctx: AudioContext | null = null;
 let amb: GainNode;
 let ambLp: BiquadFilterNode;
 let fx: GainNode;
 let noiseBuf: AudioBuffer;
-let brownBuf: AudioBuffer;
 let muted = false;
 let started = false;
 let current: Zone | null = null;
@@ -47,21 +47,10 @@ function getCtx() {
   fx = c.createGain();
   fx.gain.value = 0.9;
   fx.connect(comp);
-  const mk = (brown: boolean) => {
-    const b = c.createBuffer(1, c.sampleRate * 3, c.sampleRate);
-    const d = b.getChannelData(0);
-    let last = 0;
-    for (let i = 0; i < d.length; i++) {
-      const w = Math.random() * 2 - 1;
-      if (brown) {
-        last = (last + 0.02 * w) / 1.02;
-        d[i] = last * 3.5;
-      } else d[i] = w;
-    }
-    return b;
-  };
-  noiseBuf = mk(false);
-  brownBuf = mk(true);
+  const b = c.createBuffer(1, c.sampleRate * 3, c.sampleRate);
+  const d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  noiseBuf = b;
   ctx = c;
   return c;
 }
@@ -83,12 +72,18 @@ const subscribe = (l: () => void) => {
   listeners.add(l);
   return () => void listeners.delete(l);
 };
-export const useMuted = () => useSyncExternalStore(subscribe, isMuted, () => false);
+export const useMuted = () =>
+  useSyncExternalStore(subscribe, isMuted, () => false);
 
 /* ------------------------------------------------------------------ small helpers */
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
-type Kit = { c: AudioContext; out: GainNode; stops: Array<() => void>; every: (fn: () => void, ms: number, jitter?: number) => void };
+type Kit = {
+  c: AudioContext;
+  out: GainNode;
+  stops: Array<() => void>;
+  every: (fn: () => void, ms: number, jitter?: number) => void;
+};
 
 function kit(c: AudioContext, out: GainNode): Kit {
   const stops: Array<() => void> = [];
@@ -107,28 +102,13 @@ function kit(c: AudioContext, out: GainNode): Kit {
     },
   };
 }
-function osc(k: Kit, type: OscillatorType, f: number, vol: number, dest: AudioNode = k.out, detune = 0) {
-  const o = k.c.createOscillator();
-  const g = k.c.createGain();
-  o.type = type;
-  o.frequency.value = f;
-  o.detune.value = detune;
-  g.gain.value = vol;
-  o.connect(g);
-  g.connect(dest);
-  o.start();
-  k.stops.push(() => o.stop());
-  return { o, g };
-}
-function noiseLoop(k: Kit, brown: boolean, dest: AudioNode) {
-  const s = k.c.createBufferSource();
-  s.buffer = brown ? brownBuf : noiseBuf;
-  s.loop = true;
-  s.connect(dest);
-  s.start();
-  k.stops.push(() => s.stop());
-}
-function filt(c: AudioContext, type: BiquadFilterType, f: number, q = 0.7, dest?: AudioNode) {
+function filt(
+  c: AudioContext,
+  type: BiquadFilterType,
+  f: number,
+  q = 0.7,
+  dest?: AudioNode,
+) {
   const b = c.createBiquadFilter();
   b.type = type;
   b.frequency.value = f;
@@ -136,34 +116,16 @@ function filt(c: AudioContext, type: BiquadFilterType, f: number, q = 0.7, dest?
   if (dest) b.connect(dest);
   return b;
 }
-function lfo(k: Kit, rate: number, depth: number, target: AudioParam) {
-  const o = k.c.createOscillator();
-  const g = k.c.createGain();
-  o.frequency.value = rate;
-  g.gain.value = depth;
-  o.connect(g);
-  g.connect(target);
-  o.start();
-  k.stops.push(() => o.stop());
-}
-function echoBus(k: Kit, time: number, fb: number, tone = 1800) {
-  const c = k.c;
-  const input = c.createGain();
-  const d = c.createDelay(2);
-  d.delayTime.value = time;
-  const f = c.createGain();
-  f.gain.value = fb;
-  const lp = filt(c, "lowpass", tone);
-  input.connect(k.out);
-  input.connect(d);
-  d.connect(lp);
-  lp.connect(f);
-  f.connect(d);
-  lp.connect(k.out);
-  return input;
-}
 /** A decaying tone with optional inharmonic partials (a bell, chime or glass ping). */
-function ping(c: AudioContext, dest: AudioNode, t: number, f: number, vol: number, dur: number, partials: number[] = [1, 2.76]) {
+function ping(
+  c: AudioContext,
+  dest: AudioNode,
+  t: number,
+  f: number,
+  vol: number,
+  dur: number,
+  partials: number[] = [1, 2.76],
+) {
   partials.forEach((m, i) => {
     const o = c.createOscillator();
     const g = c.createGain();
@@ -178,7 +140,17 @@ function ping(c: AudioContext, dest: AudioNode, t: number, f: number, vol: numbe
     o.stop(t + dur + 0.05);
   });
 }
-function burst(c: AudioContext, dest: AudioNode, t: number, dur: number, type: BiquadFilterType, f: number, q: number, vol: number, f1?: number) {
+function burst(
+  c: AudioContext,
+  dest: AudioNode,
+  t: number,
+  dur: number,
+  type: BiquadFilterType,
+  f: number,
+  q: number,
+  vol: number,
+  f1?: number,
+) {
   const s = c.createBufferSource();
   s.buffer = noiseBuf;
   const b = filt(c, type, f, q);
@@ -193,7 +165,16 @@ function burst(c: AudioContext, dest: AudioNode, t: number, dur: number, type: B
   s.start(t, rnd(0, 1.5));
   s.stop(t + dur + 0.05);
 }
-function tone(c: AudioContext, dest: AudioNode, t: number, f0: number, f1: number, dur: number, vol: number, type: OscillatorType = "sine") {
+function tone(
+  c: AudioContext,
+  dest: AudioNode,
+  t: number,
+  f0: number,
+  f1: number,
+  dur: number,
+  vol: number,
+  type: OscillatorType = "sine",
+) {
   const o = c.createOscillator();
   const g = c.createGain();
   o.type = type;
@@ -210,141 +191,97 @@ function tone(c: AudioContext, dest: AudioNode, t: number, f0: number, f1: numbe
 
 /* ------------------------------------------------------------------ ambient beds */
 
-const PENT = [392, 440, 523.25, 587.33, 659.25, 783.99];
-const MUZAK = [
-  [146.83, 220, 261.63, 329.63, 349.23], // Dm9-ish
-  [196, 246.94, 293.66, 349.23, 440], // G13
-  [130.81, 196, 246.94, 329.63, 392], // Cmaj9
-  [110, 220, 277.18, 329.63, 392], // A7
-];
 
-const BUILD: Record<Zone, (k: Kit) => void> = {
-  // distant city hum, a soft pad, a breeze, far traffic and the odd neon buzz
-  home(k) {
-    const { c } = k;
-    const hum = filt(c, "lowpass", 220, 0.7, k.out);
-    const hg = c.createGain();
-    hg.gain.value = 0.9;
-    hg.connect(hum);
-    noiseLoop(k, true, hg);
-    const padLp = filt(c, "lowpass", 800, 0.5, k.out);
-    lfo(k, 0.05, 300, padLp.frequency);
-    [110, 164.81, 220, 277.18].forEach((f, i) => osc(k, "triangle", f, 0.05, padLp, i % 2 ? 5 : -5));
-    const br = filt(c, "bandpass", 700, 0.6, k.out);
-    const bg = c.createGain();
-    bg.gain.value = 0.05;
-    bg.connect(br);
-    lfo(k, 0.09, 0.04, bg.gain);
-    noiseLoop(k, false, bg);
-    k.every(() => burst(c, k.out, c.currentTime, 3.2, "lowpass", 350, 0.7, 0.1), 7000, 5000); // traffic swell
-    k.every(() => tone(c, k.out, c.currentTime, 120, 118, 0.5, 0.012, "sawtooth"), 9000, 6000); // neon buzz
-  },
-  // server-rack fan, static, quiet rhythmic clicks
-  lab(k) {
-    const { c } = k;
-    const fan = filt(c, "bandpass", 150, 1, k.out);
-    const fg = c.createGain();
-    fg.gain.value = 0.9;
-    fg.connect(fan);
-    noiseLoop(k, true, fg);
-    osc(k, "sine", 60, 0.04);
-    osc(k, "sine", 120, 0.025);
-    k.every(() => burst(c, k.out, c.currentTime, 0.03, "highpass", 4000, 0.7, 0.05), 320, 500);
-    k.every(() => tone(c, k.out, c.currentTime, 2200, 1500, 0.012, 0.03, "square"), 620, 120);
-  },
-  // airy sci-fi drone with soft harmonic chimes
-  skills(k) {
-    const { c } = k;
-    [98, 146.83, 196.5].forEach((f, i) => {
-      const { g } = osc(k, "sine", f, 0.07, k.out, i * 3);
-      lfo(k, 0.06 + i * 0.03, 0.04, g.gain);
+// Every screen plays the same calm tune (the old per-room beds were held drones and noise, which read as a hum).
+// D Dorian at 72 BPM: a deep sub drone, a warm low-passed pad and a few sparse electric-piano plucks in a big hall reverb.
+// Eight bars (about 27s) in four chords, each held for two bars, then it loops.
+function calmTune(k: Kit) {
+  const { c } = k;
+  const hz = (midi: number) => 440 * 2 ** ((midi - 69) / 12);
+  const STEP = 60 / 72 / 2; // an eighth note
+  const CHORD_S = 16 * STEP; // two bars
+  // the hall: a long, dark noise tail
+  const hall = c.createConvolver();
+  const len = Math.floor(c.sampleRate * 3.4);
+  const ir = c.createBuffer(2, len, c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = ir.getChannelData(ch);
+    for (let n = 0; n < len; n++) d[n] = (Math.random() * 2 - 1) * (1 - n / len) ** 2.6;
+  }
+  hall.buffer = ir;
+  const wet = c.createGain();
+  wet.gain.value = 0.45;
+  hall.connect(filt(c, "lowpass", 1600, 0.4, wet));
+  wet.connect(k.out);
+  const keysLp = filt(c, "lowpass", 1800, 0.5);
+  const dry = c.createGain();
+  dry.gain.value = 0.55;
+  keysLp.connect(dry);
+  dry.connect(k.out);
+  keysLp.connect(hall);
+
+  /** One steady voice: slow swell in, held, long fade out. */
+  const voice = (type: OscillatorType, f: number, t: number, hold: number, vol: number, attack: number, release: number, dest: AudioNode) => {
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type;
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + attack);
+    g.gain.setValueAtTime(vol, t + hold);
+    g.gain.linearRampToValueAtTime(0, t + hold + release);
+    o.connect(g);
+    g.connect(dest);
+    o.start(t);
+    o.stop(t + hold + release + 0.1);
+  };
+  /** A soft electric-piano pluck: a sine with a quieter octave and a short tine. */
+  const pluck = (f: number, t: number, len: number, level: number) => {
+    [[1, level, len], [2, level * 0.28, len * 0.6], [5, level * 0.08, 0.25]].forEach(([m, vol, dur]) => {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = "sine";
+      o.frequency.value = f * m;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+      o.connect(g);
+      g.connect(keysLp);
+      o.start(t);
+      o.stop(t + dur + 0.05);
     });
-    const air = filt(c, "highpass", 3000, 0.7, k.out);
-    const ag = c.createGain();
-    ag.gain.value = 0.012;
-    ag.connect(air);
-    lfo(k, 0.1, 0.008, ag.gain);
-    noiseLoop(k, false, ag);
-    const echo = echoBus(k, 0.55, 0.45);
-    k.every(() => ping(c, echo, c.currentTime, PENT[(Math.random() * PENT.length) | 0], 0.05, 4), 4800, 2500);
-  },
-  // cavernous hangar: deep rumble, hydraulic hiss, far-off clangs
-  hangar(k) {
-    const { c } = k;
-    const rum = filt(c, "lowpass", 90, 0.7, k.out);
-    const rg = c.createGain();
-    rg.gain.value = 1.2;
-    rg.connect(rum);
-    noiseLoop(k, true, rg);
-    const echo = echoBus(k, 0.7, 0.5, 1200);
-    k.every(() => ping(c, echo, c.currentTime, rnd(260, 340), 0.045, 3, [1, 1.9, 2.74, 4.1]), 9000, 5000);
-    k.every(() => burst(c, k.out, c.currentTime, 0.9, "highpass", 2400, 0.8, 0.035, 1800), 7000, 4000);
-  },
-  // muffled lo-fi jazz in the elevator, wind in the shaft
-  tower(k) {
-    const { c } = k;
-    const room = filt(c, "lowpass", 750, 0.6, k.out);
-    let n = 0;
-    k.every(
-      () => {
-        const t = c.currentTime;
-        const ch = MUZAK[n++ % MUZAK.length];
-        ch.forEach((f, i) => {
-          const o = c.createOscillator();
-          const g = c.createGain();
-          o.type = "triangle";
-          o.frequency.value = f * (i === 0 ? 0.5 : 1);
-          g.gain.setValueAtTime(0, t);
-          g.gain.linearRampToValueAtTime(i === 0 ? 0.09 : 0.04, t + 0.12);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 2.7);
-          o.connect(g);
-          g.connect(room);
-          o.start(t);
-          o.stop(t + 2.8);
-        });
-        tone(c, room, t + 1.4, ch[1] * 0.5, ch[1] * 0.5, 1.2, 0.07, "sine"); // walking bass
-      },
-      2800,
-    );
-    const wind = filt(c, "bandpass", 350, 0.5, k.out);
-    const wg = c.createGain();
-    wg.gain.value = 0.05;
-    wg.connect(wind);
-    lfo(k, 0.12, 0.03, wg.gain);
-    noiseLoop(k, false, wg);
-  },
-  // quiet museum: warm pads and sparse bells in a long reverb
-  gallery(k) {
-    const { c } = k;
-    const lp = filt(c, "lowpass", 1300, 0.7);
-    const echo = echoBus(k, 0.65, 0.5, 1300);
-    lp.connect(echo);
-    [110, 164.81, 220, 261.63, 329.63, 392].forEach((f, i) => {
-      const { g } = osc(k, i % 2 ? "sine" : "triangle", f, 0.11, lp, (i % 2 ? 1 : -1) * 6);
-      lfo(k, 0.07 + i * 0.03, 0.07, g.gain);
-    });
-    k.every(() => ping(c, lp, c.currentTime, [440, 523.25, 659.25, 783.99, 880][(Math.random() * 5) | 0], 0.16, 3.2), 4800, 1500);
-  },
-  // wind whistling through scaffolding, a slow radar blip
-  radio(k) {
-    const { c } = k;
-    const whistle = filt(c, "bandpass", 1400, 12, k.out);
-    const wg = c.createGain();
-    wg.gain.value = 0.05;
-    wg.connect(whistle);
-    lfo(k, 0.13, 420, whistle.frequency);
-    lfo(k, 0.07, 0.03, wg.gain);
-    noiseLoop(k, false, wg);
-    const low = filt(c, "lowpass", 320, 0.6, k.out);
-    const lg = c.createGain();
-    lg.gain.value = 0.55;
-    lfo(k, 0.1, 0.25, lg.gain);
-    lg.connect(low);
-    noiseLoop(k, true, lg);
-    const echo = echoBus(k, 0.28, 0.4, 2500);
-    k.every(() => tone(c, echo, c.currentTime, 1500, 1480, 0.07, 0.05), 3000);
-  },
-};
+  };
+
+  // [bass, pad notes, melody as [start step, note, length in steps]], MIDI numbers (C4 = 60)
+  const CHORDS: Array<{ bass: number; pad: number[]; mel: Array<[number, number, number]> }> = [
+    { bass: 26, pad: [38, 41, 45, 48, 52], mel: [[0, 57, 4], [6, 52, 6]] }, // Dm9
+    { bass: 34, pad: [34, 38, 41, 45], mel: [[2, 53, 4], [8, 50, 4]] }, // Bbmaj7
+    { bass: 31, pad: [31, 34, 38, 41, 45], mel: [[0, 50, 4], [4, 57, 8]] }, // Gm9
+    { bass: 33, pad: [33, 36, 40, 43], mel: [[2, 52, 4], [8, 48, 4]] }, // Am7
+  ];
+  const playChord = (idx: number, t: number) => {
+    const ch = CHORDS[idx % CHORDS.length];
+    // the bass is a soft low note that blooms and dies away, not a held drone (a sustained sub reads as a hum)
+    voice("sine", hz(ch.bass + 12), t, 0.6, 0.025, 0.4, 2.2, k.out);
+    // no held pad at all (a sustained low tone is what read as a hum): the chord is spelled out as slow soft plucks, each fading to silence
+    const arp = ch.pad.filter((n) => n >= 38).map((n) => n + 12);
+    const ORDER = [0, 1, 2, 3, 2, 1, 3, 2];
+    ORDER.forEach((o, i) => pluck(hz(arp[o % arp.length]), t + i * 2 * STEP, 1.8, 0.02));
+    ch.mel.forEach(([step, n, steps]) => pluck(hz(n), t + step * STEP, steps * STEP + 1.4, 0.05));
+  };
+
+  // schedule one chord at a time, a second ahead, on the audio clock so the loop never drifts
+  let idx = 0;
+  let nextAt = c.currentTime + 0.1;
+  let timer = 0;
+  const queue = () => {
+    playChord(idx++, nextAt);
+    nextAt += CHORD_S;
+    timer = window.setTimeout(queue, Math.max(0, (nextAt - c.currentTime - 1) * 1000));
+  };
+  queue();
+  k.stops.push(() => clearTimeout(timer));
+}
 
 function apply() {
   if (!started) return;
@@ -372,8 +309,17 @@ function apply() {
     g.gain.linearRampToValueAtTime(1, c.currentTime + 0.7);
     g.connect(amb);
     const k = kit(c, g);
-    BUILD[want](k);
-    running = { zone: want, gain: g, stop: () => k.stops.forEach((s) => { try { s(); } catch {} }) };
+    calmTune(k);
+    running = {
+      zone: want,
+      gain: g,
+      stop: () =>
+        k.stops.forEach((s) => {
+          try {
+            s();
+          } catch {}
+        }),
+    };
   } catch {
     // no Web Audio: the app is silent
   }
@@ -439,8 +385,8 @@ export const sfx = {
   step: () =>
     play((c, o, t) => {
       const r = rnd(0.92, 1.08); // never the same step twice
-      burst(c, o, t, 0.07, "lowpass", (500 + (foot++ % 2) * 120) * r, 0.8, 0.22);
-      tone(c, o, t, 95 * r, 55 * r, 0.08, 0.14);
+      burst(c, o, t, 0.07, "lowpass", (380 + (foot++ % 2) * 80) * r, 0.7, 0.035);
+      tone(c, o, t, 85 * r, 55 * r, 0.08, 0.02);
     }),
   /** Mechanical door latch click. */
   latch: () =>
@@ -477,7 +423,17 @@ export const sfx = {
     }),
   /** Crystalline ping; `depth` raises the pitch a little per step. */
   node: (depth = 0) =>
-    play((c, o, t) => ping(c, o, t, 880 * 2 ** (Math.min(depth, 12) / 12), 0.22, 1.6, [1, 2.01, 3])),
+    play((c, o, t) =>
+      ping(
+        c,
+        o,
+        t,
+        880 * 2 ** (Math.min(depth, 12) / 12),
+        0.22,
+        1.6,
+        [1, 2.01, 3],
+      ),
+    ),
   /** Heavy mechanical lock. */
   lock: () =>
     play((c, o, t) => {
@@ -506,26 +462,26 @@ export const sfx = {
       tone(c, g, t, 46, 42, secs + 0.05, 0.7);
       tone(c, g, t + 0.2, 90, 66, secs - 0.15, 0.22, "sawtooth");
     }),
-  /** Pitch-shifted hydraulic hum that slows to a halt as the elevator arrives. */
+  /** A soft, smooth glide for the elevator ride: a quiet low sine that eases up and back down, with a faint air whisper. */
   hum: (secs: number) =>
     play((c, o, t) => {
-      const lp = filt(c, "lowpass", 420);
+      const lp = filt(c, "lowpass", 320, 0.3);
       const g = c.createGain();
       const s1 = c.createOscillator();
-      s1.type = "sawtooth";
-      s1.frequency.setValueAtTime(52, t);
-      s1.frequency.linearRampToValueAtTime(96, t + secs * 0.45);
-      s1.frequency.exponentialRampToValueAtTime(38, t + secs);
+      s1.type = "sine";
+      s1.frequency.setValueAtTime(110, t);
+      s1.frequency.linearRampToValueAtTime(146, t + secs * 0.5);
+      s1.frequency.linearRampToValueAtTime(110, t + secs);
       g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.16, t + 0.3);
-      g.gain.setValueAtTime(0.16, t + secs - 0.4);
+      g.gain.linearRampToValueAtTime(0.045, t + Math.min(0.8, secs * 0.35));
+      g.gain.setValueAtTime(0.045, t + Math.max(0.1, secs - 0.9));
       g.gain.linearRampToValueAtTime(0, t + secs);
       s1.connect(lp);
       lp.connect(g);
       g.connect(o);
       s1.start(t);
       s1.stop(t + secs + 0.05);
-      burst(c, o, t, secs, "bandpass", 260, 0.8, 0.06, 140);
+      burst(c, o, t, secs, "bandpass", 500, 0.5, 0.012, 300);
     }),
   /** Quick digital whoosh with a high-pass sweep (rack focus into the Skill Tree). */
   whoosh: () =>
@@ -536,13 +492,13 @@ export const sfx = {
   /** Heavy sliding door. */
   slide: () =>
     play((c, o, t) => {
-      burst(c, o, t, 0.7, "bandpass", 300, 1.2, 0.22, 900);
-      tone(c, o, t + 0.6, 110, 60, 0.15, 0.4);
+      burst(c, o, t, 0.7, "bandpass", 300, 1.2, 0.08, 900);
+      tone(c, o, t + 0.6, 110, 70, 0.15, 0.12);
     }),
   /** Brass elevator ding. */
   ding: () =>
     play((c, o, t) => {
-      ping(c, o, t, 1318.5, 0.3, 1.6, [1, 2, 3.01]);
+      ping(c, o, t, 880, 0.1, 1.4, [1, 2]);
     }),
   /** Office keyboard clatter. */
   keys: (n = 9) =>
@@ -563,7 +519,9 @@ export const sfx = {
     play((c, o, t) => {
       burst(c, o, t, 0.9, "bandpass", 180, 0.8, 0.3, 2000);
       tone(c, o, t, 80, 50, 0.9, 0.25);
-      [2093, 2637, 3136, 3951].forEach((f, i) => ping(c, o, t + 0.5 + i * 0.09, f, 0.07, 1.6));
+      [2093, 2637, 3136, 3951].forEach((f, i) =>
+        ping(c, o, t + 0.5 + i * 0.09, f, 0.07, 1.6),
+      );
     }),
   /** A retro mechanical key clack (typing in the terminal). */
   key: () =>
@@ -603,13 +561,16 @@ export const sfx = {
   /** Warm confirmation chime. */
   confirm: () =>
     play((c, o, t) => {
-      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => ping(c, o, t + i * 0.11, f, 0.18, 1.6, [1, 2]));
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
+        ping(c, o, t + i * 0.11, f, 0.18, 1.6, [1, 2]),
+      );
     }),
   /** Schedule footsteps for a walk lasting `ms` (about one per 270ms). */
   walk: (ms: number) => {
     sfx.stopWalk(); // a new walk replaces the old one
     if (muted || ms < 120) return;
-    for (let t = 120; t < ms; t += 270) walkTimers.push(window.setTimeout(sfx.step, t));
+    for (let t = 120; t < ms; t += 270)
+      walkTimers.push(window.setTimeout(sfx.step, t));
   },
   /** Cancel footsteps still queued, e.g. when the scene is left. */
   stopWalk: () => {
