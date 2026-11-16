@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail } from "lucide-react";
+import { Check, Mail } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
 import { sfx } from "./audio";
@@ -325,13 +325,13 @@ export function Radio() {
             {busy ? "Transmitting…" : "Transmit signal"}
           </button>
           <p className={`rt-blip${phase === "ok" ? " is-ok" : ""}`} role="status">
-            {phase === "ok" ? "✔ Signal locked. Your mail app opened with the message ready; press send there to deliver it." : ""}
+            {phase === "ok" ? <><Check size={14} aria-hidden /> Signal locked. Your mail app opened with the message ready; press send there to deliver it.</> : ""}
           </p>
         </form>
 
         <div className="room-hud">
           <span className={`room-status${phase === "ok" ? " is-ok" : ""}`} aria-live="polite">
-            <b>{phase === "ok" ? "✔" : "●"}</b> {status || "Preparing the roof"}
+            <b>{phase === "ok" ? <Check size={14} aria-hidden /> : "●"}</b> {status || "Preparing the roof"}
           </span>
         </div>
       </div>

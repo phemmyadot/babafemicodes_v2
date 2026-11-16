@@ -173,7 +173,7 @@ function Boot({ onDone }: { onDone: () => void }) {
             aria-valuemax={100}
             aria-valuenow={pct}
           >
-            <span style={{ width: `${pct}%` }} />
+            <span style={{ width: "100%", transform: `scaleX(${pct / 100})` }} />
           </div>
           <p className="boot-status" aria-live="polite">
             {BOOT_LINES[Math.max(0, shown - 1)]}

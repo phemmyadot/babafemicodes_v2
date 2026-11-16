@@ -5,6 +5,12 @@ Method: static `sloplint` (playful genre), `tsc --noEmit` (clean), and a live pa
 
 Totals from the linter: 747 FAIL, 201 REFLEX, 27 WARN. Most of that is volume (662 are colour literals in scene art, 188 are off-scale spacing). The numbered gates below are Hallmark gate numbers.
 
+## Status: suggested order #1 done (2026-11-16)
+
+Fixed and re-checked in the browser and with `sloplint`: B1 (`overflow-x: clip` on html/body, every `100vw` replaced with `100%`), B2 (focus ring no longer transitions), B3 (disabled buttons now change fill, ink and cursor), B5 (`transition: all` listed explicitly), B6 for `.gw-bar`, `.boot-bar` and `lab-sweep` (now `transform`), B15 (`✔` replaced with the Lucide `Check` icon), B16 (`aria-hidden` on the bird SVG).
+Not changed: `.room-bench` / `.room-monitor` still animate left, top, width and height in the lab finale (a one-off layout choreography that needs a rebuild to use transforms); B4 is a false positive: the interior bar sits in the dialog's top layer and covers `.x-bar`, so only one bar is ever visible.
+Linter after the fixes: 727 FAIL (was 747), 201 REFLEX, 27 WARN. Gates 15, 33, 34, 39a, 30a are clear; 10a has one finding left (above).
+
 ## Bugs
 
 | # | Where | What | Confidence |

@@ -210,7 +210,7 @@ const FLOCKS: Array<{ top: string; speed: number; at: number; birds: Array<[numb
 
 function Bird({ x, y, scale, delay }: { x: number; y: number; scale: number; delay: number }) {
   return (
-    <svg className="gw-bird" viewBox="0 0 24 12" width={34 * scale} height={17 * scale} style={{ left: x, top: y, animationDelay: `${delay}s` }}>
+    <svg className="gw-bird" aria-hidden viewBox="0 0 24 12" width={34 * scale} height={17 * scale} style={{ left: x, top: y, animationDelay: `${delay}s` }}>
       <path className="bird-wing bird-l" d="M12 7 Q7 1 1 3" />
       <path className="bird-wing bird-r" d="M12 7 Q17 1 23 3" />
     </svg>
@@ -682,7 +682,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
           Districts <strong>{visited.size}</strong>/{DISTRICTS.length}
         </p>
         <span className="gw-bar">
-          <span style={{ width: `${(visited.size / DISTRICTS.length) * 100}%` }} />
+          <span style={{ width: "100%", transform: `scaleX(${visited.size / DISTRICTS.length})` }} />
         </span>
         <p>
           Shards <strong className="gw-shard-count">{got.length}</strong>/{SHARDS.length} ✦

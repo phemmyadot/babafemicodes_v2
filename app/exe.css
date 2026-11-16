@@ -43,6 +43,7 @@
 }
 html.exe-html,
 html.exe-html body {
+  overflow-x: clip;
   background: #080d18;
   scroll-padding-top: 5rem;
 }
@@ -385,7 +386,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   gap: 6px;
   width: 100%;
   border: 1px solid var(--line) !important;
-  transition: transform var(--fast) var(--ease), border-color var(--fast), box-shadow var(--fast);
+  transition: transform var(--fast) var(--ease), border-color var(--fast);
 }
 .x-card:hover,
 .x-card:focus-visible {
@@ -650,7 +651,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 
 .x-dialog {
-  width: min(640px, calc(100vw - 32px));
+  width: min(640px, calc(100% - 32px));
   max-height: min(80vh, 760px);
   padding: 0;
   border: 1px solid var(--line-strong);
@@ -668,7 +669,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   backdrop-filter: blur(4px);
 }
 .x-dialog-wide {
-  width: min(960px, calc(100vw - 32px));
+  width: min(960px, calc(100% - 32px));
   max-height: calc(100vh - 48px);
 }
 .x-detail {
@@ -983,7 +984,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 
 .x-dialog-term {
-  width: min(760px, calc(100vw - 32px));
+  width: min(760px, calc(100% - 32px));
   background: #0c0524;
 }
 .x-term {
@@ -1239,8 +1240,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   .x-dialog,
   .x-dialog-wide,
   .x-dialog-term {
-    width: 100vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
     height: 100dvh;
     max-height: 100dvh;
     margin: 0;
@@ -1814,7 +1815,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   display: block;
   height: 100%;
   background: linear-gradient(90deg, var(--cyan), var(--lime), var(--yellow), var(--orange), var(--magenta));
-  transition: width 600ms var(--ease);
+  transform-origin: left;
+  transition: transform 600ms var(--ease);
 }
 .gw-hint {
   position: absolute;
@@ -1836,7 +1838,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 /* interior overlay */
 .x-interior {
-  width: min(1120px, calc(100vw - 32px));
+  width: min(1120px, calc(100% - 32px));
   height: calc(100dvh - 48px);
   max-height: none;
 }
@@ -1973,7 +1975,10 @@ html:not([data-exe-boot="run"]) .exe-boot {
     font-weight: 700;
   }
   .gw-pad .gw-enter:disabled {
-    opacity: 0.35;
+    opacity: 0.5;
+    background: var(--elevated) !important;
+    color: var(--muted) !important;
+    cursor: not-allowed;
   }
   .gw-progress {
     bottom: 84px;
@@ -2342,8 +2347,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
 @media (max-width: 760px) {
   .exe .x-interior,
   .exe .x-dialog-wide {
-    width: 100vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
     margin: 0;
     border-radius: 0;
     border-width: 0;
@@ -2601,7 +2606,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-radius: 99px;
   background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0 6px, transparent 6px 12px),
     linear-gradient(90deg, var(--cyan), var(--lime), var(--yellow), var(--orange), var(--magenta));
-  transition: width 240ms var(--ease);
+  transform-origin: left;
+  transition: transform 240ms var(--ease);
 }
 .boot-status {
   min-height: 1.5em;
@@ -3385,7 +3391,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   position: fixed;
   inset: 0;
   z-index: 50;
-  width: 100vw;
+  width: 100%;
   max-width: none;
   height: 100dvh;
   max-height: none;
@@ -4075,7 +4081,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: rgba(22, 16, 52, 0.6) !important;
   color: #f1edff !important;
   text-align: left;
-  transition: all var(--fast);
+  transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast);
   cursor: pointer;
 }
 
@@ -4285,7 +4291,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: rgba(12, 8, 30, 0.88);
   color: #f4eeff;
   font: 600 11.5px / 1.2 var(--body);
-  transition: all var(--fast);
+  transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast);
   overflow: hidden;
   box-sizing: border-box;
   white-space: nowrap;
@@ -4395,7 +4401,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   height: 38px;
   border-radius: 7px;
   color: #e2e8f0 !important;
-  transition: all var(--fast);
+  transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast);
 }
 .sr-zoom button:hover:not(:disabled) {
   background: rgba(67, 213, 255, 0.2) !important;
@@ -4406,8 +4412,10 @@ html:not([data-exe-boot="run"]) .exe-boot {
   color: #43d5ff !important;
 }
 .sr-zoom button:disabled {
-  opacity: 0.3;
-  cursor: default;
+  opacity: 0.5;
+  background: transparent !important;
+  color: var(--muted) !important;
+  cursor: not-allowed;
 }
 
 /* ── Room Tabs Toolbar Along Bottom ──────────────────────────── */
@@ -4434,7 +4442,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: rgba(8, 11, 28, 0.92) !important;
   font: 600 12px var(--body);
   color: #e2e8f0 !important;
-  transition: all var(--fast);
+  transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast);
   cursor: pointer;
 }
 .sr-tab-btn:hover {
@@ -4759,7 +4767,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   box-shadow: 0 0 10px #ffd23f;
 }
 @keyframes lab-sweep {
-  to { left: 100%; }
+  to { transform: translateX(555%); }
 }
 @keyframes lab-spark {
   to { transform: rotate(var(--a)) translateX(var(--d)) scale(0.2); opacity: 0; }
@@ -5401,7 +5409,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-radius: 12px;
   background: #07120f;
   cursor: pointer;
-  transition: box-shadow 200ms, transform 200ms;
+  transition: transform 200ms;
 }
 .ct-term i {
   display: block;
@@ -5588,8 +5596,10 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: color-mix(in srgb, var(--bc, #9fb0d4) 20%, #0d1330);
 }
 .ct-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
+  opacity: 0.5;
+  background: #0d1330;
+  color: var(--muted);
+  cursor: not-allowed;
 }
 @media (max-width: 640px) {
   .ct-buttons {
