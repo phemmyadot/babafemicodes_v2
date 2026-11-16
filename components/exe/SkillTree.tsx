@@ -38,6 +38,7 @@ const PAD_X = 36;
 const CHROME = 78 + 28 + 64 + 30;
 const LOBBY_W = 380;
 const WALL = 4; // each room is inset by this much, so neighbours leave an 8px wall
+const HOUSE_PAD = 16; // clear space between the house wall and the rooms inside it
 const DOOR = 56; // length of a door opening
 const LOBBY_WALK = 170; // how far he walks in from the door
 const ZOOM_ROOM = 1.7; // zooming into a room: at most this much past the fitted view
@@ -208,7 +209,7 @@ export function Skills() {
   const [vp, setVp] = useState({ w: 0, h: 0 });
   // The house takes the screen's shape (rounded, so a small resize doesn't re-plan it).
   const aspect = vp.h ? Math.round(Math.min(2.2, Math.max(1.25, (vp.w / vp.h) * 0.92)) * 10) / 10 : 1.6;
-  const { rooms, doors, W, H } = useMemo(() => planHouse(groups.map((g) => g.skills.length), aspect), [groups, aspect]);
+  const { rooms, W, H } = useMemo(() => planHouse(groups.map((g) => g.skills.length), aspect), [groups, aspect]);
   const ro = useRef<ResizeObserver | null>(null);
   const viewportRef = useCallback((el: HTMLDivElement | null) => {
     ro.current?.disconnect();
@@ -225,7 +226,7 @@ export function Skills() {
   // Fits the entire 2D Floor Map onto the screen
   const fitView = (): View => {
     // Leave room for the status bar on top and the room tabs along the bottom.
-    const k = vp.w && vp.h ? Math.min((vp.w - 40) / W, (vp.h - 150) / H) : 0.55;
+    const k = vp.w && vp.h ? Math.min((vp.w - 40) / (W + HOUSE_PAD * 2), (vp.h - 150) / (H + HOUSE_PAD * 2)) : 0.55;
     return { k, x: (vp.w - W * k) / 2, y: 74 + (vp.h - 150 - H * k) / 2 };
   };
 
@@ -420,11 +421,32 @@ export function Skills() {
   }, []);
 
   // Drag to pan across floor map
+  // Fingers on the map: one pans, two pinch to zoom around their midpoint.
+  const fingers = useRef(new Map<number, { x: number; y: number }>());
+  const pinchDist = useRef(0);
+  const spread = () => {
+    const [a, b] = [...fingers.current.values()];
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
   const onPointerDown = (e: RPointerEvent<HTMLDivElement>) => {
     if ((e.target as Element).closest(".room-hud, .sr-tabs, .sr-zoom, .sr-kiosk, button")) return;
-    drag.current = { x: e.clientX, y: e.clientY, moved: false };
+    fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (fingers.current.size === 2) {
+      pinchDist.current = spread().d;
+      drag.current = { x: e.clientX, y: e.clientY, moved: true }; // a pinch is never a click
+    } else {
+      drag.current = { x: e.clientX, y: e.clientY, moved: false };
+    }
   };
   const onPointerMove = (e: RPointerEvent<HTMLDivElement>) => {
+    if (fingers.current.has(e.pointerId)) fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (fingers.current.size === 2) {
+      const s = spread();
+      const r = e.currentTarget.getBoundingClientRect();
+      if (pinchDist.current > 0) zoom(s.d / pinchDist.current, s.x - r.left, s.y - r.top, false);
+      pinchDist.current = s.d;
+      return;
+    }
     const d = drag.current;
     if (!d || !view) return;
     if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6) return;
@@ -435,8 +457,13 @@ export function Skills() {
     setSmooth(false);
     setView((v) => v && { ...v, x: v.x + dx, y: v.y + dy });
   };
-  const onPointerUp = () => {
-    window.setTimeout(() => (drag.current = null), 0);
+  const onPointerUp = (e: RPointerEvent<HTMLDivElement>) => {
+    fingers.current.delete(e.pointerId);
+    pinchDist.current = 0;
+    const left = [...fingers.current.values()][0];
+    // one finger left after a pinch: carry on panning from where it is, without a jump
+    if (left) drag.current = { x: left.x, y: left.y, moved: true };
+    else window.setTimeout(() => (drag.current = null), 0);
   };
   const clicked = (fn: () => void) => () => {
     if (!drag.current?.moved) fn();
@@ -459,20 +486,20 @@ export function Skills() {
           elRef.current = el;
           viewportRef(el);
         }}
-        tabIndex={0}
         aria-label="Skills Complex floor map. Scroll or +/- to zoom, drag to pan, select any room to walk there."
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
+        {/* fixed backdrop: it must not scale with the camera (a huge scaled layer flickers) */}
+        <div className="sr-blueprint-grid" aria-hidden />
         <div
           ref={worldRef}
           className={`sr-world${smooth ? " is-smooth" : ""}`}
           style={{ width: W, height: H, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})` }}
         >
           {/* Blueprint backdrop: cyberpunk grid, coordinate marks, sector stamps */}
-          <div className="sr-blueprint-grid" aria-hidden />
           <div className="sr-blueprint-markers" style={{ width: W, height: H }} aria-hidden>
             <span className="sr-mark sr-mark-tl">FLOOR MAP // 2D ARCHITECTURAL BLUEPRINT</span>
             <span className="sr-mark sr-mark-tr">ELEVATION 0.00M // ALL SYSTEMS NOMINAL</span>
@@ -481,7 +508,7 @@ export function Skills() {
           </div>
 
           {/* The house: outer walls, then rooms sharing walls, with door openings between them */}
-          <div className="sr-house" style={{ left: 0, top: 0, width: W, height: H }} aria-hidden />
+          <div className="sr-house" style={{ left: -HOUSE_PAD, top: -HOUSE_PAD, width: W + HOUSE_PAD * 2, height: H + HOUSE_PAD * 2 }} aria-hidden />
 
           {/* Central Lobby Wing (Sector 00 — Root Hub of the Facility) */}
           <div
@@ -490,20 +517,19 @@ export function Skills() {
           >
             <div className="sr-card-head">
               <div className="sr-card-meta">
-                <span className="sr-room-code sr-code-green">ROOT HUB</span>
-                <span className="sr-room-wing">CENTRAL LOBBY & FOYER</span>
+                <span className="sr-room-code sr-code-green">RM-00</span>
               </div>
               <div className="sr-room-title-row">
                 <Building2 size={18} className="sr-icon-green" aria-hidden />
-                <span className="sr-room-title">Arrival Concourse</span>
-                <b className="sr-badge-green">ENTRY</b>
+                <span className="sr-room-title">Entry</span>
+                <b className="sr-badge-green">{groups.length} ROOMS</b>
               </div>
               <div className="sr-card-divider sr-div-green" />
             </div>
 
             {/* Directory: one big button per room, filling the hall */}
             <div className="sr-kiosk" role="region" aria-label="Rooms">
-              <div className="sr-kiosk-sub">SELECT A ROOM TO ZOOM IN</div>
+              <div className="sr-kiosk-sub">SECTIONS</div>
               <div className="sr-kiosk-items" role="list">
                 {groups.map((g, i) => {
                   const Icon = iconFor(g.title);
@@ -521,7 +547,7 @@ export function Skills() {
                       </span>
                       <div className="sr-kiosk-info">
                         <span className="sr-kiosk-tag">
-                          RM-0{i + 1} // {rooms[i]?.wing ?? "WING"}
+                          RM-0{i + 1}
                         </span>
                         <span className="sr-kiosk-name">{g.title}</span>
                       </div>
@@ -589,7 +615,6 @@ export function Skills() {
                 <div className="sr-card-head">
                   <div className="sr-card-meta">
                     <span className="sr-room-code">RM-0{i + 1}</span>
-                    <span className="sr-room-wing">{r.wing}</span>
                   </div>
                   <div className="sr-room-title-row">
                     <Icon size={18} className="sr-room-icon" aria-hidden />
@@ -602,8 +627,14 @@ export function Skills() {
                 {/* Card Body: Consistent, balanced grid filling the card (NO SCROLLS!) */}
                 <div className="sr-card-body">
                   <div className="sr-chips">
-                    {g.skills.map((s) => (
-                      <div key={s} className="sr-chip" title={s}>
+                    {g.skills.map((s, n) => (
+                      <div
+                        key={s}
+                        className="sr-chip"
+                        title={s}
+                        // the last chip takes the rest of its row, so no empty cell is left over
+                        style={n === g.skills.length - 1 && g.skills.length % r.cols ? { gridColumn: `span ${r.cols - (g.skills.length % r.cols) + 1}` } : undefined}
+                      >
                         <span className="sr-chip-indicator" />
                         <span className="sr-chip-text">{s}</span>
                       </div>
@@ -625,16 +656,7 @@ export function Skills() {
             );
           })}
 
-          {doors.map((d, k) => (
-            <span
-              key={k}
-              className={`sr-doorway ${d.vertical ? "is-vertical" : "is-horizontal"}`}
-              style={d.vertical ? { left: d.x - 5, top: d.y - DOOR / 2, width: 10, height: DOOR } : { left: d.x - DOOR / 2, top: d.y - 5, width: DOOR, height: 10 }}
-              aria-hidden
-            />
-          ))}
-
-          {/* The engineer walking through the doors */}
+          {/* The engineer in the lobby */}
           {walker && (
             <div
               className={`sr-walker ${walker.walking ? "is-walking" : ""}${walker.visible ? "" : " is-hidden"}`}
@@ -716,25 +738,6 @@ export function Skills() {
             </button>
           ))}
         </div>
-
-        {/* Mobile Detail Panel when a room is focused */}
-        {focus !== null && (
-          <div className="sr-panel" style={{ "--bc": COLORS[focus % COLORS.length] } as CSSProperties}>
-            <div className="sr-panel-head">
-              <strong>
-                [RM-0{focus + 1}] {groups[focus].title}
-              </strong>
-              <span className="sr-panel-count">{groups[focus].skills.length} Tech Active</span>
-            </div>
-            <div className="sr-panel-skills">
-              {groups[focus].skills.map((s) => (
-                <span key={s} className="sr-panel-pill">
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
