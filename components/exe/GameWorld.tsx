@@ -15,7 +15,7 @@ const SHARDS = [760, 1240, 1680, 1760, 2160, 2580, 2620, 3060, 3470, 3520];
 
 /* ------------------------------------------------------------ backdrop */
 // Deterministic so server and client render the same skyline.
-function skyline(w: number, h: number, body: string, lit: string, seed: number) {
+export function skyline(w: number, h: number, body: string, lit: string, seed: number) {
   let r = seed;
   const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
   let x = 0;

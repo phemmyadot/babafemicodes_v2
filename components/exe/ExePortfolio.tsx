@@ -3,12 +3,13 @@
 import { Command, DoorOpen, Home as HomeIcon, Layers, Mail, Rocket, SquareTerminal, Workflow } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { type ArcadeData, type Mission, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, PROFILE, SECTIONS, type SectionId } from "./data";
-import { Comms, MissionDetail, ArcadeContext, ResumeButton, useArcade, type Go } from "./ExeScreens";
+import { MissionDetail, ArcadeContext, ResumeButton, useArcade, type Go } from "./ExeScreens";
 import { Skills } from "./SkillTree";
 import { Profile } from "./Lab";
 import { Hangar } from "./Hangar";
 import { Tower } from "./Tower";
 import { Gallery } from "./Gallery";
+import { Radio } from "./Radio";
 import { GameWorld, Player, Stars } from "./GameWorld";
 import { otherEditions } from "@/lib/editions";
 import { SITE_DOMAIN, SITE_NAME, SITE_TLD } from "@/lib/site";
@@ -97,7 +98,7 @@ function Dialog({
 }
 
 /** Rooms that open as full-page game scenes instead of overlays. */
-const SCENES: SectionId[] = ["profile", "skills", "missions", "career", "achievements"];
+const SCENES: SectionId[] = ["profile", "skills", "missions", "career", "achievements", "comms"];
 const SCENE_EXIT_MS = 480;
 
 const MISSION_COLOR = DISTRICTS.find((d) => d.id === "missions")!.color;
@@ -500,7 +501,7 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
     missions: <Hangar />,
     career: <Tower selected={route.id} />,
     achievements: <Gallery />,
-    comms: <Comms />,
+    comms: <Radio />,
   };
 
   return (
