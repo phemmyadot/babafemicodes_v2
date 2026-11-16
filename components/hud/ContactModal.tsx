@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, Check, Copy, Lock, Mail, Phone, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { sendContact } from "@/lib/sendContact";
 import { cn } from "@/lib/cn";
 import { formatPhone } from "@/lib/format";
 import { useHud } from "../hud-context";
@@ -56,6 +57,8 @@ export function ContactModal({ open, onClose }: { open: boolean; onClose: () => 
   const [stage, setStage] = useState(0);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [touched, setTouched] = useState(false);
+  const [delivered, setDelivered] = useState(false); // sent by the server, not left to the visitor's mail client
+  const delivery = useRef<Promise<boolean>>(Promise.resolve(false));
 
   const errors = {
     name: form.name.trim().length < 2 ? "Callsign required" : "",
@@ -71,6 +74,7 @@ export function ContactModal({ open, onClose }: { open: boolean; onClose: () => 
       setPhase("compose");
       setStage(0);
       setTouched(false);
+      setDelivered(false);
     }, 400);
     return () => clearTimeout(t);
   }, [open]);
@@ -78,7 +82,10 @@ export function ContactModal({ open, onClose }: { open: boolean; onClose: () => 
   useEffect(() => {
     if (phase !== "sending") return;
     if (stage >= STAGES.length) {
-      setPhase("sent");
+      void delivery.current.then((ok) => {
+        setDelivered(ok);
+        setPhase("sent");
+      });
       return;
     }
     const t = setTimeout(() => setStage((s) => s + 1), 650);
@@ -91,6 +98,13 @@ export function ContactModal({ open, onClose }: { open: boolean; onClose: () => 
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
+    // Sent for real while the stages play; if it fails, the sent screen offers the mail client instead.
+    delivery.current = sendContact({
+      name: form.name.trim(),
+      email: form.email.trim(),
+      subject: `Portfolio transmission from ${form.name.trim()}`,
+      message: form.message.trim(),
+    });
     setStage(0);
     setPhase("sending");
   };
@@ -217,16 +231,19 @@ export function ContactModal({ open, onClose }: { open: boolean; onClose: () => 
                 <div className="mb-4 flex h-12 w-12 items-center justify-center border border-phosphor bg-phosphor/10 text-phosphor shadow-glow-green">
                   <Check size={22} />
                 </div>
-                <h3 className="font-display text-2xl font-semibold uppercase text-white">Packet staged</h3>
+                <h3 className="font-display text-2xl font-semibold uppercase text-white">{delivered ? "Transmission delivered" : "Packet staged"}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-fog-light">
-                  Encryption theatrics complete. This channel is simulated — finish the handoff through your mail client and your message
-                  lands directly in my inbox, pre-filled.
+                  {delivered
+                    ? "Your message is in my inbox. I will reply to the address you gave."
+                    : "The server could not send it, so finish the handoff through your mail client and your message lands directly in my inbox, pre-filled."}
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <HudButton variant="green" href={mailto} icon={<Mail size={14} />}>
-                    Deliver via mail client
-                  </HudButton>
-                  <HudButton onClick={() => setPhase("compose")}>Edit payload</HudButton>
+                  {!delivered && (
+                    <HudButton variant="green" href={mailto} icon={<Mail size={14} />}>
+                      Deliver via mail client
+                    </HudButton>
+                  )}
+                  <HudButton onClick={() => setPhase("compose")}>{delivered ? "Send another" : "Edit payload"}</HudButton>
                 </div>
               </motion.div>
             )}

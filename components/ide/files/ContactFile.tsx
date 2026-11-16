@@ -1,6 +1,6 @@
 import type { Profile } from '@/components/ide/types'
 
-type ContactStatus = 'idle' | 'sending' | 'sent' | 'error'
+type ContactStatus = 'idle' | 'sending' | 'sent' | 'mail' | 'error'
 
 interface ContactFileProps {
   profile: Profile | null
@@ -12,7 +12,8 @@ interface ContactFileProps {
 const BUTTON_LABEL: Record<ContactStatus, string> = {
   idle:    'send_message(payload)',
   sending: 'sending...',
-  sent:    '✓ opened in your mail app',
+  sent:    '✓ message sent',
+  mail:    '✓ opened in your mail app',
   error:   '✗ error — try again',
 }
 

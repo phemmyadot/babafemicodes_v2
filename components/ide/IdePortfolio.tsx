@@ -25,6 +25,7 @@ import { SkillsFile }     from './files/SkillsFile'
 import { ProjectsFile }   from './files/ProjectsFile'
 import { BlogFile }       from './files/BlogFile'
 import { ContactFile }    from './files/ContactFile'
+import { sendContact }    from '@/lib/sendContact'
 
 interface Props {
   profile:     Profile | null
@@ -41,7 +42,7 @@ export function IdePortfolio({ profile, experience, skillGroups, projects, blogP
   const [portfolioExpanded, setPortfolioExpanded] = useState(true)
   const [assetsExpanded,    setAssetsExpanded]    = useState(true)
   const [lineCount,  setLineCount]  = useState(30)
-  const [contactStatus, setContactStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [contactStatus, setContactStatus] = useState<'idle' | 'sending' | 'sent' | 'mail' | 'error'>('idle')
 
   const codePanelRef = useRef<HTMLDivElement>(null)
 
@@ -60,19 +61,21 @@ export function IdePortfolio({ profile, experience, skillGroups, projects, blogP
     if (activeFile === id) setActiveFile(safe[safe.length - 1])
   }
 
-  // shortcut: no email API in this project, so the form opens the visitor's mail app.
-  // Port the original Resend route (/api/contact) if submissions should send directly.
-  const handleContact = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  // Sends through /api/contact (Resend); if that fails, the visitor's mail app gets the message instead.
+  const handleContact = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form    = e.currentTarget
     const name    = (form.elements.namedItem('cname')    as HTMLInputElement).value.trim()
     const email   = (form.elements.namedItem('cemail')   as HTMLInputElement).value.trim()
     const message = (form.elements.namedItem('cmessage') as HTMLTextAreaElement).value.trim()
     if (!name || !email || !message) return
+    setContactStatus('sending')
+    const subject = `Hello from ${name}`
+    if (await sendContact({ name, email, subject, message })) return setContactStatus('sent')
     const to = profile?.email ?? ''
     const body = `${message}\n\n— ${name} (${email})`
-    window.location.href = `mailto:${to}?subject=${encodeURIComponent(`Hello from ${name}`)}&body=${encodeURIComponent(body)}`
-    setContactStatus('sent')
+    window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    setContactStatus('mail')
   }
 
   // ── Effects ──────────────────────────────────────────────────────

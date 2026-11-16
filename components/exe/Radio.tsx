@@ -47,6 +47,7 @@ export function Radio() {
   const walkerRef = useRef(walker);
   walkerRef.current = walker;
   const [phase, setPhase] = useState<Phase>("idle");
+  const [delivered, setDelivered] = useState(false); // sent by the server, not left to the visitor's mail app
 
   const runId = useRef(0);
   const timers = useRef<number[]>([]);
@@ -143,11 +144,22 @@ export function Radio() {
     const f = new FormData(e.currentTarget);
     const body = `${f.get("message")}\n\n— ${f.get("name")} (${f.get("email")})`;
     const mail = `mailto:${contact.email}?subject=${encodeURIComponent(String(f.get("subject")))}&body=${encodeURIComponent(body)}`;
-    // shortcut: there is no mail backend, so the message goes via the visitor's mail app; add an API route to send it directly.
-    if (reduceMotion()) {
+    // The server sends it through Resend; if that fails, the visitor's mail app gets the message instead.
+    const delivery = fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(f)),
+    })
+      .then((r) => r.ok)
+      .catch(() => false);
+    const finish = (ok: boolean) => {
       setPhase("ok");
-      setStatus("Signal locked · message ready in your mail app");
-      window.location.href = mail;
+      setDelivered(ok);
+      setStatus(ok ? "Signal delivered" : "Signal locked · message ready in your mail app");
+      if (!ok) window.location.href = mail;
+    };
+    if (reduceMotion()) {
+      void delivery.then(finish);
       return;
     }
     sfx.servo(1.4); // the dish swings round
@@ -159,13 +171,11 @@ export function Radio() {
       setStatus("Transmitting…");
     }, 1500);
     later(() => {
-      setPhase("ok");
-      sfx.confirm();
-      setStatus("Signal locked · message ready in your mail app");
+      void delivery.then((ok) => {
+        sfx.confirm();
+        finish(ok);
+      });
     }, 3100);
-    later(() => {
-      window.location.href = mail;
-    }, 3500);
   };
 
   // Camera: the whole rooftop when it fits; on a narrow screen it keeps a readable size and follows the engineer.
@@ -304,6 +314,7 @@ export function Radio() {
             <span>&gt;</span> OPEN CHANNEL · looking for an engineer to build something meaningful? Let&rsquo;s talk.
           </p>
           <fieldset disabled={busy} className="rt-fields">
+            <input name="website" tabIndex={-1} autoComplete="off" aria-hidden style={{ position: "absolute", left: -9999, width: 1, height: 1, opacity: 0 }} />
             <label>
               <span>NAME</span>
               <input name="name" required autoComplete="name" />
@@ -325,7 +336,7 @@ export function Radio() {
             {busy ? "Transmitting…" : "Transmit signal"}
           </button>
           <p className={`rt-blip${phase === "ok" ? " is-ok" : ""}`} role="status">
-            {phase === "ok" ? <><Check size={14} aria-hidden /> Signal locked. Your mail app opened with the message ready; press send there to deliver it.{contact.email && <> No mail app? Write to <a href={`mailto:${contact.email}`}>{contact.email}</a>.</>}</> : ""}
+            {phase === "ok" ? <><Check size={14} aria-hidden /> {delivered ? "Message sent. I will reply by email." : "Signal locked. Your mail app opened with the message ready; press send there to deliver it."}{!delivered && contact.email && <> No mail app? Write to <a href={`mailto:${contact.email}`}>{contact.email}</a>.</>}</> : ""}
           </p>
         </form>
 
