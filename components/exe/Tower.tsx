@@ -119,6 +119,7 @@ export function Tower({ selected }: { selected?: string }) {
   const [carF, setCarF] = useState(0); // floor the car is at / heading to
   const [shown, setShown] = useState(0); // the number on the counter
   const [ride, setRide] = useState(0); // ms of the current ride
+  const [riding, setRiding] = useState(false);
   const [panel, setPanel] = useState<number | null>(null);
   const [walker, setWalker] = useState<Walker | null>(null);
   const walkerRef = useRef(walker);
@@ -163,6 +164,8 @@ export function Tower({ selected }: { selected?: string }) {
       const dur = reduceMotion() ? 0 : Math.min(3600, Math.max(900, Math.abs(f - from) * 800));
       setRide(dur);
       setCarF(f);
+      setRiding(dur > 0);
+      sfx.hum(dur / 1000);
       place({ ...walkerRef.current!, y: floorLine(f), dur, riding: true, walking: false });
       // the counter follows the same ease-in-out curve as the car
       const t0 = performance.now();
@@ -173,6 +176,7 @@ export function Tower({ selected }: { selected?: string }) {
       }, 60);
       await wait(dur);
       if (ticker.current) clearInterval(ticker.current);
+      setRiding(false);
       setShown(f);
       sfx.ding(); // brass ding on arrival
       await wait(60);
@@ -353,7 +357,7 @@ export function Tower({ selected }: { selected?: string }) {
   return (
     <>
       <Head index="04" title="Career tower" note={`${n} floors, one company each, oldest at the bottom. Use the elevator buttons or the arrow keys.`} />
-      <div className="lab-viewport ct-viewport" ref={viewportRef}>
+      <div className={`lab-viewport ct-viewport${riding ? " is-riding" : ""}`} ref={viewportRef}>
         <Stars />
         <div
           className="ct-tower"
@@ -509,6 +513,8 @@ export function Tower({ selected }: { selected?: string }) {
             )}
           </section>
         )}
+
+        <div className="ct-streaks" aria-hidden />
 
         <div className="room-hud">
           <span className="room-status" aria-live="polite">

@@ -7,7 +7,7 @@ import { MissionDetail, ArcadeContext, ResumeButton, useArcade, type Go } from "
 import { Skills } from "./SkillTree";
 import { Profile } from "./Lab";
 import { Hangar } from "./Hangar";
-import { ambient, sfx, type Zone } from "./audio";
+import { ambient, duck, sfx, unduck, unlockAudio, type Zone } from "./audio";
 import { SoundButton } from "./SoundButton";
 import { Tower } from "./Tower";
 import { Gallery } from "./Gallery";
@@ -398,10 +398,29 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
   const [terminal, setTerminal] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const openTerminal = useCallback(() => setTerminal(true), []);
-  // Walking into a building: the door latch clicks.
+  // Walking into a building: the camera pushes in on the doorway, an iris closes on the engineer, the
+  // city's sound muffles and the latch clicks; then the iris opens inside the new room.
+  const [iris, setIris] = useState<{ x: number; y: number; mode: "close" | "open" } | null>(null);
+  const entering = useRef(false);
   const goWithLatch: Go = (section, id) => {
-    if (section !== "home") sfx.latch();
-    go(section, id);
+    if (section === "home" || entering.current) return go(section, id);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      sfx.latch();
+      return go(section, id);
+    }
+    entering.current = true;
+    const p = document.querySelector(".gw-player")?.getBoundingClientRect();
+    const x = p ? p.left + p.width / 2 : window.innerWidth / 2;
+    const y = p ? p.top + p.height * 0.45 : window.innerHeight / 2;
+    duck();
+    setIris({ x, y, mode: "close" });
+    window.setTimeout(() => {
+      sfx.latch();
+      go(section, id);
+      unduck();
+      setIris({ x, y, mode: "open" });
+      entering.current = false;
+    }, 430);
   };
   const actions = useActions(openTerminal, data);
   // Only navigate on close if the hash still names a mission; Back may already have moved on.
@@ -523,7 +542,14 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
       <a className="x-skip" href="#x-main">
         Skip to content
       </a>
-      {booting && <Boot onDone={() => setBooting(false)} />}
+      {booting && (
+        <Boot
+          onDone={() => {
+            unlockAudio(); // the Start press is the gesture that wakes the audio
+            setBooting(false);
+          }}
+        />
+      )}
 
       <header className="x-bar" inert={covered}>
         <a className="x-logo" href="#/home" aria-label="babafemicodes.dev — back to the city">
@@ -552,7 +578,12 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
         </div>
       </header>
 
-      <main id="x-main" ref={mainRef} inert={covered}>
+      <main
+        id="x-main"
+        ref={mainRef}
+        inert={covered}
+        style={iris?.mode === "close" ? ({ transform: "scale(1.12)", transformOrigin: `${iris.x}px ${iris.y}px`, transition: "transform 430ms cubic-bezier(0.5, 0, 0.8, 0.4)" } as CSSProperties) : undefined}
+      >
         <GameWorld go={goWithLatch} visited={visited} active={!booting && route.section === "home"} />
         <Dialog
           open={!!district && !SCENES.includes(district.id)}
@@ -576,6 +607,14 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
           )}
         </Dialog>
       </main>
+      {iris && (
+        <div
+          className={`x-iris is-${iris.mode}`}
+          style={{ "--ix": `${iris.x}px`, "--iy": `${iris.y}px` } as CSSProperties}
+          onAnimationEnd={() => iris.mode === "open" && setIris(null)}
+          aria-hidden
+        />
+      )}
       <p className="x-toast" role="status">
         {toast}
       </p>

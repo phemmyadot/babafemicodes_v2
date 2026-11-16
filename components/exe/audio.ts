@@ -10,6 +10,7 @@ export type Zone = "home" | "lab" | "skills" | "hangar" | "tower" | "gallery" | 
 
 let ctx: AudioContext | null = null;
 let amb: GainNode;
+let ambLp: BiquadFilterNode;
 let fx: GainNode;
 let noiseBuf: AudioBuffer;
 let brownBuf: AudioBuffer;
@@ -36,9 +37,13 @@ function getCtx() {
   const c = new AudioContext();
   const comp = c.createDynamicsCompressor();
   comp.connect(c.destination);
+  ambLp = c.createBiquadFilter();
+  ambLp.type = "lowpass";
+  ambLp.frequency.value = 20000;
+  ambLp.connect(comp);
   amb = c.createGain();
   amb.gain.value = 0.5;
-  amb.connect(comp);
+  amb.connect(ambLp);
   fx = c.createGain();
   fx.gain.value = 0.9;
   fx.connect(comp);
@@ -351,12 +356,12 @@ function apply() {
     if (ctx) {
       old.gain.gain.cancelScheduledValues(ctx.currentTime);
       old.gain.gain.setValueAtTime(old.gain.gain.value, ctx.currentTime);
-      old.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1);
+      old.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.7);
     }
     window.setTimeout(() => {
       old.stop();
       old.gain.disconnect();
-    }, 1200);
+    }, 900);
   }
   if (!want) return;
   try {
@@ -364,7 +369,7 @@ function apply() {
     if (c.state === "suspended") void c.resume();
     const g = c.createGain();
     g.gain.setValueAtTime(0, c.currentTime);
-    g.gain.linearRampToValueAtTime(1, c.currentTime + 1.6);
+    g.gain.linearRampToValueAtTime(1, c.currentTime + 0.7);
     g.connect(amb);
     const k = kit(c, g);
     BUILD[want](k);
@@ -379,6 +384,39 @@ export function ambient(zone: Zone | null) {
   boot();
   current = zone;
   apply();
+}
+
+/** Call from the first click (the Start button): creates and wakes the audio context inside the gesture. */
+export function unlockAudio() {
+  boot();
+  try {
+    const c = getCtx();
+    if (c.state === "suspended") void c.resume();
+  } catch {}
+  apply();
+}
+
+/** Muffle the ambience (low-pass) before a door closes behind you. */
+export function duck() {
+  if (!ctx || muted) return;
+  ambLp.frequency.cancelScheduledValues(ctx.currentTime);
+  ambLp.frequency.setValueAtTime(ambLp.frequency.value, ctx.currentTime);
+  ambLp.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.35);
+}
+/** Open the ambience back up (the new room's acoustic space). */
+export function unduck() {
+  if (!ctx) return;
+  ambLp.frequency.cancelScheduledValues(ctx.currentTime);
+  ambLp.frequency.setValueAtTime(ambLp.frequency.value, ctx.currentTime);
+  ambLp.frequency.exponentialRampToValueAtTime(20000, ctx.currentTime + 0.9);
+}
+/** Cut the ambience to silence for `ms`, then bring it back. */
+export function hush(ms: number) {
+  if (!ctx) return;
+  amb.gain.cancelScheduledValues(ctx.currentTime);
+  amb.gain.setValueAtTime(0, ctx.currentTime);
+  amb.gain.setValueAtTime(0, ctx.currentTime + ms / 1000);
+  amb.gain.linearRampToValueAtTime(0.5, ctx.currentTime + ms / 1000 + 1.2);
 }
 
 /* ------------------------------------------------------------------ one-shot effects */
@@ -398,8 +436,9 @@ export const sfx = {
   /** One footstep; call on each stride. */
   step: () =>
     play((c, o, t) => {
-      burst(c, o, t, 0.07, "lowpass", 500 + (foot++ % 2) * 120, 0.8, 0.22);
-      tone(c, o, t, 95, 55, 0.08, 0.14);
+      const r = rnd(0.92, 1.08); // never the same step twice
+      burst(c, o, t, 0.07, "lowpass", (500 + (foot++ % 2) * 120) * r, 0.8, 0.22);
+      tone(c, o, t, 95 * r, 55 * r, 0.08, 0.14);
     }),
   /** Mechanical door latch click. */
   latch: () =>
@@ -453,12 +492,44 @@ export const sfx = {
         tone(c, o, t + d + 0.25, 660, 660, 0.22, 0.28, "sawtooth");
       });
     }),
-  /** Sub-bass rumble and thruster roar. */
-  roar: (secs = 3) =>
+  /** Sub-bass rumble and thruster roar: it swells to a peak at the end, then cuts to silence. */
+  roar: (secs = 2.3) =>
     play((c, o, t) => {
-      burst(c, o, t, secs, "lowpass", 300, 0.7, 0.5, 2200);
-      tone(c, o, t, 48, 44, secs, 0.5);
-      tone(c, o, t + 0.2, 90, 70, secs - 0.2, 0.2, "sawtooth");
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.02, t);
+      g.gain.exponentialRampToValueAtTime(1, t + secs);
+      g.gain.setValueAtTime(0, t + secs + 0.04);
+      g.connect(o);
+      burst(c, g, t, secs + 0.05, "lowpass", 300, 0.7, 0.6, 2600);
+      tone(c, g, t, 46, 42, secs + 0.05, 0.7);
+      tone(c, g, t + 0.2, 90, 66, secs - 0.15, 0.22, "sawtooth");
+    }),
+  /** Pitch-shifted hydraulic hum that slows to a halt as the elevator arrives. */
+  hum: (secs: number) =>
+    play((c, o, t) => {
+      const lp = filt(c, "lowpass", 420);
+      const g = c.createGain();
+      const s1 = c.createOscillator();
+      s1.type = "sawtooth";
+      s1.frequency.setValueAtTime(52, t);
+      s1.frequency.linearRampToValueAtTime(96, t + secs * 0.45);
+      s1.frequency.exponentialRampToValueAtTime(38, t + secs);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.16, t + 0.3);
+      g.gain.setValueAtTime(0.16, t + secs - 0.4);
+      g.gain.linearRampToValueAtTime(0, t + secs);
+      s1.connect(lp);
+      lp.connect(g);
+      g.connect(o);
+      s1.start(t);
+      s1.stop(t + secs + 0.05);
+      burst(c, o, t, secs, "bandpass", 260, 0.8, 0.06, 140);
+    }),
+  /** Quick digital whoosh with a high-pass sweep (rack focus into the Skill Tree). */
+  whoosh: () =>
+    play((c, o, t) => {
+      burst(c, o, t, 0.6, "highpass", 300, 0.9, 0.3, 6500);
+      tone(c, o, t, 400, 2600, 0.35, 0.08, "sine");
     }),
   /** Heavy sliding door. */
   slide: () =>

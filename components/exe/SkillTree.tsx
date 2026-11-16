@@ -312,6 +312,11 @@ export function Skills() {
     steps({ wait, move }).catch(() => {});
   };
 
+  useEffect(() => {
+    const t = window.setTimeout(sfx.whoosh, 120);
+    return () => clearTimeout(t);
+  }, []);
+
   // Entrance: the airlock door opens and the engineer steps into the lobby. Re-runs if the plan changes.
   const ready = vp.w > 0;
   useEffect(() => {
@@ -499,6 +504,9 @@ export function Skills() {
       >
         {/* fixed backdrop: it must not scale with the camera (a huge scaled layer flickers) */}
         <div className="sr-blueprint-grid" aria-hidden />
+        {/* rack focus: the room starts close and blurred behind a hologram veil, then pulls back into focus */}
+        <div className="sr-veil" aria-hidden />
+        <div className="sr-pull">
         <div
           ref={worldRef}
           className={`sr-world${smooth ? " is-smooth" : ""}`}
@@ -677,6 +685,8 @@ export function Skills() {
               <div className="sr-walker-shadow" />
             </div>
           )}
+        </div>
+
         </div>
 
         {/* Status HUD Header */}

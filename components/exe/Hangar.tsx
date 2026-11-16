@@ -3,7 +3,7 @@
 import { ExternalLink, Rocket, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { GithubIcon } from "../ui/BrandIcons";
-import { sfx } from "./audio";
+import { hush, sfx } from "./audio";
 import type { Mission } from "./data";
 import { Head, useArcade } from "./ExeScreens";
 import { Player, Stars } from "./GameWorld";
@@ -85,6 +85,7 @@ export function Hangar() {
   const [launch, setLaunch] = useState<Launch>(null);
   const [hatch, setHatch] = useState<number | null>(null);
   const [count, setCount] = useState(0);
+  const [flash, setFlash] = useState(false);
   const [blocked, setBlocked] = useState<{ title: string; url: string } | null>(null);
   const panelRef = useRef<HTMLElement | null>(null);
 
@@ -220,15 +221,19 @@ export function Hangar() {
       }
       setCount(0);
       setStatus("Ignition");
-      sfx.roar(3);
+      sfx.roar(2.3); // swells to its peak right at the whiteout
       setLaunch({ i, stage: "ignite" });
       await wait(1000);
       setStatus("Liftoff");
       setLaunch({ i, stage: "lift" });
-      await wait(1500);
+      await wait(1200);
+      setFlash(true); // thruster flash: whiteout
+      await wait(300);
+      hush(3200); // cut to silence so the demo has the floor
       setStatus(`${m.title} launched`);
       openLink(link);
       setLaunch({ i, stage: "gone" });
+      later(() => setFlash(false), 250);
       await wait(900);
       setHatch(null);
       await wait(500);
@@ -309,7 +314,7 @@ export function Hangar() {
   return (
     <>
       <Head index="03" title="Launch pad" note={`${n} rockets on the pad, one per mission. Walk up to one to open its blueprint.`} />
-      <div className="lab-viewport hg-viewport" ref={viewportRef}>
+      <div className={`lab-viewport hg-viewport${launch ? ` is-${launch.stage}` : ""}`} ref={viewportRef}>
         <Stars />
         <div
           className="lab-room hg-room"
@@ -437,6 +442,9 @@ export function Hangar() {
             </div>
           </section>
         )}
+
+        <div className="hg-smoke" aria-hidden />
+        <div className={`hg-flash${flash ? " is-on" : ""}`} aria-hidden />
 
         {count > 0 && (
           <div className="hg-count" aria-hidden>

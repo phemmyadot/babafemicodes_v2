@@ -6215,3 +6215,140 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .x-interior-sound {
   display: flex;
 }
+
+/* =========================================================== screen transitions */
+
+/* doors from the city: an iris closes on the engineer, then opens inside the new room */
+@property --ir {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 150vmax;
+}
+.x-iris {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--ix) var(--iy), transparent var(--ir), #04020d calc(var(--ir) + 2px));
+}
+.x-iris.is-close {
+  animation: iris-close 430ms cubic-bezier(0.5, 0, 0.8, 0.4) forwards;
+}
+.x-iris.is-open {
+  animation: iris-open 750ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+@keyframes iris-close {
+  from { --ir: 150vmax; }
+  to { --ir: 0px; }
+}
+@keyframes iris-open {
+  from { --ir: 0px; }
+  to { --ir: 150vmax; }
+}
+
+/* career tower: the walls streak past while the car moves */
+.ct-streaks {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 350ms;
+  /* thin vertical streaks that shimmer upward, so the walls read as moving fast */
+  background:
+    repeating-linear-gradient(90deg, transparent 0 41px, rgba(190, 215, 255, 0.07) 41px 43px, transparent 43px 97px, rgba(190, 215, 255, 0.05) 97px 98px),
+    linear-gradient(0deg, transparent 0, rgba(190, 215, 255, 0.1) 50%, transparent 100%) 0 0 / 100% 220px;
+  animation: ct-streak 260ms linear infinite;
+}
+.ct-viewport.is-riding .ct-streaks {
+  opacity: 1;
+}
+.ct-viewport.is-riding .ct-floor {
+  filter: brightness(0.75) blur(1.6px);
+}
+@keyframes ct-streak {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 0, 0 -220px; }
+}
+
+/* skill tree: rack focus, the room starts close and blurred behind a hologram veil */
+.sr-pull {
+  position: absolute;
+  inset: 0;
+  transform-origin: 16% 56%;
+  animation: sr-rack 1300ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.sr-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.1) 0 1px, transparent 1px 4px),
+    radial-gradient(ellipse at 16% 56%, rgba(67, 213, 255, 0.4), transparent 60%);
+  animation: sr-veil 1500ms ease-out forwards;
+}
+@keyframes sr-rack {
+  from { transform: scale(2.4); filter: blur(14px) brightness(1.5); }
+  to { transform: none; filter: none; }
+}
+@keyframes sr-veil {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* launch pad: shake builds, smoke fills the bottom, then a whiteout */
+.hg-viewport.is-ignite {
+  animation: hg-quake 70ms linear infinite;
+}
+.hg-viewport.is-lift {
+  animation: hg-quake-big 55ms linear infinite;
+}
+@keyframes hg-quake {
+  0% { transform: translate(-1.5px, 1px); }
+  50% { transform: translate(1.5px, -1px); }
+  100% { transform: translate(-1px, -1.5px); }
+}
+@keyframes hg-quake-big {
+  0% { transform: translate(-5px, 3px); }
+  50% { transform: translate(5px, -3px); }
+  100% { transform: translate(-3px, -5px); }
+}
+.hg-smoke {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44%;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1600ms;
+  filter: blur(10px);
+  background:
+    radial-gradient(ellipse 30% 60% at 18% 100%, rgba(230, 230, 242, 0.85), transparent 70%),
+    radial-gradient(ellipse 36% 75% at 50% 100%, rgba(242, 242, 252, 0.92), transparent 70%),
+    radial-gradient(ellipse 30% 60% at 82% 100%, rgba(226, 226, 240, 0.85), transparent 70%);
+}
+.hg-viewport.is-ignite .hg-smoke,
+.hg-viewport.is-lift .hg-smoke {
+  opacity: 1;
+  transition-duration: 900ms;
+}
+.hg-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: #fff;
+  opacity: 0;
+  transition: opacity 800ms ease-out;
+}
+.hg-flash.is-on {
+  opacity: 1;
+  transition-duration: 260ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .x-iris, .sr-pull, .sr-veil, .ct-streaks { animation: none; }
+  .hg-viewport.is-ignite, .hg-viewport.is-lift { animation: none; }
+}
