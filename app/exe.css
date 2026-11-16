@@ -4940,3 +4940,284 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .lab-fit.is-fluid .lab-facts {
   gap: calc(var(--u) * 2);
 }
+
+/* =========================================================== launch pad: the hangar */
+
+.exe .scene-missions {
+  background: #05071a;
+}
+.exe .scene-missions .x-main {
+  padding: 0 !important;
+  max-width: none;
+}
+.scene-missions .x-head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.scene-missions .lab-viewport {
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(#04061a, #0e1033 70%, #1a1240);
+}
+.hg-wall {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 238px, rgba(255, 154, 87, 0.12) 238px 242px),
+    repeating-linear-gradient(0deg, transparent 0 118px, rgba(255, 255, 255, 0.035) 118px 120px),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 154, 87, 0.2), transparent 60%),
+    linear-gradient(#1b2140, #141a33 80%, #0f1428);
+}
+.hg-floor {
+  border-top-color: #ff9a57;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 80px),
+    linear-gradient(#262b45, #151a30);
+}
+.hg-roof {
+  left: -3000px;
+  right: -3000px;
+  top: 0;
+  background: repeating-linear-gradient(135deg, #2a3150 0 14px, #232944 14px 28px);
+  border-bottom: 4px solid #ff9a57;
+}
+.hg-hatch {
+  position: absolute;
+  top: 0;
+  width: 140px;
+  z-index: 2;
+  overflow: visible;
+}
+.hg-hatch i {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: block;
+}
+.hg-hole {
+  left: 0;
+  width: 100%;
+  background: #070a22;
+  box-shadow: inset 0 -4px 0 #ff9a57;
+}
+.hg-plate {
+  width: 70px;
+  background: repeating-linear-gradient(135deg, #3b4468 0 8px, #2f3858 8px 16px);
+  border-bottom: 4px solid #ff9a57;
+  transition: transform 600ms var(--ease);
+}
+.hg-plate-l {
+  left: 0;
+}
+.hg-plate-r {
+  right: 0;
+}
+.hg-hatch.is-open .hg-plate-l {
+  transform: translateX(-72px);
+}
+.hg-hatch.is-open .hg-plate-r {
+  transform: translateX(72px);
+}
+.hg-pad {
+  position: absolute;
+  z-index: 3;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, #ffd23f 0 14px, #1b2038 14px 28px);
+  box-shadow: 0 0 18px -4px var(--bc);
+}
+.hg-tag {
+  position: absolute;
+  z-index: 3;
+  text-align: center;
+  font: 600 17px / 1.25 var(--mono);
+  color: #e6ecff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hg-tag b {
+  margin-right: 6px;
+  color: var(--bc);
+}
+.hg-rocket {
+  position: absolute;
+  z-index: 4;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: filter 200ms;
+}
+.hg-rocket svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hg-rocket:hover,
+.hg-rocket.is-sel {
+  filter: drop-shadow(0 0 16px var(--bc));
+}
+.hg-rocket:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 8px;
+  border-radius: 10px;
+}
+.hg-flame {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 36px;
+  height: 0;
+  margin: -6px 0 0 -18px;
+  border-radius: 0 0 50% 50%;
+  background: linear-gradient(#fff, #ffd23f 30%, #ff7a2f 70%, transparent);
+  opacity: 0;
+  filter: blur(1px);
+}
+.hg-rocket.is-ignite .hg-flame,
+.hg-rocket.is-lift .hg-flame {
+  height: 150px;
+  opacity: 1;
+  animation: hg-flicker 90ms linear infinite alternate;
+}
+.hg-rocket.is-ignite {
+  animation: hg-shake 70ms linear infinite;
+}
+.hg-rocket.is-lift {
+  transform: translateY(-1600px);
+  transition: transform 1500ms cubic-bezier(0.55, 0, 1, 0.45);
+}
+.hg-rocket.is-gone {
+  transform: translateY(-1600px);
+  opacity: 0;
+  pointer-events: none;
+}
+.hg-rocket.is-back {
+  animation: hg-return 1000ms var(--ease) both;
+}
+@keyframes hg-flicker {
+  from { transform: scaleY(0.82) scaleX(0.9); }
+  to { transform: scaleY(1.08) scaleX(1.1); }
+}
+@keyframes hg-shake {
+  0% { transform: translate(-1.5px, 0); }
+  50% { transform: translate(1.5px, -1px); }
+  100% { transform: translate(-1px, 1px); }
+}
+@keyframes hg-return {
+  from { opacity: 0; transform: translateY(-60px); }
+  to { opacity: 1; transform: none; }
+}
+.hg-count {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  z-index: 6;
+  transform: translate(-50%, -50%);
+  font: 700 clamp(72px, 14vw, 140px) var(--display);
+  color: #ffd23f;
+  text-shadow: 0 0 40px #ff9a57;
+  pointer-events: none;
+  animation: hg-count 750ms ease-out both;
+}
+@keyframes hg-count {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+  30% { opacity: 1; }
+  to { opacity: 0.2; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* the blueprint hologram */
+.hg-holo {
+  position: absolute;
+  top: 54px;
+  z-index: 5;
+  box-sizing: border-box;
+  width: min(540px, calc(100% - 24px));
+  max-height: calc(100% - 68px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+  padding: 1.2em;
+  font-size: 13px; /* Hangar shrinks this until the content fits */
+  border: 1px solid rgba(67, 213, 255, 0.75);
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.06) 0 1px, transparent 1px 4px),
+    linear-gradient(rgba(67, 213, 255, 0.1), rgba(67, 213, 255, 0.03)),
+    rgba(5, 14, 34, 0.92);
+  box-shadow: 0 0 32px -6px rgba(67, 213, 255, 0.6), inset 0 0 40px -22px #43d5ff;
+  animation: hg-holo-in 380ms var(--ease) both;
+}
+.hg-holo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.hg-holo.is-right { right: 12px; }
+.hg-holo.is-left { left: 12px; }
+.hg-holo-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hg-holo-head .x-kicker {
+  margin: 0 0 4px;
+}
+.hg-holo-title {
+  margin: 0;
+  font: 700 1.7em / 1.15 var(--display);
+}
+.hg-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hg-tags li {
+  padding: 0.2em 0.7em;
+  border: 1px solid color-mix(in srgb, var(--bc) 60%, transparent);
+  border-radius: 999px;
+  font: 600 0.85em var(--mono);
+  color: #e6ecff;
+}
+.hg-holo-body {
+  display: grid;
+  gap: 0.6em;
+  font-size: 1em;
+  line-height: 1.5;
+  color: #d6def5;
+}
+.hg-holo-body p {
+  margin: 0;
+}
+.hg-holo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@keyframes hg-holo-in {
+  0% { opacity: 0; transform: scaleY(0.6); filter: brightness(2); }
+  40% { opacity: 1; }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@media (max-width: 640px) {
+  .hg-holo {
+    top: auto;
+    bottom: 8px;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto;
+    max-height: calc(100% - 100px);
+  }
+  .hg-count {
+    top: 28%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hg-holo, .hg-count, .hg-rocket.is-back { animation: none; }
+}
