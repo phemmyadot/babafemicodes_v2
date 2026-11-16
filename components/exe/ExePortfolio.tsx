@@ -395,7 +395,11 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
   const mission = route.section === "missions" && route.id ? missions.find((m) => m.id === route.id) : undefined;
   const district = DISTRICTS.find((d) => d.id === route.section);
   // Same guard as missions: only head home if the hash still points inside a building.
-  const closeInterior = () => parseHash().section !== "home" && go("home");
+  const closeInterior = () => {
+    if (parseHash().section === "home") return;
+    // A scene can claim the exit (the Skill Tree walks its engineer out the door first).
+    if (window.dispatchEvent(new CustomEvent("exe-scene-exit", { cancelable: true }))) go("home");
+  };
 
   // Full-page scenes (not overlays): kept mounted while their exit animation plays.
   const [scene, setScene] = useState<{ id: SectionId; leaving: boolean } | null>(null);

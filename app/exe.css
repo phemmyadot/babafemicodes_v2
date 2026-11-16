@@ -3984,7 +3984,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: #0d0630;
+  background: #080a1c;
   touch-action: none;
   user-select: none;
 }
@@ -4005,284 +4005,807 @@ html:not([data-exe-boot="run"]) .exe-boot {
   transform-origin: 0 0;
 }
 .sr-world.is-smooth {
-  transition: transform 700ms cubic-bezier(0.65, 0, 0.35, 1);
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .sr-world > * {
   position: absolute;
 }
-.sr-sky {
+
+/* ── Blueprint Floor Plan Backdrop ────────────────────────────── */
+.sr-blueprint-grid {
   inset: -3000px -4000px;
-  background:
-    radial-gradient(2px 2px at 20% 44%, #fff, transparent),
-    radial-gradient(2px 2px at 64% 42%, #fff, transparent),
-    radial-gradient(2px 2px at 82% 46%, #ffd23f, transparent),
-    linear-gradient(#0d0630 40%, #2a0f5c 50%, #7a1f7a 56%);
-}
-.sr-ground {
-  left: -4000px;
-  right: -4000px;
-  bottom: -3000px;
-  border-top: 8px solid #2f7a3d;
-  background: linear-gradient(#1c4a27, #102c18 120px);
+  background-color: #07091a;
+  background-image:
+    radial-gradient(1200px 700px at 20% 40%, rgba(67, 213, 255, 0.08), transparent 60%),
+    radial-gradient(1000px 600px at 70% 30%, rgba(167, 123, 255, 0.06), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.04) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(67, 213, 255, 0.04) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.09) 0 1px, transparent 1px 160px),
+    repeating-linear-gradient(90deg, rgba(67, 213, 255, 0.09) 0 1px, transparent 1px 160px);
 }
 
-/* the house shell: pitched roof, chimney, brick walls */
-.sr-roof {
-  left: -46px;
-  right: -46px;
-  top: 0;
-  display: grid;
-  place-items: end center;
-  padding-bottom: 14px;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  background: repeating-linear-gradient(0deg, #8c3b2e 0 14px, #74301f 14px 16px);
-}
-.sr-roof b {
-  padding: 4px 16px;
-  border-radius: 6px;
-  background: #2a160f;
-  color: #ffd23f;
-  font: 700 17px var(--display);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-.sr-chimney {
-  width: 54px;
-  height: 90px;
-  border-top: 10px solid #4a2018;
-  background: repeating-linear-gradient(0deg, #9c4a38 0 12px, #6d2c1f 12px 14px);
-}
-.sr-building {
+.sr-blueprint-markers {
+  position: absolute;
   left: 0;
-  right: 0;
-  bottom: 34px;
-  border: 14px solid #8a5a44;
-  border-bottom-width: 0;
-  background: #1b1430;
-  box-shadow: 0 0 0 3px #5a3524;
+  top: 0;
+  pointer-events: none;
 }
-.sr-lift {
-  width: 44px !important;
-  margin-left: 12px;
-  border-left: 6px solid #8a6a3a;
-  border-right: 6px solid #8a6a3a;
-  background: repeating-linear-gradient(transparent 0 24px, #8a6a3a 24px 30px);
-}
-.sr-lobby {
-  display: grid !important;
-  place-items: start center;
-  padding-top: 14px !important;
-  background: linear-gradient(transparent calc(100% - 12px), #6b4a2e calc(100% - 12px)), #241a3d !important;
-  font: 700 13px var(--mono);
-  letter-spacing: 0.2em;
+.sr-mark {
+  position: absolute;
+  font: 600 10px var(--mono);
+  color: rgba(67, 213, 255, 0.45);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #b9a8e6 !important;
 }
-.sr-door {
-  z-index: 2;
+.sr-mark-tl { left: 24px; top: 18px; }
+.sr-mark-tr { right: 30px; top: 18px; }
+.sr-mark-bl { left: 24px; bottom: 12px; }
+.sr-mark-br { right: 30px; bottom: 12px; }
+
+/* ── Concourse & Corridor Walkway Network ───────────────────── */
+
+/* ── Central Lobby Wing (Sector 00) ──────────────────────────── */
+.sr-lobby-wing {
+  position: absolute;
+  border: 1.5px solid rgba(124, 255, 107, 0.45);
+  border-radius: 12px;
+  background:
+    radial-gradient(350px 220px at 20% 50%, rgba(124, 255, 107, 0.08), transparent 75%),
+    linear-gradient(180deg, rgba(16, 20, 36, 0.97), rgba(10, 12, 24, 0.98));
+  box-shadow:
+    inset 0 0 30px rgba(124, 255, 107, 0.06),
+    0 10px 30px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  display: flex !important;
+  flex-direction: column;
 }
 
-/* rooms: wallpaper, floorboards, a ceiling lamp, the stack pinned to the wall */
-.sr-room {
-  display: block !important;
-  padding: 0 !important;
-  border-left: 8px solid #3a2a55 !important;
-  border-top: 8px solid #3a2a55 !important;
-  background:
-    linear-gradient(transparent calc(100% - 12px), #6b4a2e calc(100% - 12px)),
-    linear-gradient(transparent calc(100% - 18px), #3a2a55 calc(100% - 18px)),
-    repeating-linear-gradient(90deg, transparent 0 34px, rgba(255, 255, 255, 0.025) 34px 36px),
-    color-mix(in srgb, var(--bc) 13%, #1d1533) !important;
-  overflow: hidden;
-  transition: filter var(--fast);
+/* Green identity accents matching home city Skill Tree building */
+.sr-code-green {
+  color: #7cff6b !important;
+  background: rgba(124, 255, 107, 0.14) !important;
+  border-color: rgba(124, 255, 107, 0.45) !important;
+  text-shadow: 0 0 8px rgba(124, 255, 107, 0.6);
 }
-.sr-room:hover,
-.sr-room:focus-visible {
-  filter: brightness(1.22);
-  outline: none;
+.sr-icon-green {
+  color: #7cff6b !important;
+  filter: drop-shadow(0 0 6px #7cff6b);
+}
+.sr-badge-green {
+  background: #7cff6b !important;
+  color: #050a14 !important;
+  font: 700 10.5px var(--mono);
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(124, 255, 107, 0.5);
+  flex: none;
+}
+.sr-div-green {
+  background: linear-gradient(90deg, #7cff6b, transparent 80%) !important;
+}
+
+/* ── Lobby Foyer Body (Split into Left Entrance & Right Kiosk: NO OVERLAP) ── */
+
+/* Entrance Zone on Left */
+
+/* Sign above door matching the home city .gw-sign aesthetic */
+
+
+/* Futuristic airlock portal door back to home city */
+
+
+
+
+@keyframes sr-beam-pulse {
+  0% { opacity: 0.6; filter: brightness(1); }
+  100% { opacity: 0.95; filter: brightness(1.3); }
+}
+
+
+
+
+
+
+/* ── Interactive Lobby Directory Kiosk on Right ──────────────── */
+.sr-kiosk {
+  position: static !important;
+  width: 250px !important;
+  flex: 1;
+  max-width: 260px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sr-kiosk-frame {
+  border: 1.5px solid rgba(67, 213, 255, 0.65);
+  border-radius: 9px;
+  background: rgba(8, 5, 24, 0.96);
+  padding: 10px 12px;
+  box-shadow:
+    0 0 24px rgba(67, 213, 255, 0.22),
+    inset 0 0 20px rgba(67, 213, 255, 0.07);
+}
+
+
+
+
+@keyframes sr-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+
+.sr-kiosk-sub {
+  font: 600 8.5px var(--mono);
+  color: #7b8fae;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+
+.sr-kiosk-items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: visible !important;
+  scrollbar-width: none !important;
+}
+
+.sr-kiosk-items::-webkit-scrollbar {
+  display: none !important;
+}
+
+.sr-kiosk-row {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px !important;
+  border: 1px solid rgba(140, 160, 200, 0.2) !important;
+  border-radius: 6px;
+  background: rgba(22, 16, 52, 0.6) !important;
+  color: #f1edff !important;
+  text-align: left;
+  transition: all var(--fast);
+  cursor: pointer;
+}
+
+.sr-kiosk-row:hover,
+.sr-kiosk-row:focus-visible {
+  border-color: var(--bc) !important;
+  background: color-mix(in srgb, var(--bc) 16%, rgba(22, 16, 52, 0.9)) !important;
+  transform: translateX(2px);
+}
+
+.sr-kiosk-row.is-selected {
+  border-color: var(--bc) !important;
+  background: color-mix(in srgb, var(--bc) 22%, rgba(22, 16, 52, 0.95)) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--bc) 40%, transparent);
+}
+
+.sr-kiosk-icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bc) 25%, transparent);
+  color: var(--bc);
+  flex: none;
+}
+
+.sr-kiosk-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.sr-kiosk-tag {
+  font: 700 8.5px var(--mono);
+  color: var(--bc);
+}
+
+.sr-kiosk-name {
+  font: 600 10.5px var(--body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-kiosk-count {
+  font: 700 9px var(--mono);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--bc);
+  border: 1px solid color-mix(in srgb, var(--bc) 40%, transparent);
+  flex: none;
+}
+
+
+
+.sr-lobby-concourse-exit {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  font: 700 9px var(--mono);
+  color: #7cff6b;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 8px rgba(124, 255, 107, 0.7);
+  background: rgba(124, 255, 107, 0.12);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(124, 255, 107, 0.35);
+}
+
+/* ── Room Lab Wings ──────────────────────────────────────────── */
+.sr-room {
+  position: absolute;
+  display: flex !important;
+  flex-direction: column;
+  padding: 0 !important;
+  border: 1.5px solid color-mix(in srgb, var(--bc) 45%, transparent) !important;
+  border-radius: 12px;
+  background:
+    radial-gradient(400px 220px at 50% 0%, color-mix(in srgb, var(--bc) 9%, transparent), transparent 75%),
+    linear-gradient(180deg, rgba(20, 14, 48, 0.96), rgba(11, 7, 28, 0.98)) !important;
+  box-shadow:
+    inset 0 0 25px color-mix(in srgb, var(--bc) 5%, transparent),
+    0 10px 30px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--fast);
+}
+.sr-room:hover {
+  border-color: var(--bc) !important;
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 0 35px color-mix(in srgb, var(--bc) 12%, transparent),
+    0 12px 35px color-mix(in srgb, var(--bc) 25%, rgba(0, 0, 0, 0.6));
+  transform: translateY(-2px);
 }
 .sr-room.is-focus {
-  box-shadow: inset 0 0 0 3px var(--bc);
+  border-color: var(--bc) !important;
+  box-shadow:
+    inset 0 0 45px color-mix(in srgb, var(--bc) 18%, transparent),
+    0 0 30px color-mix(in srgb, var(--bc) 45%, transparent);
 }
-.sr-room-head {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 10px;
+
+/* ── Card Header (Consistent Across All Cards) ───────────────── */
+.sr-card-head {
+  padding: 14px 18px 8px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex: none;
+}
+
+.sr-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sr-room-code {
+  font: 700 10px var(--mono);
+  color: var(--bc, #43d5ff);
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bc, #43d5ff) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bc, #43d5ff) 40%, transparent);
+  letter-spacing: 0.1em;
+}
+
+.sr-room-wing {
+  font: 700 9.5px var(--mono);
+  color: #8da2c4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sr-room-title-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  font: 700 17px var(--display);
-  color: var(--bc);
-  white-space: nowrap;
-}
-.sr-room-head b {
-  margin-left: auto;
-  padding: 1px 8px;
-  border-radius: 4px;
-  background: var(--bc);
-  color: #04111a;
-  font: 700 12px var(--mono);
-}
-.sr-chips {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 44px;
-  display: grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
-  grid-auto-rows: 26px;
-  gap: 5px 6px;
-}
-.sr-chips span {
-  display: grid;
-  place-items: center;
-  padding: 0 5px;
-  border: 1px solid color-mix(in srgb, var(--bc) 60%, transparent);
-  border-radius: 4px;
-  background: rgba(10, 6, 32, 0.85);
-  color: #f1ecff;
-  font: 500 8.5px / 1.2 var(--body);
-  text-align: center;
-  overflow: hidden;
-}
-.sr-lamp {
-  position: absolute;
-  right: 26px;
-  bottom: 12px;
-  width: 6px;
-  height: 78px;
-  background: #cbb38a;
-}
-.sr-lamp::before {
-  content: "";
-  position: absolute;
-  left: -15px;
-  top: -22px;
-  width: 36px;
-  height: 26px;
-  clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
-  background: var(--bc);
-  filter: drop-shadow(0 0 12px var(--bc));
-}
-/* open doorway through to the next room */
-.sr-doorway {
-  position: absolute;
-  left: -8px;
-  bottom: 12px;
-  width: 8px;
-  height: 118px;
-  background: #120c24;
 }
 
+.sr-room-icon {
+  color: var(--bc, #43d5ff);
+  flex: none;
+}
+
+.sr-room-title {
+  font: 700 16px var(--display);
+  color: #f4eeff;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.sr-room-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bc, #43d5ff);
+  color: #050a14;
+  font: 700 10.5px var(--mono);
+  letter-spacing: 0.08em;
+  flex: none;
+}
+
+.sr-card-divider {
+  height: 2px;
+  background: linear-gradient(90deg, var(--bc, #43d5ff), transparent 80%);
+  border-radius: 99px;
+  opacity: 0.7;
+}
+
+/* ── Card Body & Skill Module Chips ──────────────────────────── */
+.sr-card-body {
+  flex: 1;
+  min-height: 0;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sr-chips {
+  position: static !important;
+  inset: auto !important;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: 8px;
+  overflow: visible !important;
+  scrollbar-width: none !important;
+  padding: 2px 0;
+  flex: 1;
+  align-content: start;
+}
+.sr-chips::-webkit-scrollbar {
+  display: none !important;
+}
+
+.sr-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--bc) 45%, transparent);
+  border-radius: 6px;
+  background: rgba(12, 8, 30, 0.88);
+  color: #f4eeff;
+  font: 600 11.5px / 1.2 var(--body);
+  transition: all var(--fast);
+  overflow: hidden;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.sr-chip:hover {
+  background: color-mix(in srgb, var(--bc) 22%, #150e38);
+  border-color: var(--bc);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--bc) 30%, transparent);
+}
+
+.sr-chip-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--bc);
+  box-shadow: 0 0 6px var(--bc);
+  flex: none;
+}
+
+.sr-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Card Footer ─────────────────────────────────────────────── */
+.sr-card-foot {
+  padding: 8px 18px 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+  flex: none;
+}
+
+.sr-card-leds {
+  display: flex;
+  gap: 4px;
+}
+
+.sr-led {
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+}
+.sr-led-ok { background: #48d9a0; box-shadow: 0 0 5px #48d9a0; }
+.sr-led-act { background: var(--bc); box-shadow: 0 0 5px var(--bc); }
+.sr-led-pwr { background: #ffd23f; box-shadow: 0 0 5px #ffd23f; }
+
+.sr-card-foot-text {
+  font: 700 9px var(--mono);
+  color: #7a8fae;
+  letter-spacing: 0.14em;
+}
+
+/* Doorway Portal on Entrance Threshold */
+
+/* ── Walker Player Character ─────────────────────────────────── */
 .sr-walker {
   left: 0;
   top: 0;
   width: 0;
   height: 0;
-  z-index: 3;
+  z-index: 5;
   pointer-events: none;
   transition-property: transform;
   transition-timing-function: linear;
 }
-.sr-walker > span {
+.sr-walker-avatar {
   position: absolute;
   left: -35px;
-  top: -120px;
+  top: -118px;
   width: 70px;
   transition: transform 120ms;
 }
-.sr-walker svg {
+.sr-walker-avatar svg {
   display: block;
   width: 70px;
   height: 110px;
 }
+.sr-walker-shadow {
+  position: absolute;
+  left: -24px;
+  top: -6px;
+  width: 48px;
+  height: 12px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.45);
+  filter: blur(2px);
+}
 
-/* zoom toolbar */
+/* ── Floating Zoom & View Toolbar ────────────────────────────── */
 .sr-zoom {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--line);
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid rgba(67, 213, 255, 0.35);
   border-radius: 10px;
-  background: rgba(6, 14, 32, 0.9);
+  background: rgba(7, 10, 26, 0.92);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10;
 }
 .sr-zoom button {
   display: grid !important;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 7px;
   color: #e2e8f0 !important;
+  transition: all var(--fast);
 }
 .sr-zoom button:hover:not(:disabled) {
-  background: rgba(148, 163, 184, 0.18) !important;
+  background: rgba(67, 213, 255, 0.2) !important;
+  color: #43d5ff !important;
+}
+.sr-zoom button.is-active {
+  background: rgba(67, 213, 255, 0.25) !important;
+  color: #43d5ff !important;
 }
 .sr-zoom button:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: default;
 }
 
-/* room tabs along the bottom */
+/* ── Room Tabs Toolbar Along Bottom ──────────────────────────── */
 .sr-tabs {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
+  z-index: 10;
 }
-.sr-tabs button {
+.sr-tab-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 7px;
   flex: none;
-  padding: 6px 12px !important;
-  border: 1.5px solid color-mix(in srgb, var(--bc) 70%, transparent) !important;
+  padding: 7px 14px !important;
+  border: 1.5px solid color-mix(in srgb, var(--bc, #43d5ff) 60%, transparent) !important;
   border-radius: 99px;
-  background: rgba(6, 14, 32, 0.9) !important;
+  background: rgba(8, 11, 28, 0.92) !important;
   font: 600 12px var(--body);
   color: #e2e8f0 !important;
+  transition: all var(--fast);
+  cursor: pointer;
 }
-.sr-tabs button b {
-  color: var(--bc);
+.sr-tab-btn:hover {
+  background: color-mix(in srgb, var(--bc, #43d5ff) 18%, #0d122e) !important;
+  border-color: var(--bc, #43d5ff) !important;
+}
+.sr-tab-code {
+  font: 700 10px var(--mono);
+  color: var(--bc, #43d5ff);
+}
+.sr-tab-btn b {
+  color: var(--bc, #43d5ff);
   font-family: var(--mono);
 }
-.sr-tabs button[aria-pressed="true"] {
-  background: var(--bc) !important;
-  color: #04111a !important;
+.sr-tab-btn.is-active {
+  background: var(--bc, #43d5ff) !important;
+  color: #050a14 !important;
+  border-color: var(--bc, #43d5ff) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--bc, #43d5ff) 40%, transparent);
 }
-.sr-tabs button[aria-pressed="true"] b {
-  color: #04111a;
+.sr-tab-btn.is-active .sr-tab-code,
+.sr-tab-btn.is-active b {
+  color: #050a14 !important;
 }
+
+/* ── Mobile Room Detail Panel ────────────────────────────────── */
 .sr-panel {
   display: none;
 }
-@media (max-width: 760px) {
+@media (max-width: 820px) {
   .sr-tabs {
     justify-content: flex-start;
   }
   .sr-panel {
     position: absolute;
-    left: 10px;
-    right: 10px;
-    bottom: 56px;
-    display: grid;
-    gap: 4px;
-    max-height: 40%;
-    overflow: auto;
-    padding: 10px 12px;
+    left: 12px;
+    right: 12px;
+    bottom: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 44%;
+    overflow-y: auto;
+    padding: 12px 14px;
     border: 2px solid var(--bc);
-    border-radius: 10px;
-    background: rgba(6, 14, 32, 0.95);
-    font-size: 13px;
-    line-height: 1.5;
-    color: #e2e8f0;
+    border-radius: 12px;
+    background: rgba(7, 10, 28, 0.96);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+    z-index: 10;
   }
-  .sr-panel strong {
+  .sr-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 6px;
+  }
+  .sr-panel-head strong {
+    font: 700 14px var(--display);
     color: var(--bc);
   }
+  .sr-panel-count {
+    font: 700 10px var(--mono);
+    color: #94a3b8;
+  }
+  .sr-panel-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .sr-panel-pill {
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid color-mix(in srgb, var(--bc) 40%, transparent);
+    font: 500 11px var(--body);
+    color: #e2e8f0;
+  }
+}
+
+
+/* ============================================== skill house: real floor plan */
+
+/* outer walls: rooms sit inside with an 8px wall between neighbours */
+.sr-house {
+  position: absolute;
+  border: 6px solid #6b4f3a;
+  border-radius: 10px;
+  background: #0b0a1c;
+  box-shadow: 0 0 0 3px #3a2a1e, 0 18px 50px rgba(0, 0, 0, 0.6);
+}
+.sr-doorway {
+  position: absolute;
+  z-index: 3;
+  border-radius: 3px;
+  background: repeating-linear-gradient(135deg, #f0c070 0 5px, #b98a3e 5px 10px);
+  box-shadow: 0 0 10px rgba(240, 192, 112, 0.7);
+  pointer-events: none;
+}
+/* the engineer stands on a reserved floor strip at the bottom of each room, not over the chips */
+.sr-room .sr-card-body {
+  padding-bottom: calc(14px + var(--floor, 0px));
+}
+.sr-walker-avatar {
+  transform-origin: 35px 118px;
+}
+/* the plan is the whole picture: no card rounding on shared walls */
+.sr-room {
+  border-radius: 6px;
+}
+
+/* phone detail panel + status dot */
+.sr-status-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #7cff6b;
+  box-shadow: 0 0 8px #7cff6b;
+  animation: x-pulse 1.8s ease-in-out infinite;
+}
+.sr-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sr-panel-count {
+  font: 600 11px var(--mono);
+  color: var(--bc);
+}
+.sr-panel-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.sr-panel-pill {
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--bc) 55%, transparent);
+  border-radius: 99px;
+  font: 500 11px var(--body);
+}
+
+/* long names wrap onto two lines instead of ending in "..." */
+.sr-chip-text {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: clip;
+  font-size: 10.5px;
+  line-height: 1.15;
+}
+/* tabs: centred when they fit, scrollable from the left edge when they don't (no clipped first tab) */
+.sr-tabs {
+  justify-content: flex-start !important;
+}
+.sr-tabs > :first-child {
+  margin-left: auto;
+}
+.sr-tabs > :last-child {
+  margin-right: auto;
+}
+/* seven tabs fit on a laptop screen */
+.sr-tab-btn {
+  padding: 5px 10px !important;
+  font-size: 12px !important;
+  gap: 6px;
+}
+.sr-tab-btn .sr-tab-code {
+  font-size: 9px !important;
+}
+
+/* ================================ skill house: hall with a front door, rooms with no blank space */
+
+.sr-lobby-wing {
+  display: flex !important;
+  flex-direction: column;
+}
+.sr-lobby-wing > .sr-kiosk {
+  position: static !important;
+  width: auto !important;
+  max-width: none !important;
+  flex: 1;
+  min-height: 0;
+  margin: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1.5px solid rgba(67, 213, 255, 0.5);
+  border-radius: 10px;
+  background: rgba(8, 5, 24, 0.9);
+  padding: 12px;
+}
+.sr-kiosk-sub {
+  font: 700 10px var(--mono);
+  letter-spacing: 0.16em;
+  color: #67e8f9;
+}
+.sr-lobby-wing .sr-kiosk-items {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: 8px;
+}
+.sr-lobby-wing .sr-kiosk-row {
+  padding: 8px 12px !important;
+  border-color: color-mix(in srgb, var(--bc) 45%, transparent) !important;
+}
+.sr-lobby-wing .sr-kiosk-row:hover,
+.sr-lobby-wing .sr-kiosk-row.is-selected {
+  border-color: var(--bc) !important;
+  background: color-mix(in srgb, var(--bc) 16%, rgba(22, 16, 52, 0.7)) !important;
+}
+.sr-lobby-wing .sr-kiosk-name {
+  font: 700 15px var(--display);
+  white-space: normal;
+}
+.sr-lobby-wing .sr-kiosk-tag {
+  font: 700 9px var(--mono);
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--bc) 80%, #fff);
+}
+.sr-lobby-wing .sr-kiosk-count {
+  margin-left: auto;
+  padding: 3px 9px;
+  font-size: 13px;
+}
+
+/* the floor of the hall: wooden front door on the left, space to walk in front of it */
+.sr-lobby-floor {
+  position: relative;
+  flex: none;
+  height: 196px;
+  border-top: 8px solid #6b4a2e;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 60px),
+    linear-gradient(#2c2142, #1b1430);
+}
+.sr-front-door {
+  position: absolute !important;
+  left: 28px;
+  bottom: 16px;
+  width: 92px;
+  height: 160px;
+}
+.sr-walker.is-hidden .sr-walker-avatar,
+.sr-walker.is-hidden .sr-walker-shadow {
+  opacity: 0;
+}
+.sr-walker-avatar,
+.sr-walker-shadow {
+  transition: opacity 300ms, transform 120ms;
+}
+
+/* chips grow to fill every room: no blank space under the stack */
+.sr-room .sr-chips {
+  align-content: stretch;
+  grid-auto-rows: 1fr;
+}
+.sr-room .sr-chip {
+  height: auto;
+  min-height: 0;
+}
+.sr-room .sr-chip-text {
+  font-size: 12.5px;
+  line-height: 1.15;
 }
