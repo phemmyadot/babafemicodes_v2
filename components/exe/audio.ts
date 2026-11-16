@@ -421,6 +421,8 @@ export function hush(ms: number) {
 
 /* ------------------------------------------------------------------ one-shot effects */
 
+let walkTimers: number[] = [];
+
 function play(fn: (c: AudioContext, out: AudioNode, t: number) => void) {
   boot();
   if (muted) return;
@@ -605,7 +607,13 @@ export const sfx = {
     }),
   /** Schedule footsteps for a walk lasting `ms` (about one per 270ms). */
   walk: (ms: number) => {
+    sfx.stopWalk(); // a new walk replaces the old one
     if (muted || ms < 120) return;
-    for (let t = 120; t < ms; t += 270) window.setTimeout(sfx.step, t);
+    for (let t = 120; t < ms; t += 270) walkTimers.push(window.setTimeout(sfx.step, t));
+  },
+  /** Cancel footsteps still queued, e.g. when the scene is left. */
+  stopWalk: () => {
+    walkTimers.forEach(clearTimeout);
+    walkTimers = [];
   },
 };

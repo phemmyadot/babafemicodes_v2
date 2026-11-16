@@ -325,7 +325,7 @@ export function Radio() {
             {busy ? "Transmitting…" : "Transmit signal"}
           </button>
           <p className={`rt-blip${phase === "ok" ? " is-ok" : ""}`} role="status">
-            {phase === "ok" ? <><Check size={14} aria-hidden /> Signal locked. Your mail app opened with the message ready; press send there to deliver it.</> : ""}
+            {phase === "ok" ? <><Check size={14} aria-hidden /> Signal locked. Your mail app opened with the message ready; press send there to deliver it.{contact.email && <> No mail app? Write to <a href={`mailto:${contact.email}`}>{contact.email}</a>.</>}</> : ""}
           </p>
         </form>
 

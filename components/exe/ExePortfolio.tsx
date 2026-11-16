@@ -402,6 +402,8 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
   // city's sound muffles and the latch clicks; then the iris opens inside the new room.
   const [iris, setIris] = useState<{ x: number; y: number; mode: "close" | "open" } | null>(null);
   const entering = useRef(false);
+  const enterTimer = useRef<number>(0);
+  useEffect(() => () => clearTimeout(enterTimer.current), []);
   const goWithLatch: Go = (section, id) => {
     if (section === "home" || entering.current) return go(section, id);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -414,7 +416,7 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
     const y = p ? p.top + p.height * 0.45 : window.innerHeight / 2;
     duck();
     setIris({ x, y, mode: "close" });
-    window.setTimeout(() => {
+    enterTimer.current = window.setTimeout(() => {
       sfx.latch();
       go(section, id);
       unduck();
@@ -474,16 +476,23 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
 
   useEffect(() => {
     if (route.section === "home") return;
-    setVisited((prev) => {
-      if (prev.has(route.section)) return prev;
-      const next = new Set(prev).add(route.section);
-      try {
-        localStorage.setItem(EXE_VISITED_KEY, JSON.stringify([...next]));
-      } catch {}
-      if (next.size === DISTRICTS.length) setToast("Achievement unlocked: World Explorer. Every district visited!");
-      return next;
-    });
+    setVisited((prev) => (prev.has(route.section) ? prev : new Set(prev).add(route.section)));
   }, [route.section]);
+  // Side effects live here, not in the updater above, so a StrictMode double-run cannot repeat them.
+  // The toast fires only when a visit completes the set, never when a finished set is restored.
+  const seenCount = useRef(0);
+  useEffect(() => {
+    if (visited.size === 0) return;
+    try {
+      localStorage.setItem(EXE_VISITED_KEY, JSON.stringify([...visited]));
+    } catch {}
+    if (seenCount.current > 0 && seenCount.current < DISTRICTS.length && visited.size === DISTRICTS.length) {
+      setToast("Achievement unlocked: World Explorer. Every district visited!");
+    }
+    seenCount.current = visited.size;
+  }, [visited]);
+  // Footsteps queued for a scene must not outlive it.
+  useEffect(() => () => sfx.stopWalk(), [route.section]);
 
   useEffect(() => {
     if (!toast) return;

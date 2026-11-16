@@ -9,7 +9,8 @@ Totals from the linter: 747 FAIL, 201 REFLEX, 27 WARN. Most of that is volume (6
 
 Fixed and re-checked in the browser and with `sloplint`: B1 (`overflow-x: clip` on html/body, every `100vw` replaced with `100%`), B2 (focus ring no longer transitions), B3 (disabled buttons now change fill, ink and cursor), B5 (`transition: all` listed explicitly), B6 for `.gw-bar`, `.boot-bar` and `lab-sweep` (now `transform`), B15 (`✔` replaced with the Lucide `Check` icon), B16 (`aria-hidden` on the bird SVG).
 Not changed: `.room-bench` / `.room-monitor` still animate left, top, width and height in the lab finale (a one-off layout choreography that needs a rebuild to use transforms); B4 is a false positive: the interior bar sits in the dialog's top layer and covers `.x-bar`, so only one bar is ever visible.
-Linter after the fixes: 727 FAIL (was 747), 201 REFLEX, 27 WARN. Gates 15, 33, 34, 39a, 30a are clear; 10a has one finding left (above).
+Order #2 (2026-11-16): B7 (footstep timers are tracked and cancelled on scene change), B8 (door-entry timer cleared on unmount), B9 (visited-set updater is pure; storage write and the achievement toast moved to an effect), B11 (the sent state now shows the address as a mailto link, "No mail app? Write to ..."). B11 still has no send backend; the message still depends on the visitor's mail app.
+Linter after the order #1 fixes: 727 FAIL (was 747), 201 REFLEX, 27 WARN. Gates 15, 33, 34, 39a, 30a are clear; 10a has one finding left (above).
 
 ## Bugs
 
