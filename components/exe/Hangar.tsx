@@ -21,6 +21,7 @@ const FIRST = 360;
 const GAP = 240;
 const PAD_H = 14;
 const SPEED = 780;
+const LIFT_EASE = "cubic-bezier(0.45, 0, 0.9, 0.6)"; // matches the rocket's own climb in exe.css
 const COLORS = ["#43d5ff", "#a77bff", "#48d9a0", "#ffd23f", "#ff85e6", "#ff9a57", "#93c5fd", "#f472b6"];
 
 const rocketX = (i: number) => FIRST + i * GAP;
@@ -221,12 +222,12 @@ export function Hangar() {
       }
       setCount(0);
       setStatus("Ignition");
-      sfx.roar(2.3); // swells to its peak right at the whiteout
+      sfx.roar(3.3); // swells to its peak right at the whiteout
       setLaunch({ i, stage: "ignite" });
       await wait(1000);
       setStatus("Liftoff");
       setLaunch({ i, stage: "lift" });
-      await wait(1200);
+      await wait(2300);
       setFlash(true); // thruster flash: whiteout
       await wait(300);
       hush(3200); // cut to silence so the demo has the floor
@@ -302,6 +303,12 @@ export function Hangar() {
   const wx = walker?.x ?? ENTRY_X;
   const tx = ROOM_W * k <= vp.w ? (vp.w - ROOM_W * k) / 2 : Math.min(0, Math.max(vp.w - ROOM_W * k, vp.w / 2 - wx * k));
   const ty = (vp.h - ROOM_H * k) / 2;
+  // how far a rocket must climb to clear the top of the screen (design units), so its ascent is always on screen
+  // The camera tilts down to follow it up (CAM of the climb), so the ascent stays on screen for longer.
+  const CAM = 0.45;
+  const rise = (ty / k + FLOOR - PAD_H + 60) / (1 - CAM);
+  const lifting = launch?.stage === "lift";
+  const tyCam = ty + (lifting ? rise * k * CAM : 0);
   const roomMove = ROOM_W * k > vp.w && walker?.walking ? walker.dur : 450;
 
   const open = panel !== null ? missions[panel] : null;
@@ -318,7 +325,7 @@ export function Hangar() {
         <Stars />
         <div
           className="lab-room hg-room"
-          style={{ width: ROOM_W, height: ROOM_H, transform: `translate(${tx}px, ${ty}px) scale(${k})`, transition: `transform ${roomMove}ms linear` } as CSSProperties}
+          style={{ width: ROOM_W, height: ROOM_H, transform: `translate(${tx}px, ${tyCam}px) scale(${k})`, transition: lifting ? `transform 2600ms ${LIFT_EASE}` : `transform ${roomMove}ms linear` } as CSSProperties}
         >
           <span className="room-wall hg-wall" style={{ top: ROOF }} aria-hidden />
           <span className="hg-roof" style={{ height: ROOF }} aria-hidden />
@@ -356,7 +363,7 @@ export function Hangar() {
                 <button
                   type="button"
                   className={`hg-rocket${sel === i ? " is-sel" : ""}${cls}`}
-                  style={{ left: x - 46, top: FLOOR - PAD_H - h, width: 92, height: h, "--bc": COLORS[i % COLORS.length] } as CSSProperties}
+                  style={{ left: x - 46, top: FLOOR - PAD_H - h, width: 92, height: h, "--bc": COLORS[i % COLORS.length], "--rise": `${-rise}px` } as CSSProperties}
                   onClick={() => pick(i)}
                   aria-label={`Mission ${m.code}: ${m.title}. Walk to this rocket`}
                   aria-pressed={sel === i}
