@@ -6,8 +6,9 @@ import { type ArcadeData, type Mission, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY
 import { Achievements, Career, Comms, MissionDetail, Missions, ArcadeContext, ResumeButton, useArcade, type Go } from "./ExeScreens";
 import { Skills } from "./SkillTree";
 import { Profile } from "./Lab";
-import { GameWorld, Player } from "./GameWorld";
+import { GameWorld, Player, Stars } from "./GameWorld";
 import { otherEditions } from "@/lib/editions";
+import { SITE_DOMAIN, SITE_NAME, SITE_TLD } from "@/lib/site";
 
 
 /* -------------------------------------------------------------- routing */
@@ -101,7 +102,7 @@ const MISSION_COLOR = DISTRICTS.find((d) => d.id === "missions")!.color;
 /* ----------------------------------------------------------------- boot */
 
 const BOOT_LINES = [
-  "INITIALIZING BABAFEMI.EXE...",
+  `INITIALIZING ${SITE_DOMAIN.toUpperCase()}...`,
   "[OK] Loading engineering profile",
   "[OK] Loading project archives",
   "[OK] Loading technical systems",
@@ -146,12 +147,14 @@ function Boot({ onDone }: { onDone: () => void }) {
   return (
     <div className="exe-boot" role="dialog" aria-modal="true" aria-label="Title screen">
       <div className="gw-sky" aria-hidden />
-      <div className="gw-sun boot-sun" aria-hidden />
+      <Stars />
+      <div className="gw-moon boot-moon" aria-hidden />
       <div className="boot-floor" aria-hidden />
       <div className="exe-boot-inner">
         <p className="boot-kicker">Personal engineering universe</p>
         <h2 className="exe-boot-logo">
-          BABAFEMI<span>.exe</span>
+          {SITE_NAME}
+          <span>{SITE_TLD}</span>
         </h2>
         <p className="boot-tagline">{PROFILE.tagline}</p>
 
@@ -318,7 +321,7 @@ export function runTerminal(line: string, close: () => void, { missions, contact
 
 function Terminal({ close }: { close: () => void }) {
   const data = useArcade();
-  const [lines, setLines] = useState<string[]>(['BABAFEMI.exe shell — type "help" to list commands.']);
+  const [lines, setLines] = useState<string[]>([`${SITE_DOMAIN} shell — type "help" to list commands.`]);
   const [history, setHistory] = useState<string[]>([]);
   const [cursor, setCursor] = useState(-1);
   const [value, setValue] = useState("");
@@ -329,7 +332,7 @@ function Terminal({ close }: { close: () => void }) {
   return (
     <div className="x-term">
       <div className="x-term-bar">
-        <span>guest@babafemi.exe</span>
+        <span>guest@{SITE_DOMAIN}</span>
         <button type="button" className="x-icon-btn" onClick={close} aria-label="Close terminal">
           ×
         </button>

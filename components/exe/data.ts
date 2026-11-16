@@ -1,4 +1,4 @@
-// BABAFEMI.exe content. Only facts from the approved brief and the existing Kinetic content —
+// Arcade edition content. Only facts from the approved brief and the existing Kinetic content —
 // no invented dates, awards or metrics. Optional fields render only when filled in.
 
 export const EXE_SKIP_KEY = "exe-skip-intro";
@@ -101,7 +101,7 @@ export const EXE_VISITED_KEY = "exe-visited";
 
 export const IDLE_TIPS = [
   "Use ← → (or A / D) to walk. Press Enter at a door to go inside.",
-  "Press Space to jump. Grab the data shards ✦ along the street!",
+  "Grab the data shards ✦ along the street as you walk!",
   "In a hurry? Tap any building, or use the menu up top.",
   "Power user? Try ⌘K / Ctrl+K, or ~ for the terminal.",
 ];

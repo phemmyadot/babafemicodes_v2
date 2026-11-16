@@ -9,7 +9,7 @@ export const revalidate = 3600;
 
 const title = "Babafemi Adojutelegan — Arcade Edition";
 const description =
-  "BABAFEMI.exe: a game-inspired portfolio of Babafemi Adojutelegan, a senior software engineer in Chicago working in React Native, React, and TypeScript. Missions, skill tree, career log and a developer terminal.";
+  "babafemicodes.dev: a game-inspired portfolio of Babafemi Adojutelegan, a senior software engineer in Chicago working in React Native, React, and TypeScript. Missions, skill tree, career log and a developer terminal.";
 
 export const metadata: Metadata = {
   title,

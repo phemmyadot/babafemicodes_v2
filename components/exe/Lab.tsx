@@ -1,8 +1,9 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
+import { playCrtOn, setSoundOff, soundOff } from "./crt-sound";
 import { ATTRIBUTES, PROFILE, type PartSlot } from "./data";
 import { Avatar, Head, ResumeButton, useArcade } from "./ExeScreens";
 import { Player } from "./GameWorld";
@@ -17,32 +18,44 @@ const POST = [
 ];
 // Room geometry in design units; the room scales to fit the screen. Side view: door on the
 // left, the PC table in the middle (open test-bench board + monitor), the parts shelf on the right.
-const ROOM_W = 1200;
-const ROOM_H = 640;
-const FLOOR = 560;
-const DOOR = { x: 40, w: 130, h: 270 };
+// Everything shares one human scale: the engineer's sprite is 175 tall, a door is ~1.2x that and
+// the desk reaches his hip. The room is taller than its contents need, so the camera sits back
+// and the scene reads as a room with depth, not a close-up.
+const ROOM_W = 1320;
+const FLOOR = 640;
+const ROOM_H = FLOOR + 80;
+const ZOOM_OUT = 0.9; // pull the camera back a little more, so walls and floor frame the scene
+const DOOR = { x: 40, w: 96, h: 215 };
 const DOOR_X = DOOR.x + DOOR.w / 2;
-const BOARD = { x: 380, y: 60, w: 320, h: 360 };
-const SCREEN = { x: 735, y: 268, w: 160, h: 112 };
+const DESK_TOP = FLOOR - 100;
+const BOARD = { x: 405, w: 270, h: 304, y: DESK_TOP - 304 };
+const SCREEN = { x: 722, w: 160, h: 90, y: DESK_TOP - 50 - 90 }; // 50 = the monitor's stand
 // After power-on, in the same room: the board shrinks on the desk and the monitor grows so the
 // profile on it is readable. The engineer waits by the door.
-const BOARD_DONE = { x: 236, y: 250, w: 150, h: 170 };
-const SCREEN_DONE = { x: 400, y: 8, w: 530, h: 394 };
-const DESK = { x: 210, w: 720 };
-const STAND_X = 190;
-const POWER_X = 680;
-const SHELF = { x: 940, y: 196, w: 232 };
-const SHELF_ROWS = [300, 400, 500];
+const BOARD_DONE = { x: 215, w: 120, h: 135, y: DESK_TOP - 135 };
+const SCREEN_DONE = { x: 400, w: 640, h: 360, y: DESK_TOP - 28 - 360 }; // 16:9 // 28 = the stand once it has grown
+const BEZEL = 10;
+// The profile is laid out once at the monitor's inner size and scaled with the room, so its margins never change.
+const FIT = { w: SCREEN_DONE.w - BEZEL * 2, h: SCREEN_DONE.h - BEZEL * 2 };
+const DESK = { x: 150, w: 920 };
+const STAND_X = 382; // in the gap between the finished board and the monitor
+/** A point along the board's width, so the standing spots follow the board's size. */
+const onBoard = (f: number) => BOARD.x + f * BOARD.w;
+const POWER_X = onBoard(0.94);
+const SHELF = { x: 1060, y: FLOOR - 364, w: 232 };
+const SHELF_ROWS = [FLOOR - 260, FLOOR - 160, FLOOR - 60];
+// A part is drawn at this scale on the shelf, in his hands and in its socket, so it never changes size.
+const PART_SCALE = BOARD.w / 640;
 /** Where each part sits on the shelf (centre x, shelf-board y) and where he stands to fit it. */
 const ON_SHELF: Record<PartSlot, { x: number; y: number }> = {
-  cpu: { x: 996, y: SHELF_ROWS[0] },
-  gpu: { x: 1104, y: SHELF_ROWS[0] },
-  ram: { x: 996, y: SHELF_ROWS[1] },
-  ssd: { x: 1104, y: SHELF_ROWS[1] },
-  nic: { x: 996, y: SHELF_ROWS[2] },
-  npu: { x: 1104, y: SHELF_ROWS[2] },
+  cpu: { x: 1116, y: SHELF_ROWS[0] },
+  gpu: { x: 1224, y: SHELF_ROWS[0] },
+  ram: { x: 1116, y: SHELF_ROWS[1] },
+  ssd: { x: 1224, y: SHELF_ROWS[1] },
+  nic: { x: 1116, y: SHELF_ROWS[2] },
+  npu: { x: 1224, y: SHELF_ROWS[2] },
 };
-const FIT_X: Record<PartSlot, number> = { cpu: 470, npu: 570, ram: 650, ssd: 470, nic: 570, gpu: 520 };
+const FIT_X: Record<PartSlot, number> = { cpu: onBoard(0.28), npu: onBoard(0.59), ram: onBoard(0.84), ssd: onBoard(0.28), nic: onBoard(0.59), gpu: onBoard(0.44) };
 // Walking speed in room units per second; each trip's duration comes from its distance.
 const SPEED = 780;
 // Wait for the scene's entrance animation before the door opens.
@@ -95,6 +108,10 @@ export function Profile() {
   const [phase, setPhase] = useState<Phase>("build");
   const [log, setLog] = useState<string[]>([]);
   const [powered, setPowered] = useState(false);
+  // Bumps when the last part seats: plays the LED sweep and spark burst once.
+  const [fx, setFx] = useState(0);
+  const [muted, setMuted] = useState(false);
+  useEffect(() => setMuted(soundOff()), []);
   const [door, setDoor] = useState(false);
   const [status, setStatus] = useState("");
   const [walker, setWalker] = useState<{
@@ -150,6 +167,7 @@ export function Profile() {
     cancel();
     setInstalled([]);
     setPowered(false);
+    setFx(0);
     setLog([]);
     setDoor(false);
     setWalker(null);
@@ -203,11 +221,18 @@ export function Profile() {
         setInstalled((s) => [...s, a.slot]);
         set({ carry: null, press: false });
         await wait(150);
+        if (a === ATTRIBUTES[ATTRIBUTES.length - 1]) {
+          // Final part clicked in: LED sweep + sparks, and a beat to enjoy it before power.
+          setFx((n) => n + 1);
+          setStatus("All parts seated");
+          await wait(800);
+        }
       }
       setStatus("Powering on");
       await walkTo(POWER_X, null);
       set({ press: true });
       setPowered(true);
+      playCrtOn();
       await wait(360);
       set({ press: false });
       setStatus("Engineer stepping back");
@@ -225,27 +250,61 @@ export function Profile() {
 
   const skip = finish;
 
-  /** Leave the lab: the scene's exit wipe closes in on whatever was clicked (the door). */
-  const exitLab = (el: Element) => {
+  /** Leave the lab: the engineer walks to the door and out, then the scene's exit wipe closes in on the door. */
+  const exiting = useRef(false);
+  const exitLab = (el?: Element | null) => {
+    if (exiting.current) return;
+    exiting.current = true;
     cancel();
-    const scene = el.closest<HTMLElement>(".scene");
-    const r = el.getBoundingClientRect();
-    scene?.style.setProperty("--iris-x", `${r.left + r.width / 2}px`);
-    scene?.style.setProperty("--iris-y", `${r.top + r.height / 2}px`);
-    window.location.hash = "/home";
+    const run = runId.current;
+    const wait = (ms: number) => new Promise<void>((res) => later(res, ms));
+    const w = walkerRef.current;
+    (async () => {
+      if (w?.visible && !reduceMotion()) {
+        setStatus("Leaving the lab");
+        setDoor(true);
+        const dur = Math.max(250, (Math.abs(w.x - DOOR_X) / SPEED) * 1000);
+        setWalker((c) => c && { ...c, x: DOOR_X, facing: -1, walking: true, dur, carry: null, press: false });
+        await wait(dur);
+        setWalker((c) => c && { ...c, walking: false, visible: false });
+        await wait(420);
+      }
+      if (runId.current !== run) return;
+      const door = el ?? document.querySelector(".room-door");
+      const scene = door?.closest<HTMLElement>(".scene");
+      const r = door?.getBoundingClientRect();
+      if (r) {
+        scene?.style.setProperty("--iris-x", `${r.left + r.width / 2}px`);
+        scene?.style.setProperty("--iris-y", `${r.top + r.height / 2}px`);
+      }
+      window.location.hash = "/home";
+    })();
   };
+  const exitRef = useRef(exitLab);
+  exitRef.current = exitLab;
+  // The top-bar door button and Escape ask the scene to leave; claim it so the walk-out plays first.
+  useEffect(() => {
+    const onExit = (e: Event) => {
+      e.preventDefault();
+      exitRef.current();
+    };
+    window.addEventListener("exe-scene-exit", onExit);
+    return () => window.removeEventListener("exe-scene-exit", onExit);
+  }, []);
 
   // The room is scaled to fit; the board/monitor swap sizes once the PC is on.
-  const k = vp.w ? Math.min(vp.w / ROOM_W, vp.h / ROOM_H) : 0.5;
+  const k = vp.w ? Math.min(vp.w / ROOM_W, vp.h / ROOM_H) * ZOOM_OUT : 0.5;
   const off = { x: (vp.w - ROOM_W * k) / 2, y: (vp.h - ROOM_H * k) / 2 };
   const done = phase !== "build";
   const board = done ? BOARD_DONE : BOARD;
   const screen = done ? SCREEN_DONE : SCREEN;
   // The monitor's content is real-size HTML laid over the screen (not scaled with the room), so
   // it stays readable. On narrow screens it takes the whole viewport instead.
-  const BEZEL = 10;
   let ui = { left: off.x + (screen.x + BEZEL) * k, top: off.y + (screen.y + BEZEL) * k, width: (screen.w - BEZEL * 2) * k, height: (screen.h - BEZEL * 2) * k };
-  if (ui.width < 440) ui = { left: 10, top: 56, width: vp.w - 20, height: vp.h - 66 };
+  // On phones the monitor is too small to read: the profile fills the viewport and scrolls instead.
+  const fluid = ui.width < 330;
+  if (fluid) ui = { left: 10, top: 56, width: vp.w - 20, height: vp.h - 66 };
+  const fitScale = ui.width / FIT.w;
 
   return (
     <>
@@ -253,13 +312,13 @@ export function Profile() {
       <div className="lab-viewport" ref={viewportRef}>
         <div
           className={`lab-room${done ? " is-done" : ""}`}
-          style={{ width: ROOM_W, height: ROOM_H, transform: `translate(${off.x}px, ${off.y}px) scale(${k})` }}
+          style={{ width: ROOM_W, height: ROOM_H, "--ps": PART_SCALE, transform: `translate(${off.x}px, ${off.y}px) scale(${k})` } as CSSProperties}
         >
           <span className="room-wall" aria-hidden />
-          <span className="room-sign" aria-hidden>
+          <span className="room-sign" style={{ top: FLOOR - 468 }} aria-hidden>
             B-ADO LAB
           </span>
-          <span className="room-lamp" style={{ left: 540 }} aria-hidden />
+          <span className="room-lamp" style={{ left: 600, height: DESK_TOP - BOARD.h - 70 }} aria-hidden />
           <span className="room-floor" style={{ top: FLOOR }} aria-hidden />
 
           <button
@@ -277,7 +336,7 @@ export function Profile() {
           </button>
 
           {/* PC table: open test-bench motherboard + monitor */}
-          <span className="room-desk" style={{ left: DESK.x, top: BOARD.y + BOARD.h, width: DESK.w, height: FLOOR - BOARD.y - BOARD.h }} aria-hidden>
+          <span className="room-desk" style={{ left: DESK.x, top: DESK_TOP, width: DESK.w, height: FLOOR - DESK_TOP }} aria-hidden>
             <i />
             <i />
           </span>
@@ -305,6 +364,7 @@ export function Profile() {
                     ))}
                   </g>
                 </svg>
+                {fx > 0 && <span key={fx} className="lab-sweep" aria-hidden />}
                 <span className="lab-board-name" aria-hidden>
                   B-ADO · MOTHERBOARD · REV 8
                 </span>
@@ -375,6 +435,13 @@ export function Profile() {
                           <PartArt slot={a.slot} />
                           <span className="lab-part-code">{a.part}</span>
                           <span className="lab-part-attr">{a.name}</span>
+                          {fx > 0 && a === ATTRIBUTES[ATTRIBUTES.length - 1] && (
+                            <span key={fx} className="lab-spark" aria-hidden>
+                              {Array.from({ length: 14 }, (_, i) => (
+                                <i key={i} style={{ "--a": `${i * (360 / 14) + (i % 2 ? 9 : 0)}deg`, "--d": `${44 + (i % 3) * 16}px` } as CSSProperties} />
+                              ))}
+                            </span>
+                          )}
                         </span>
                       ) : (
                         <span className="lab-empty">
@@ -406,12 +473,6 @@ export function Profile() {
               </span>
             ),
           )}
-          {ATTRIBUTES.filter((a) => !installed.includes(a.slot)).map((a) => (
-            <span key={a.slot} className="room-shelf-tag" style={{ left: ON_SHELF[a.slot].x, top: ON_SHELF[a.slot].y + 12 } as CSSProperties} aria-hidden>
-              {a.part}
-            </span>
-          ))}
-
           {walker && (
             <span
               className={`lab-walker${walker.walking ? " is-walking" : ""}${walker.press ? " is-press" : ""}${walker.visible ? "" : " is-hidden"}`}
@@ -432,6 +493,7 @@ export function Profile() {
 
         {done && (
           <section className="room-screen-ui" style={ui} aria-label="Monitor">
+            <div className={`lab-fit${fluid ? " is-fluid" : ""}`} style={fluid ? undefined : { width: FIT.w, height: FIT.h, transform: `scale(${fitScale})` }}>
             {phase === "booting" ? (
               <pre className="lab-post" aria-live="polite">
                 {log.join("\n")}
@@ -439,60 +501,62 @@ export function Profile() {
               </pre>
             ) : (
             <div className="lab-desktop">
-              <div className="lab-profile">
+              <header className="lab-id">
                 <Avatar />
-                <div>
+                <div className="lab-id-text">
                   <p className="x-kicker">
                     <span className="x-dot" aria-hidden /> Available for opportunities
                   </p>
                   <h2 className="lab-name">{PROFILE.name}</h2>
                   <p className="lab-role">{PROFILE.role}</p>
-                  <p className="lab-intro">{PROFILE.intro}</p>
-                  <dl className="lab-facts">
-                    <div>
-                      <dt>Specialization</dt>
-                      <dd>{PROFILE.specialization}</dd>
-                    </div>
-                    <div>
-                      <dt>Experience</dt>
-                      <dd>{PROFILE.experience}</dd>
-                    </div>
-                    <div>
-                      <dt>Location</dt>
-                      <dd>{PROFILE.location}</dd>
-                    </div>
-                    <div>
-                      <dt>Core tech</dt>
-                      <dd>{PROFILE.core.join(", ")}</dd>
-                    </div>
-                  </dl>
-                  <div className="x-actions">
-                    <ResumeButton className="x-btn x-btn-primary x-btn-sm" />
-                    {contact.linkedin && (
-                      <a className="x-btn x-btn-sm" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
-                        <LinkedinIcon size={14} /> LinkedIn
-                      </a>
-                    )}
-                    {contact.github && (
-                      <a className="x-btn x-btn-sm" href={contact.github} target="_blank" rel="noopener noreferrer">
-                        <GithubIcon size={14} /> GitHub
-                      </a>
-                    )}
-                  </div>
                 </div>
+              </header>
+              <div className="lab-main">
+              <div className="lab-col">
+              <dl className="lab-facts">
+                <div>
+                  <dt>Specialization</dt>
+                  <dd>{PROFILE.specialization}</dd>
+                </div>
+                <div>
+                  <dt>Experience</dt>
+                  <dd>{PROFILE.experience}</dd>
+                </div>
+                <div>
+                  <dt>Location</dt>
+                  <dd>{PROFILE.location}</dd>
+                </div>
+                <div>
+                  <dt>Core tech</dt>
+                  <dd>{PROFILE.core.join(", ")}</dd>
+                </div>
+              </dl>
+              <div className="lab-actions">
+                <ResumeButton className="x-btn x-btn-primary x-btn-sm" />
+                {contact.linkedin && (
+                  <a className="x-btn x-btn-sm" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
+                    <LinkedinIcon size={14} /> LinkedIn
+                  </a>
+                )}
+                {contact.github && (
+                  <a className="x-btn x-btn-sm" href={contact.github} target="_blank" rel="noopener noreferrer">
+                    <GithubIcon size={14} /> GitHub
+                  </a>
+                )}
+              </div>
               </div>
               <ul className="lab-speclist" aria-label="System specs">
                 {ATTRIBUTES.map((a) => (
                   <li key={a.slot}>
-                    <span>
-                      <strong>{a.name}</strong>
-                      <span>{a.evidence}</span>
-                    </span>
+                    <strong>{a.name}</strong>
+                    <span>{a.evidence}</span>
                   </li>
                 ))}
               </ul>
+              </div>
             </div>
             )}
+            </div>
           </section>
         )}
 
@@ -503,15 +567,30 @@ export function Profile() {
             </b>{" "}
             {status || "Preparing the lab"}
           </span>
-          {done ? (
-            <button type="button" className="x-btn x-btn-sm" onClick={assemble}>
-              <RotateCcw size={14} aria-hidden /> Rebuild PC
+          <span className="room-hud-actions">
+            <button
+              type="button"
+              className="x-icon-btn"
+              aria-pressed={muted}
+              aria-label={muted ? "Sound is off. Turn sound on" : "Sound is on. Turn sound off"}
+              title={muted ? "Sound off" : "Sound on"}
+              onClick={() => {
+                setSoundOff(!muted);
+                setMuted(!muted);
+              }}
+            >
+              {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
             </button>
-          ) : (
-            <button type="button" className="x-btn x-btn-sm" onClick={skip}>
-              Skip to profile
-            </button>
-          )}
+            {done ? (
+              <button type="button" className="x-btn x-btn-sm" onClick={assemble}>
+                <RotateCcw size={14} aria-hidden /> Rebuild PC
+              </button>
+            ) : (
+              <button type="button" className="x-btn x-btn-sm" onClick={skip}>
+                Skip to profile
+              </button>
+            )}
+          </span>
         </div>
       </div>
     </>

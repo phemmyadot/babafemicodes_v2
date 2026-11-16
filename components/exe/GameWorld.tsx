@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, ChevronsUp, Download, LogIn, Mail } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, LogIn, Mail } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { DISTRICTS, IDLE_TIPS, PROFILE, STATS, WORLD_W, type DistrictId } from "./data";
 import { Stat, useArcade, type Go } from "./ExeScreens";
@@ -32,6 +32,32 @@ function skyline(w: number, h: number, body: string, lit: string, seed: number) 
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>${out}</svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
+/** A tile of random stars as an SVG background. Deterministic, so server and client render the same sky. */
+function starTile(count: number, seed: number, w: number) {
+  let r = seed;
+  const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+  const tones = ["#ffffff", "#ffffff", "#ffffff", "#cfe9ff", "#fff1c2", "#ffd6f0"];
+  let out = "";
+  for (let i = 0; i < count; i++) {
+    const rad = (0.5 + rnd() * rnd() * 1.6).toFixed(2);
+    out += `<circle cx='${(rnd() * w) | 0}' cy='${(rnd() * 520) | 0}' r='${rad}' fill='${tones[(rnd() * tones.length) | 0]}' opacity='${(0.45 + rnd() * 0.55).toFixed(2)}'/>`;
+  }
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='520'>${out}</svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+const STARS_A = starTile(95, 11, 760);
+const STARS_B = starTile(55, 77, 1090);
+
+/** Night sky: a static field of stars and a second field that twinkles. */
+export function Stars() {
+  return (
+    <>
+      <div className="gw-stars" style={{ backgroundImage: STARS_A }} aria-hidden />
+      <div className="gw-stars gw-stars-b" style={{ backgroundImage: STARS_B }} aria-hidden />
+    </>
+  );
+}
+
 const FAR = skyline(1400, 320, "#3b1d6e", "#ff9de2", 7);
 const NEAR = skyline(1600, 240, "#1d1442", "#ffd23f", 42);
 
@@ -347,8 +373,6 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
   // Mutable game state lives in a ref: the loop writes styles directly, React renders only on events.
   const g = useRef({
     x: SPAWN_X,
-    y: 0,
-    vy: 0,
     facing: 1,
     left: false,
     right: false,
@@ -362,9 +386,6 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
   });
 
   const enterNear = () => g.current.near && go(g.current.near);
-  const jump = () => {
-    if (g.current.y === 0) g.current.vy = 760;
-  };
   const walkTo = (x: number, enter: DistrictId | null = null) => {
     g.current.target = Math.max(40, Math.min(WORLD_W - 40, x));
     g.current.enter = enter;
@@ -418,9 +439,6 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
         }
         if (dir) s.facing = dir;
         s.x = Math.max(40, Math.min(WORLD_W - 40, s.x + step));
-        s.vy -= 2300 * dt;
-        s.y = Math.max(0, s.y + s.vy * dt);
-        if (s.y === 0) s.vy = 0;
         s.droneX += (s.x - s.facing * 70 - s.droneX) * Math.min(1, dt * 3);
 
         // Dead-zone camera: only scroll once the player leaves the middle 30-70% of the view.
@@ -435,7 +453,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
           setNear(n);
         }
         for (let i = 0; i < SHARDS.length; i++) {
-          if (!s.got.has(i) && Math.abs(s.x - SHARDS[i]) < 34 && s.y < 120) {
+          if (!s.got.has(i) && Math.abs(s.x - SHARDS[i]) < 34) {
             s.got.add(i);
             setGot([...s.got]);
           }
@@ -445,9 +463,8 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
         if (st) st.style.transform = `translateX(${-s.cam * s.scale}px) scale(${s.scale})`;
         const p = playerRef.current;
         if (p) {
-          p.style.transform = `translate(${s.x - 32}px, ${-s.y}px) scaleX(${s.facing})`;
-          p.classList.toggle("is-walking", dir !== 0 && s.y === 0);
-          p.classList.toggle("is-air", s.y > 0);
+          p.style.transform = `translate(${s.x - 32}px, 0px) scaleX(${s.facing})`;
+          p.classList.toggle("is-walking", dir !== 0);
         }
         const dr = droneRef.current;
         if (dr) dr.style.transform = `translateX(${s.droneX - 24}px)`;
@@ -467,7 +484,6 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
       const k = e.key.toLowerCase();
       if (k === "arrowleft" || k === "a") s.left = true;
       else if (k === "arrowright" || k === "d") s.right = true;
-      else if ((k === " " || k === "w") && !onButton) jump();
       else if ((k === "enter" || k === "e" || k === "arrowup") && !onButton && s.near) go(s.near);
       else return;
       e.preventDefault();
@@ -527,7 +543,8 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
         }}
       >
         <div className="gw-sky" />
-        <div className="gw-sun" ref={sunRef} />
+        <Stars />
+        <div className="gw-moon" ref={sunRef} />
         <div className="gw-far" ref={farRef} style={{ backgroundImage: FAR }} />
         {CLOUDS.map((c, i) => (
           <i key={i} className="gw-cloud" style={{ top: c.top, width: c.w, animationDuration: `${c.speed}s`, animationDelay: `${-c.speed * c.at}s` } as CSSProperties} aria-hidden />
@@ -664,7 +681,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
       </div>
 
       <p className="gw-hint x-hide-touch">
-        <kbd>←</kbd> <kbd>→</kbd> walk · <kbd>Space</kbd> jump · <kbd>Enter</kbd> go inside · or click anywhere
+        <kbd>←</kbd> <kbd>→</kbd> walk · <kbd>Enter</kbd> go inside · or click anywhere
       </p>
 
       <div className="gw-pad" aria-label="Touch controls" onContextMenu={(e) => e.preventDefault()}>
@@ -673,9 +690,6 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
         </button>
         <button type="button" aria-label="Walk right" {...hold("right")}>
           <ChevronRight size={26} aria-hidden />
-        </button>
-        <button type="button" aria-label="Jump" onClick={jump}>
-          <ChevronsUp size={22} aria-hidden />
         </button>
         <button type="button" className="gw-enter" aria-label={nearD ? `Enter ${nearD.name}` : "Walk to a building to enter"} disabled={!nearD} onClick={enterNear}>
           <LogIn size={18} aria-hidden /> {nearD ? "Enter" : "—"}
