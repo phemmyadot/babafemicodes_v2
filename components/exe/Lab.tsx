@@ -6,7 +6,7 @@ import { GithubIcon, LinkedinIcon } from "../ui/BrandIcons";
 import { sfx } from "./audio";
 import { playCrtOn } from "./crt-sound";
 import { ATTRIBUTES, PROFILE, type PartSlot } from "./data";
-import { Avatar, Head, ResumeButton, useArcade } from "./ExeScreens";
+import { Avatar, Head, Meta, ResumeButton, useArcade } from "./ExeScreens";
 import { Player } from "./GameWorld";
 
 type Phase = "build" | "booting" | "on";
@@ -370,7 +370,7 @@ export function Profile() {
                 </svg>
                 {fx > 0 && <span key={fx} className="lab-sweep" aria-hidden />}
                 <span className="lab-board-name" aria-hidden>
-                  B-ADO · MOTHERBOARD · REV 8
+                  B-ADO MOTHERBOARD REV 8
                 </span>
                 <span className="pcb-io" aria-hidden>
                   <i className="io-usb" />
@@ -508,11 +508,15 @@ export function Profile() {
               <header className="lab-id">
                 <Avatar />
                 <div className="lab-id-text">
-                  <p className="x-kicker">
-                    <span className="x-dot" aria-hidden /> Available for opportunities
-                  </p>
                   <h2 className="lab-name">{PROFILE.name}</h2>
                   <p className="lab-role">{PROFILE.role}</p>
+                  <Meta
+                    items={[
+                      <>
+                        <span className="x-dot" aria-hidden /> Available for opportunities
+                      </>,
+                    ]}
+                  />
                 </div>
               </header>
               <div className="lab-main">

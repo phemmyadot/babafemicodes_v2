@@ -698,7 +698,13 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
       </div>
 
       <p className="gw-hint x-hide-touch">
-        <kbd>←</kbd> <kbd>→</kbd> walk · <kbd>Enter</kbd> go inside · or click anywhere
+        <span>
+          <kbd>←</kbd> <kbd>→</kbd> walk
+        </span>
+        <span>
+          <kbd>Enter</kbd> go inside
+        </span>
+        <span>or click anywhere</span>
       </p>
 
       <div className="gw-pad" aria-label="Touch controls" onContextMenu={(e) => e.preventDefault()}>

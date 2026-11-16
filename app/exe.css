@@ -10,6 +10,12 @@
   --ok: #48d9a0;
   --text: #f4eeff;
   --muted: #c9bdf0;
+  --ink: #0c0524;
+  --page: #080d18;
+  --void-deep: #0d0630;
+  --dialog-a: #170a3d;
+  --dialog-b: #241055;
+  --dialog-c: #3a1468;
   --display: var(--font-space), system-ui, sans-serif;
   --body: var(--font-inter), system-ui, sans-serif;
   --mono: var(--font-mono), ui-monospace, monospace;
@@ -20,7 +26,7 @@
 /* Re-evaluated in every dialog, so interiors, missions, palette and terminal take their own colour. */
 .exe,
 .x-dialog {
-  --accent: var(--c, #43d5ff);
+  --accent: var(--c, var(--cyan));
   /* Accents and 80% borders verified >= 4.5:1 text and >= 3:1 UI contrast on every overlay surface. */
   --line: color-mix(in srgb, var(--accent) 80%, transparent);
   --line-strong: var(--accent);
@@ -32,8 +38,8 @@
   height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(1200px 600px at 85% -10%, rgba(71, 123, 255, 0.14), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(167, 123, 255, 0.1), transparent 60%),
+    radial-gradient(1200px 600px at 85% -10%, color-mix(in srgb, var(--blue) 14%, transparent), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, color-mix(in srgb, var(--purple) 10%, transparent), transparent 60%),
     linear-gradient(color-mix(in srgb, var(--accent) 4%, transparent) 1px, transparent 1px) 0 0 / 100% 32px,
     var(--void);
   color: var(--text);
@@ -44,7 +50,7 @@
 html.exe-html,
 html.exe-html body {
   overflow-x: clip;
-  background: #080d18;
+  background: var(--page);
   scroll-padding-top: 5rem;
 }
 /* Boot overlay is hidden unless the pre-paint script opted in. */
@@ -120,7 +126,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   align-items: center;
   gap: 16px;
   padding: 12px clamp(16px, 4vw, 40px);
-  background: rgba(18, 8, 46, 0.82);
+  background: color-mix(in srgb, var(--void) 82%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
@@ -257,7 +263,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .x-panel {
   position: relative;
-  background: linear-gradient(180deg, rgba(42, 22, 96, 0.7), rgba(29, 15, 69, 0.85));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--elevated) 70%, transparent), color-mix(in srgb, var(--panel) 85%, transparent));
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: clamp(18px, 2.5vw, 28px);
@@ -441,7 +447,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 18px 20px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(29, 15, 69, 0.7);
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
 }
 .x-stat-value {
   display: block;
@@ -457,7 +463,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .x-featured {
   grid-column: span 5;
-  border-color: rgba(167, 123, 255, 0.35) !important;
+  border-color: color-mix(in srgb, var(--purple) 35%, transparent) !important;
 }
 .x-navcards {
   grid-column: span 7;
@@ -529,7 +535,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .x-attrs button[aria-expanded="true"] {
   border-color: var(--purple) !important;
-  background: rgba(167, 123, 255, 0.08);
+  background: color-mix(in srgb, var(--purple) 8%, transparent);
 }
 .x-attr-body {
   display: grid;
@@ -569,7 +575,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 12px 14px;
   border: 1px solid var(--line) !important;
   border-radius: 10px;
-  background: rgba(29, 15, 69, 0.85) !important;
+  background: color-mix(in srgb, var(--panel) 85%, transparent) !important;
   transition: border-color var(--fast), box-shadow var(--fast);
 }
 .x-branch .x-muted {
@@ -644,7 +650,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   grid-column: 1 / -1;
 }
 .x-missions li:first-child .x-mission {
-  border-color: rgba(167, 123, 255, 0.4) !important;
+  border-color: color-mix(in srgb, var(--purple) 40%, transparent) !important;
 }
 .x-mission {
   height: 100%;
@@ -666,7 +672,6 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .x-dialog::backdrop {
   background: rgba(4, 7, 14, 0.72);
-  backdrop-filter: blur(4px);
 }
 .x-dialog-wide {
   width: min(960px, calc(100% - 32px));
@@ -724,9 +729,9 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 .x-demo {
   padding: 18px;
-  border: 1px solid rgba(167, 123, 255, 0.35);
+  border: 1px solid color-mix(in srgb, var(--purple) 35%, transparent);
   border-radius: 12px;
-  background: rgba(18, 8, 46, 0.6);
+  background: color-mix(in srgb, var(--void) 60%, transparent);
 }
 .x-demo .x-label {
   margin-top: 0;
@@ -832,11 +837,11 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: var(--void);
 }
 .x-timeline button:hover {
-  background: rgba(42, 22, 96, 0.6);
+  background: color-mix(in srgb, var(--elevated) 60%, transparent);
 }
 .x-timeline button[aria-current="step"] {
   border-color: var(--line-strong) !important;
-  background: rgba(42, 22, 96, 0.8);
+  background: color-mix(in srgb, var(--elevated) 80%, transparent);
 }
 .x-timeline button[aria-current="step"]::before {
   background: var(--accent);
@@ -868,7 +873,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .x-badge.is-fired {
   border-color: var(--purple);
-  box-shadow: 0 0 32px -8px rgba(167, 123, 255, 0.7);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.6);
 }
 .x-badge-icon {
   position: relative;
@@ -985,7 +990,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 .x-dialog-term {
   width: min(760px, calc(100% - 32px));
-  background: #0c0524;
+  background: var(--ink);
 }
 .x-term {
   display: flex;
@@ -1070,7 +1075,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   margin-top: 16px;
 }
 .exe-boot-actions kbd {
-  border-color: rgba(18, 8, 46, 0.4);
+  border-color: color-mix(in srgb, var(--void) 40%, transparent);
 }
 
 /* ------------------------------------------------------------- footer */
@@ -1083,8 +1088,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   flex: none;
   padding: 8px clamp(16px, 4vw, 40px);
   border-top: 2px solid var(--magenta);
-  background: #0c0524;
-  box-shadow: 0 -4px 20px rgba(255, 79, 216, 0.25);
+  background: var(--ink);
   font: 11px var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1126,7 +1130,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   60%, 100% { transform: translateX(58px); }
 }
 @keyframes x-glow {
-  40% { box-shadow: 0 0 28px 4px rgba(167, 123, 255, 0.8); }
+  40% { box-shadow: 0 0 28px 4px color-mix(in srgb, var(--purple) 80%, transparent); }
 }
 @keyframes x-burst {
   to { transform: rotate(var(--a)) translateX(36px); opacity: 0; }
@@ -1220,7 +1224,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-    background: rgba(18, 8, 46, 0.94);
+    background: color-mix(in srgb, var(--void) 94%, transparent);
     backdrop-filter: blur(12px);
     border-top: 1px solid var(--line);
   }
@@ -1270,7 +1274,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border: 3px solid var(--accent);
   background:
     radial-gradient(900px 400px at 100% 0, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%),
-    linear-gradient(#170a3d, #241055 60%, #3a1468);
+    linear-gradient(var(--dialog-a), var(--dialog-b) 60%, var(--dialog-c));
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent), 0 0 60px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 /* Grid floor lines only behind roomy content; they would strike through palette and terminal rows. */
@@ -1279,18 +1283,17 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background:
     linear-gradient(color-mix(in srgb, var(--accent) 7%, transparent) 1px, transparent 1px) 0 0 / 100% 28px,
     radial-gradient(900px 400px at 100% 0, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%),
-    linear-gradient(#170a3d, #241055 60%, #3a1468);
+    linear-gradient(var(--dialog-a), var(--dialog-b) 60%, var(--dialog-c));
 }
 .exe .x-dialog::backdrop {
-  background: radial-gradient(circle at 50% 120%, rgba(255, 79, 216, 0.35), rgba(13, 6, 48, 0.82) 60%);
-  backdrop-filter: blur(5px);
+  background: color-mix(in srgb, var(--void-deep) 82%, transparent);
 }
 .x-dialog .x-panel,
 .x-dialog .x-stat,
 .x-dialog .x-demo,
 .x-dialog .x-branch,
 .x-dialog .x-arch li {
-  background: linear-gradient(180deg, rgba(58, 26, 120, 0.55), rgba(29, 15, 69, 0.85)) !important;
+  background: linear-gradient(180deg, rgba(58, 26, 120, 0.55), color-mix(in srgb, var(--panel) 85%, transparent)) !important;
   border: 2px solid var(--line) !important;
   border-radius: 14px;
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
@@ -1317,18 +1320,18 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .exe .x-btn {
   border-width: 2px !important;
   border-radius: 10px;
-  box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 35%, #0c0524);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 35%, var(--ink));
 }
 .exe .x-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 35%, #0c0524), 0 0 22px -4px var(--accent);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 35%, var(--ink));
 }
 .exe .x-btn:active {
   transform: translateY(3px);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 35%, #0c0524);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 35%, var(--ink));
 }
 .exe .x-btn-primary {
-  color: #12082e !important;
+  color: var(--void) !important;
   box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 55%, #000);
 }
 .x-dialog .x-tags li {
@@ -1339,14 +1342,14 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .x-dialog .x-achieve {
   border-left-width: 4px;
   border-radius: 2px;
-  background: linear-gradient(90deg, rgba(72, 217, 160, 0.14), transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ok) 14%, transparent), transparent);
   padding: 6px 12px;
 }
 .x-dialog .x-kicker > span:first-child:not(.x-dot) {
   padding: 2px 8px;
   border-radius: 6px;
   background: var(--accent);
-  color: #12082e;
+  color: var(--void);
 }
 .x-dialog .x-label {
   color: var(--accent);
@@ -1360,13 +1363,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-bottom: 3px solid var(--accent);
   background:
     repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent) 0 12px, transparent 12px 24px),
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 28%, #1d0f45), #1d0f45);
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 28%, var(--panel)), var(--panel));
 }
 .x-brief {
   padding: 18px 20px;
   border: 2px solid var(--line);
   border-radius: 14px;
-  background: rgba(29, 15, 69, 0.6);
+  background: color-mix(in srgb, var(--panel) 60%, transparent);
 }
 .x-brief .x-h3 > span {
   display: inline-grid;
@@ -1375,7 +1378,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   height: 24px;
   border-radius: 6px;
   background: var(--accent);
-  color: #12082e;
+  color: var(--void);
   font-weight: 700;
 }
 .x-arch li:not(:last-child)::after {
@@ -1383,7 +1386,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   font-weight: 700;
 }
 .x-demo-doc {
-  background: #0c0524 !important;
+  background: var(--ink) !important;
   border: 2px solid var(--line) !important;
 }
 .x-cite {
@@ -1393,13 +1396,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
 /* palette and terminal share the frame */
 .x-palette-list li[aria-selected="true"] {
   background: var(--accent);
-  color: #12082e;
+  color: var(--void);
 }
 .x-palette-list li[aria-selected="true"] .x-muted {
-  color: #12082e;
+  color: var(--void);
 }
 .x-dialog-term .x-term-bar {
-  background: color-mix(in srgb, var(--accent) 22%, #0c0524);
+  background: color-mix(in srgb, var(--accent) 22%, var(--ink));
   color: var(--accent);
   font-weight: 700;
 }
@@ -1438,9 +1441,9 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background:
     radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
     radial-gradient(1.5px 1.5px at 32% 8%, #fff, transparent),
-    radial-gradient(2px 2px at 54% 22%, #ffd23f, transparent),
+    radial-gradient(2px 2px at 54% 22%, var(--yellow), transparent),
     radial-gradient(1.5px 1.5px at 71% 12%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 86% 26%, #43d5ff, transparent),
+    radial-gradient(1.5px 1.5px at 86% 26%, var(--cyan), transparent),
     radial-gradient(1.5px 1.5px at 22% 32%, #fff, transparent),
     linear-gradient(#050219 0%, #120a40 34%, #2c1262 58%, #66207f 80%, #b2388a 100%);
 }
@@ -1539,12 +1542,12 @@ html:not([data-exe-boot="run"]) .exe-boot {
   bottom: 0;
   height: 110px;
   background:
-    linear-gradient(90deg, transparent 0 46%, rgba(255, 210, 63, 0.6) 46% 54%, transparent 54%) 0 52px / 120px 6px repeat-x,
-    repeating-linear-gradient(90deg, rgba(255, 79, 216, 0.5) 0 2px, transparent 2px 80px),
-    linear-gradient(rgba(255, 79, 216, 0.55) 0 3px, transparent 3px) 0 0 / 100% 26px,
-    linear-gradient(#2a0f5c, #12082e);
+    linear-gradient(90deg, transparent 0 46%, color-mix(in srgb, var(--yellow) 60%, transparent) 46% 54%, transparent 54%) 0 52px / 120px 6px repeat-x,
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--magenta) 50%, transparent) 0 2px, transparent 2px 80px),
+    linear-gradient(color-mix(in srgb, var(--magenta) 55%, transparent) 0 3px, transparent 3px) 0 0 / 100% 26px,
+    linear-gradient(#2a0f5c, var(--void));
   border-top: 3px solid var(--magenta);
-  box-shadow: 0 -6px 30px rgba(255, 79, 216, 0.5);
+  box-shadow: 0 -6px 30px color-mix(in srgb, var(--magenta) 50%, transparent);
 }
 
 /* billboard */
@@ -1559,15 +1562,15 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 14px 16px;
   border: 4px solid var(--cyan);
   border-radius: 14px;
-  background: rgba(13, 6, 48, 0.92);
-  box-shadow: 0 0 30px rgba(67, 213, 255, 0.5), inset 0 0 24px rgba(67, 213, 255, 0.2);
+  background: color-mix(in srgb, var(--void-deep) 92%, transparent);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
   animation: gw-flicker 6s infinite;
 }
 .gw-board-kicker {
   margin: 0 0 8px;
   font: 700 20px var(--display);
   color: var(--yellow);
-  text-shadow: 0 0 12px rgba(255, 210, 63, 0.7);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--yellow) 70%, transparent);
 }
 .gw-board-stats {
   display: grid;
@@ -1576,8 +1579,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .gw-board .x-stat {
   padding: 8px 10px;
-  border-color: rgba(255, 79, 216, 0.4);
-  background: rgba(255, 79, 216, 0.08);
+  border-color: color-mix(in srgb, var(--magenta) 40%, transparent);
+  background: color-mix(in srgb, var(--magenta) 8%, transparent);
 }
 .gw-board .x-stat-value {
   font-size: 24px;
@@ -1631,7 +1634,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 6px 14px;
   border: 2px solid var(--c);
   border-radius: 8px;
-  background: rgba(13, 6, 48, 0.85);
+  background: color-mix(in srgb, var(--void-deep) 85%, transparent);
   color: var(--c);
   font: 700 16px var(--display);
   letter-spacing: 0.04em;
@@ -1753,7 +1756,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 14px 16px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 14px;
-  background: rgba(13, 6, 48, 0.78);
+  background: color-mix(in srgb, var(--void-deep) 78%, transparent);
   backdrop-filter: blur(10px);
 }
 .gw-card {
@@ -1827,7 +1830,9 @@ html:not([data-exe-boot="run"]) .exe-boot {
   margin: 0;
   padding: 8px 14px;
   border-radius: 99px;
-  background: rgba(13, 6, 48, 0.75);
+  background: color-mix(in srgb, var(--void-deep) 75%, transparent);
+  display: flex;
+  gap: 4px 16px;
   font-size: 13px;
   white-space: nowrap;
   pointer-events: none;
@@ -1854,7 +1859,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   justify-content: space-between;
   gap: 12px;
   padding: 10px clamp(16px, 4vw, 40px);
-  background: color-mix(in srgb, var(--accent) 16%, #1d0f45);
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel));
   border-bottom: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
 }
 .x-interior-name {
@@ -1883,7 +1888,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: linear-gradient(90deg, var(--magenta), var(--orange));
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 10px 30px rgba(255, 79, 216, 0.5);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--magenta) 50%, transparent);
   animation: x-pop var(--med) var(--ease) both;
 }
 
@@ -1961,7 +1966,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
     height: 58px;
     border: 2px solid rgba(255, 255, 255, 0.35) !important;
     border-radius: 16px;
-    background: rgba(13, 6, 48, 0.7) !important;
+    background: color-mix(in srgb, var(--void-deep) 70%, transparent) !important;
     touch-action: none;
   }
   .gw-pad .gw-enter {
@@ -2082,7 +2087,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .x-attr[aria-pressed="true"] {
   border-color: var(--accent) !important;
   background: var(--accent) !important;
-  color: #12082e !important;
+  color: var(--void) !important;
 }
 .exe .x-attr-body {
   margin-top: 14px;
@@ -2139,7 +2144,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 12px 14px;
   border: 2px solid var(--line) !important;
   border-radius: 12px;
-  background: rgba(29, 15, 69, 0.8) !important;
+  background: color-mix(in srgb, var(--panel) 80%, transparent) !important;
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
   transition: transform var(--fast) var(--ease), border-color var(--fast), background var(--fast);
 }
@@ -2149,7 +2154,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .x-select-item[aria-pressed="true"] {
   border-color: var(--accent) !important;
-  background: color-mix(in srgb, var(--accent) 22%, #1d0f45) !important;
+  background: color-mix(in srgb, var(--accent) 22%, var(--panel)) !important;
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25), 0 0 22px -6px var(--accent);
 }
 .x-select-item[aria-pressed="true"]::before {
@@ -2164,7 +2169,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 3px 7px;
   border-radius: 6px;
   background: var(--accent);
-  color: #12082e;
+  color: var(--void);
 }
 .x-select-name {
   font: 600 15px / 1.3 var(--display);
@@ -2239,7 +2244,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .x-tab[aria-selected="true"] {
   background: var(--accent) !important;
-  color: #12082e !important;
+  color: var(--void) !important;
 }
 .x-tabpanel {
   flex: 1;
@@ -2260,7 +2265,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   gap: 10px;
   padding: 12px clamp(18px, 3vw, 28px);
   border-top: 2px solid var(--line);
-  background: rgba(12, 5, 36, 0.6);
+  background: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 
 /* career, achievements, comms: tighter */
@@ -2523,7 +2528,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 .exe .exe-boot {
   overflow: hidden;
-  background: #0d0630;
+  background: var(--void-deep);
   place-items: center;
 }
 .exe-boot .gw-sky {
@@ -2542,10 +2547,10 @@ html:not([data-exe-boot="run"]) .exe-boot {
   height: 24%;
   border-top: 3px solid var(--magenta);
   background:
-    repeating-linear-gradient(90deg, rgba(255, 79, 216, 0.55) 0 2px, transparent 2px 70px),
-    linear-gradient(rgba(255, 79, 216, 0.55) 0 2px, transparent 2px) 0 0 / 100% 22px,
-    linear-gradient(#2a0f5c, #12082e);
-  box-shadow: 0 -8px 40px rgba(255, 79, 216, 0.55);
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--magenta) 55%, transparent) 0 2px, transparent 2px 70px),
+    linear-gradient(color-mix(in srgb, var(--magenta) 55%, transparent) 0 2px, transparent 2px) 0 0 / 100% 22px,
+    linear-gradient(#2a0f5c, var(--void));
+  box-shadow: 0 -8px 40px color-mix(in srgb, var(--magenta) 55%, transparent);
   transform: perspective(300px) rotateX(38deg);
   transform-origin: top;
   animation: boot-grid 1.2s linear infinite;
@@ -2561,17 +2566,10 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 28px 24px;
   border: 3px solid var(--cyan);
   border-radius: 20px;
-  background: rgba(13, 6, 48, 0.82);
-  box-shadow: 0 0 0 6px rgba(67, 213, 255, 0.15), 0 0 60px rgba(67, 213, 255, 0.35);
+  background: color-mix(in srgb, var(--void-deep) 82%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cyan) 15%, transparent), 0 24px 50px rgba(0, 0, 0, 0.5);
   text-align: center;
   animation: x-pop 400ms var(--ease) both;
-}
-.boot-kicker {
-  margin: 0;
-  font: 600 12px var(--mono);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--yellow);
 }
 .exe .exe-boot-logo {
   margin: 0;
@@ -2579,7 +2577,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   letter-spacing: 0.01em;
   white-space: nowrap;
   color: #fff;
-  text-shadow: 0 0 18px rgba(67, 213, 255, 0.8), 0 4px 0 #ff4fd8;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--cyan) 80%, transparent), 0 4px 0 var(--magenta);
   animation: boot-logo 2.4s ease-in-out infinite;
 }
 .boot-tagline {
@@ -2598,7 +2596,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 2px;
   border: 2px solid var(--cyan);
   border-radius: 99px;
-  background: #0c0524;
+  background: var(--ink);
 }
 .boot-bar span {
   display: block;
@@ -2613,7 +2611,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   min-height: 1.5em;
   margin: 0;
   font: 500 13px var(--mono);
-  color: #7cff6b;
+  color: var(--lime);
 }
 .boot-start {
   margin-top: 4px;
@@ -2627,7 +2625,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   animation: none;
 }
 .boot-start kbd {
-  border-color: rgba(18, 8, 46, 0.5);
+  border-color: color-mix(in srgb, var(--void) 50%, transparent);
 }
 .boot-check {
   color: #e3d9ff;
@@ -2644,10 +2642,10 @@ html:not([data-exe-boot="run"]) .exe-boot {
   to { background-position: 0 0, 0 22px, 0 0; }
 }
 @keyframes boot-logo {
-  50% { text-shadow: 0 0 28px rgba(67, 213, 255, 1), 0 4px 0 #ff4fd8; }
+  50% { text-shadow: 0 0 28px color-mix(in srgb, var(--cyan) 100%, transparent), 0 4px 0 var(--magenta); }
 }
 @keyframes boot-blink {
-  50% { box-shadow: 0 4px 0 #1b6f88, 0 0 26px rgba(67, 213, 255, 0.9); }
+  50% { box-shadow: 0 4px 0 #1b6f88, 0 0 26px color-mix(in srgb, var(--cyan) 90%, transparent); }
 }
 @media (max-width: 760px) {
   .exe .exe-boot-inner {
@@ -2803,13 +2801,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
   gap: 14px;
   min-height: 0;
   padding: 40px 22px 22px;
-  border: 3px solid color-mix(in srgb, var(--accent) 70%, #0c0524);
+  border: 3px solid color-mix(in srgb, var(--accent) 70%, var(--ink));
   border-radius: 18px;
   background:
-    radial-gradient(circle at 16px 16px, #c9bdf0 0 4px, #0c0524 4px 6px, transparent 6px),
-    radial-gradient(circle at calc(100% - 16px) 16px, #c9bdf0 0 4px, #0c0524 4px 6px, transparent 6px),
-    radial-gradient(circle at 16px calc(100% - 16px), #c9bdf0 0 4px, #0c0524 4px 6px, transparent 6px),
-    radial-gradient(circle at calc(100% - 16px) calc(100% - 16px), #c9bdf0 0 4px, #0c0524 4px 6px, transparent 6px),
+    radial-gradient(circle at 16px 16px, var(--muted) 0 4px, var(--ink) 4px 6px, transparent 6px),
+    radial-gradient(circle at calc(100% - 16px) 16px, var(--muted) 0 4px, var(--ink) 4px 6px, transparent 6px),
+    radial-gradient(circle at 16px calc(100% - 16px), var(--muted) 0 4px, var(--ink) 4px 6px, transparent 6px),
+    radial-gradient(circle at calc(100% - 16px) calc(100% - 16px), var(--muted) 0 4px, var(--ink) 4px 6px, transparent 6px),
     repeating-linear-gradient(90deg, transparent 0 46px, color-mix(in srgb, var(--accent) 16%, transparent) 46px 48px),
     repeating-linear-gradient(0deg, transparent 0 58px, color-mix(in srgb, var(--accent) 12%, transparent) 58px 60px),
     linear-gradient(135deg, #10304a, #1b1145 70%);
@@ -2830,7 +2828,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   min-height: 0;
   border: 2px dashed color-mix(in srgb, var(--accent) 60%, transparent);
   border-radius: 12px;
-  background: rgba(12, 5, 36, 0.55);
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
   transition: border-color var(--fast), box-shadow var(--med);
 }
 .lab-socket-cpu { grid-area: cpu; }
@@ -2842,7 +2840,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .lab-socket.is-on {
   border-style: solid;
   border-color: var(--accent);
-  background: rgba(12, 5, 36, 0.35);
+  background: color-mix(in srgb, var(--ink) 35%, transparent);
   box-shadow: 0 0 24px -8px var(--accent);
   animation: lab-flash 520ms ease-out;
 }
@@ -2892,7 +2890,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   width: 58px;
   height: 58px;
   border-radius: 6px;
-  outline: 4px dotted #ffd23f;
+  outline: 4px dotted var(--yellow);
   outline-offset: 2px;
   background: linear-gradient(135deg, #e3e6ef, #8b90a0);
   box-shadow: inset 0 0 0 8px rgba(0, 0, 0, 0.12);
@@ -2900,8 +2898,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .lab-art-npu {
   width: 46px;
   height: 46px;
-  background: linear-gradient(135deg, #ff85e6, #a77bff);
-  color: #12082e;
+  background: linear-gradient(135deg, #ff85e6, var(--purple));
+  color: var(--void);
   font: 800 14px var(--mono);
   animation: lab-pulse 2s ease-in-out infinite;
 }
@@ -2909,9 +2907,9 @@ html:not([data-exe-boot="run"]) .exe-boot {
   width: 26px;
   height: 110px;
   border-radius: 3px;
-  border-bottom: 6px solid #ffd23f;
+  border-bottom: 6px solid var(--yellow);
   background:
-    repeating-linear-gradient(#12082e 0 14px, transparent 14px 20px) 5px 6px / 16px calc(100% - 12px) no-repeat,
+    repeating-linear-gradient(var(--void) 0 14px, transparent 14px 20px) 5px 6px / 16px calc(100% - 12px) no-repeat,
     #1d6b4f;
 }
 .lab-art-gpu {
@@ -2920,28 +2918,28 @@ html:not([data-exe-boot="run"]) .exe-boot {
   grid-auto-flow: column;
   gap: 40px;
   border-radius: 8px;
-  background: linear-gradient(#3a2d7a, #241055);
-  border-bottom: 5px solid #ffd23f;
+  background: linear-gradient(#3a2d7a, var(--dialog-b));
+  border-bottom: 5px solid var(--yellow);
 }
 .lab-art-gpu i {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: conic-gradient(#43d5ff 0 25%, #12082e 0 50%, #43d5ff 0 75%, #12082e 0);
+  background: conic-gradient(var(--cyan) 0 25%, var(--void) 0 50%, var(--cyan) 0 75%, var(--void) 0);
   animation: lab-fan 0.8s linear infinite;
 }
 .lab-art-ssd {
   width: 96px;
   height: 24px;
   border-radius: 4px;
-  border-left: 8px solid #ffd23f;
-  background: linear-gradient(90deg, #12082e 0 30%, #e3e6ef 30% 60%, #12082e 60%);
+  border-left: 8px solid var(--yellow);
+  background: linear-gradient(90deg, var(--void) 0 30%, #e3e6ef 30% 60%, var(--void) 60%);
 }
 .lab-art-nic {
   width: 64px;
   height: 40px;
   border-radius: 4px;
-  border-bottom: 5px solid #ffd23f;
+  border-bottom: 5px solid var(--yellow);
   background: #1d6b4f;
 }
 .lab-art-nic::after {
@@ -2952,8 +2950,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #7cff6b;
-  box-shadow: 0 0 8px #7cff6b;
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime);
   animation: gw-blink 0.9s steps(1) infinite;
 }
 
@@ -2966,7 +2964,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 3px 6px;
   border-radius: 6px;
   background: var(--accent);
-  color: #12082e;
+  color: var(--void);
   font: 700 11px var(--mono);
 }
 
@@ -2974,7 +2972,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .lab-post {
   margin: 0;
   font: 14px / 1.7 var(--mono);
-  color: #7cff6b;
+  color: var(--lime);
   white-space: pre-wrap;
 }
 .lab-cursor {
@@ -3061,7 +3059,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
     radial-gradient(circle at calc(100% - 14px) 14px, #e8c86a 0 5px, #0a2622 5px 7px, transparent 7px),
     radial-gradient(circle at 14px calc(100% - 14px), #e8c86a 0 5px, #0a2622 5px 7px, transparent 7px),
     radial-gradient(circle at calc(100% - 14px) calc(100% - 14px), #e8c86a 0 5px, #0a2622 5px 7px, transparent 7px),
-    radial-gradient(ellipse at 30% 20%, rgba(67, 213, 255, 0.07), transparent 60%),
+    radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--cyan) 7%, transparent), transparent 60%),
     linear-gradient(135deg, #0d3b38, #0a2c30 55%, #0b2338);
 }
 .lab-board-name {
@@ -3152,7 +3150,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   opacity: 0.45;
 }
 .pcb-trace-flow path {
-  stroke: #43d5ff;
+  stroke: var(--cyan);
   stroke-width: 2;
   stroke-dasharray: 6 10;
   opacity: 0;
@@ -3161,7 +3159,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .lab-board.is-powered .pcb-trace-flow path {
   opacity: 1;
   animation: pcb-flow 0.7s linear infinite;
-  filter: drop-shadow(0 0 3px #43d5ff);
+  filter: drop-shadow(0 0 3px var(--cyan));
 }
 .pcb-vias path {
   stroke: #e8c86a;
@@ -3341,8 +3339,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   box-shadow: inset 0 -3px 0 #7d1820, 0 0 0 2px #0c0c0e;
 }
 .lab-board.is-powered .pcb-led {
-  background: #7cff6b;
-  box-shadow: 0 0 10px #7cff6b, 0 0 0 1px #0c0c0e;
+  background: var(--lime);
+  box-shadow: 0 0 10px var(--lime), 0 0 0 1px #0c0c0e;
 }
 .lab-board.is-powered .pcb-btn {
   box-shadow: inset 0 -1px 0 #7d1820, 0 0 0 2px #0c0c0e;
@@ -3359,7 +3357,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   animation-play-state: running;
 }
 .lab-board.is-powered .lab-socket.is-on {
-  box-shadow: 0 0 26px -6px #43d5ff;
+  box-shadow: 0 0 26px -6px var(--cyan);
 }
 
 
@@ -3424,7 +3422,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 12px 28px;
   border: 2px solid var(--accent);
   border-radius: 10px;
-  background: rgba(12, 5, 36, 0.92);
+  background: color-mix(in srgb, var(--ink) 92%, transparent);
   color: var(--accent);
   font: 700 clamp(20px, 3vw, 30px) var(--display);
   letter-spacing: 0.08em;
@@ -3439,20 +3437,20 @@ html:not([data-exe-boot="run"]) .exe-boot {
   display: block;
   font: 600 11px var(--mono);
   letter-spacing: 0.3em;
-  color: #c9bdf0;
+  color: var(--muted);
 }
 
 /* the lab is a room: tiled floor under the rig */
 .exe .scene-profile {
   background:
-    linear-gradient(transparent 62%, rgba(67, 213, 255, 0.05) 62%),
-    repeating-linear-gradient(90deg, rgba(67, 213, 255, 0.07) 0 1px, transparent 1px 64px),
-    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.05) 0 1px, transparent 1px 64px),
-    radial-gradient(ellipse at 50% 0%, rgba(67, 213, 255, 0.18), transparent 60%),
+    linear-gradient(transparent 62%, color-mix(in srgb, var(--cyan) 5%, transparent) 62%),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 7%, transparent) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 5%, transparent) 0 1px, transparent 1px 64px),
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--cyan) 18%, transparent), transparent 60%),
     linear-gradient(#0d1b33, #0a1428 60%, #081020);
 }
 .exe .scene-skills {
-  background: radial-gradient(ellipse at 50% 30%, rgba(124, 255, 107, 0.08), transparent 60%), #0b1326;
+  background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--lime) 8%, transparent), transparent 60%), #0b1326;
 }
 
 @keyframes scene-in {
@@ -3549,7 +3547,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .room-wall {
   inset: 0;
   background:
-    repeating-linear-gradient(90deg, transparent 0 118px, rgba(67, 213, 255, 0.05) 118px 120px),
+    repeating-linear-gradient(90deg, transparent 0 118px, color-mix(in srgb, var(--cyan) 5%, transparent) 118px 120px),
     radial-gradient(ellipse at 45% 0%, rgba(255, 236, 190, 0.18), transparent 55%),
     linear-gradient(#17284a, #12203d 80%, #0f1a33);
 }
@@ -3588,8 +3586,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   width: 72px;
   height: 22px;
   border-radius: 40px 40px 6px 6px;
-  background: #ffd23f;
-  box-shadow: 0 30px 80px 30px rgba(255, 210, 63, 0.18);
+  background: var(--yellow);
+  box-shadow: 0 30px 80px 30px color-mix(in srgb, var(--yellow) 18%, transparent);
 }
 
 /* door: swings open onto a lit doorway; clicking it leaves the lab */
@@ -3626,7 +3624,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #ffd23f;
+  background: var(--yellow);
 }
 .room-door.is-open .room-door-panel,
 .room-door:hover .room-door-panel {
@@ -3640,11 +3638,11 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 2px 10px;
   border-radius: 4px;
   background: #0b3d1e;
-  color: #7cff6b;
+  color: var(--lime);
   font: 700 14px var(--mono);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  box-shadow: 0 0 10px rgba(124, 255, 107, 0.5);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--lime) 50%, transparent);
 }
 
 /* PC table */
@@ -3688,7 +3686,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   inset: 0;
   padding: 8px;
   font: 700 14px var(--mono);
-  color: #7cff6b;
+  color: var(--lime);
 }
 .room-monitor.is-on {
   box-shadow: 0 0 30px -4px var(--cyan);
@@ -3742,7 +3740,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   transform: translateX(-50%);
   padding: 1px 6px;
   border-radius: 4px;
-  background: #0c0524;
+  background: var(--ink);
   color: var(--cyan);
   font: 700 11px var(--mono);
 }
@@ -3929,12 +3927,11 @@ html:not([data-exe-boot="run"]) .exe-boot {
   pointer-events: none;
   background-color: #07091a;
   background-image:
-    radial-gradient(1200px 700px at 20% 40%, rgba(67, 213, 255, 0.08), transparent 60%),
-    radial-gradient(1000px 600px at 70% 30%, rgba(167, 123, 255, 0.06), transparent 60%),
-    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.04) 0 1px, transparent 1px 32px),
-    repeating-linear-gradient(90deg, rgba(67, 213, 255, 0.04) 0 1px, transparent 1px 32px),
-    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.09) 0 1px, transparent 1px 160px),
-    repeating-linear-gradient(90deg, rgba(67, 213, 255, 0.09) 0 1px, transparent 1px 160px);
+    radial-gradient(1200px 700px at 20% 40%, color-mix(in srgb, var(--cyan) 8%, transparent), transparent 60%),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 4%, transparent) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 4%, transparent) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 9%, transparent) 0 1px, transparent 1px 160px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 9%, transparent) 0 1px, transparent 1px 160px);
 }
 
 .sr-blueprint-markers {
@@ -3946,7 +3943,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .sr-mark {
   position: absolute;
   font: 600 11px var(--mono);
-  color: rgba(67, 213, 255, 0.45);
+  color: color-mix(in srgb, var(--cyan) 45%, transparent);
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -3960,14 +3957,12 @@ html:not([data-exe-boot="run"]) .exe-boot {
 /* ── Central Lobby Wing (Sector 00) ──────────────────────────── */
 .sr-lobby-wing {
   position: absolute;
-  border: 1.5px solid rgba(124, 255, 107, 0.45);
+  border: 1.5px solid color-mix(in srgb, var(--lime) 45%, transparent);
   border-radius: 12px;
   background:
-    radial-gradient(350px 220px at 20% 50%, rgba(124, 255, 107, 0.08), transparent 75%),
+    radial-gradient(350px 220px at 20% 50%, color-mix(in srgb, var(--lime) 8%, transparent), transparent 75%),
     linear-gradient(180deg, rgba(16, 20, 36, 0.97), rgba(10, 12, 24, 0.98));
-  box-shadow:
-    inset 0 0 30px rgba(124, 255, 107, 0.06),
-    0 10px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   display: flex !important;
   flex-direction: column;
@@ -3975,27 +3970,27 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 /* Green identity accents matching home city Skill Tree building */
 .sr-code-green {
-  color: #7cff6b !important;
-  background: rgba(124, 255, 107, 0.14) !important;
-  border-color: rgba(124, 255, 107, 0.45) !important;
-  text-shadow: 0 0 8px rgba(124, 255, 107, 0.6);
+  color: var(--lime) !important;
+  background: color-mix(in srgb, var(--lime) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--lime) 45%, transparent) !important;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--lime) 60%, transparent);
 }
 .sr-icon-green {
-  color: #7cff6b !important;
-  filter: drop-shadow(0 0 6px #7cff6b);
+  color: var(--lime) !important;
+  filter: drop-shadow(0 0 6px var(--lime));
 }
 .sr-badge-green {
-  background: #7cff6b !important;
+  background: var(--lime) !important;
   color: #050a14 !important;
   font: 700 11px var(--mono);
   letter-spacing: 0.08em;
   padding: 2px 8px;
   border-radius: 4px;
-  box-shadow: 0 0 10px rgba(124, 255, 107, 0.5);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--lime) 50%, transparent);
   flex: none;
 }
 .sr-div-green {
-  background: linear-gradient(90deg, #7cff6b, transparent 80%) !important;
+  background: linear-gradient(90deg, var(--lime), transparent 80%) !important;
 }
 
 /* ── Lobby Foyer Body (Split into Left Entrance & Right Kiosk: NO OVERLAP) ── */
@@ -4033,13 +4028,11 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 
 .sr-kiosk-frame {
-  border: 1.5px solid rgba(67, 213, 255, 0.65);
+  border: 1.5px solid color-mix(in srgb, var(--cyan) 65%, transparent);
   border-radius: 9px;
   background: rgba(8, 5, 24, 0.96);
   padding: 10px 12px;
-  box-shadow:
-    0 0 24px rgba(67, 213, 255, 0.22),
-    inset 0 0 20px rgba(67, 213, 255, 0.07);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
 
@@ -4145,13 +4138,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
   right: 14px;
   bottom: 12px;
   font: 700 11px var(--mono);
-  color: #7cff6b;
+  color: var(--lime);
   letter-spacing: 0.16em;
-  text-shadow: 0 0 8px rgba(124, 255, 107, 0.7);
-  background: rgba(124, 255, 107, 0.12);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--lime) 70%, transparent);
+  background: color-mix(in srgb, var(--lime) 12%, transparent);
   padding: 3px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(124, 255, 107, 0.35);
+  border: 1px solid color-mix(in srgb, var(--lime) 35%, transparent);
 }
 
 /* ── Room Lab Wings ──────────────────────────────────────────── */
@@ -4202,11 +4195,11 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 .sr-room-code {
   font: 700 11px var(--mono);
-  color: var(--bc, #43d5ff);
+  color: var(--bc, var(--cyan));
   padding: 2px 7px;
   border-radius: 4px;
-  background: color-mix(in srgb, var(--bc, #43d5ff) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--bc, #43d5ff) 40%, transparent);
+  background: color-mix(in srgb, var(--bc, var(--cyan)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bc, var(--cyan)) 40%, transparent);
   letter-spacing: 0.1em;
 }
 
@@ -4224,13 +4217,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 
 .sr-room-icon {
-  color: var(--bc, #43d5ff);
+  color: var(--bc, var(--cyan));
   flex: none;
 }
 
 .sr-room-title {
   font: 700 16px var(--display);
-  color: #f4eeff;
+  color: var(--text);
   letter-spacing: 0.04em;
   white-space: nowrap;
   overflow: hidden;
@@ -4241,7 +4234,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .sr-room-badge {
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--bc, #43d5ff);
+  background: var(--bc, var(--cyan));
   color: #050a14;
   font: 700 11px var(--mono);
   letter-spacing: 0.08em;
@@ -4250,7 +4243,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 
 .sr-card-divider {
   height: 2px;
-  background: linear-gradient(90deg, var(--bc, #43d5ff), transparent 80%);
+  background: linear-gradient(90deg, var(--bc, var(--cyan)), transparent 80%);
   border-radius: 99px;
   opacity: 0.7;
 }
@@ -4289,7 +4282,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border: 1px solid color-mix(in srgb, var(--bc) 45%, transparent);
   border-radius: 6px;
   background: rgba(12, 8, 30, 0.88);
-  color: #f4eeff;
+  color: var(--text);
   font: 600 11.11px / 1.2 var(--body);
   transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast);
   overflow: hidden;
@@ -4334,9 +4327,9 @@ html:not([data-exe-boot="run"]) .exe-boot {
   height: 5px;
   border-radius: 99px;
 }
-.sr-led-ok { background: #48d9a0; box-shadow: 0 0 5px #48d9a0; }
+.sr-led-ok { background: var(--ok); box-shadow: 0 0 5px var(--ok); }
 .sr-led-act { background: var(--bc); box-shadow: 0 0 5px var(--bc); }
-.sr-led-pwr { background: #ffd23f; box-shadow: 0 0 5px #ffd23f; }
+.sr-led-pwr { background: var(--yellow); box-shadow: 0 0 5px var(--yellow); }
 
 .sr-card-foot-text {
   font: 700 11px var(--mono);
@@ -4388,7 +4381,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   display: flex;
   gap: 3px;
   padding: 4px;
-  border: 1px solid rgba(67, 213, 255, 0.35);
+  border: 1px solid color-mix(in srgb, var(--cyan) 35%, transparent);
   border-radius: 10px;
   background: rgba(7, 10, 26, 0.92);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
@@ -4404,12 +4397,12 @@ html:not([data-exe-boot="run"]) .exe-boot {
   transition: background-color var(--fast), border-color var(--fast), color var(--fast), transform var(--fast);
 }
 .sr-zoom button:hover:not(:disabled) {
-  background: rgba(67, 213, 255, 0.2) !important;
-  color: #43d5ff !important;
+  background: color-mix(in srgb, var(--cyan) 20%, transparent) !important;
+  color: var(--cyan) !important;
 }
 .sr-zoom button.is-active {
-  background: rgba(67, 213, 255, 0.25) !important;
-  color: #43d5ff !important;
+  background: color-mix(in srgb, var(--cyan) 25%, transparent) !important;
+  color: var(--cyan) !important;
 }
 .sr-zoom button:disabled {
   opacity: 0.5;
@@ -4437,7 +4430,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   gap: 7px;
   flex: none;
   padding: 7px 14px !important;
-  border: 1.5px solid color-mix(in srgb, var(--bc, #43d5ff) 60%, transparent) !important;
+  border: 1.5px solid color-mix(in srgb, var(--bc, var(--cyan)) 60%, transparent) !important;
   border-radius: 99px;
   background: rgba(8, 11, 28, 0.92) !important;
   font: 600 12px var(--body);
@@ -4446,22 +4439,22 @@ html:not([data-exe-boot="run"]) .exe-boot {
   cursor: pointer;
 }
 .sr-tab-btn:hover {
-  background: color-mix(in srgb, var(--bc, #43d5ff) 18%, #0d122e) !important;
-  border-color: var(--bc, #43d5ff) !important;
+  background: color-mix(in srgb, var(--bc, var(--cyan)) 18%, #0d122e) !important;
+  border-color: var(--bc, var(--cyan)) !important;
 }
 .sr-tab-code {
   font: 700 11px var(--mono);
-  color: var(--bc, #43d5ff);
+  color: var(--bc, var(--cyan));
 }
 .sr-tab-btn b {
-  color: var(--bc, #43d5ff);
+  color: var(--bc, var(--cyan));
   font-family: var(--mono);
 }
 .sr-tab-btn.is-active {
-  background: var(--bc, #43d5ff) !important;
+  background: var(--bc, var(--cyan)) !important;
   color: #050a14 !important;
-  border-color: var(--bc, #43d5ff) !important;
-  box-shadow: 0 0 14px color-mix(in srgb, var(--bc, #43d5ff) 40%, transparent);
+  border-color: var(--bc, var(--cyan)) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--bc, var(--cyan)) 40%, transparent);
 }
 .sr-tab-btn.is-active .sr-tab-code,
 .sr-tab-btn.is-active b {
@@ -4533,7 +4526,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border: 4px solid #8a6a4c; /* one even wall all the way round */
   border-radius: 10px;
   background: #0b0a1c;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 24px rgba(138, 106, 76, 0.25), 0 18px 50px rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5), 0 18px 50px rgba(0, 0, 0, 0.6);
 }
 .sr-doorway {
   position: absolute;
@@ -4562,8 +4555,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   height: 8px;
   margin-right: 8px;
   border-radius: 50%;
-  background: #7cff6b;
-  box-shadow: 0 0 8px #7cff6b;
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime);
   animation: x-pulse 1.8s ease-in-out infinite;
 }
 .sr-panel-head {
@@ -4635,7 +4628,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border: 1.5px solid rgba(67, 213, 255, 0.5);
+  border: 1.5px solid color-mix(in srgb, var(--cyan) 50%, transparent);
   border-radius: 10px;
   background: rgba(8, 5, 24, 0.9);
   padding: 12px;
@@ -4739,7 +4732,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   bottom: 0;
   left: -22%;
   width: 22%;
-  background: linear-gradient(90deg, transparent, rgba(67, 213, 255, 0.35) 40%, rgba(255, 255, 255, 0.85) 52%, rgba(67, 213, 255, 0.35) 64%, transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--cyan) 35%, transparent) 40%, rgba(255, 255, 255, 0.85) 52%, color-mix(in srgb, var(--cyan) 35%, transparent) 64%, transparent);
   filter: blur(3px);
   animation: lab-sweep 1000ms cubic-bezier(0.45, 0, 0.3, 1) forwards;
 }
@@ -4763,8 +4756,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   animation: lab-spark 900ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
 }
 .lab-spark i:nth-child(3n) {
-  background: #ffd23f;
-  box-shadow: 0 0 10px #ffd23f;
+  background: var(--yellow);
+  box-shadow: 0 0 10px var(--yellow);
 }
 @keyframes lab-sweep {
   to { transform: translateX(555%); }
@@ -4918,7 +4911,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .lab-fit.is-fluid .lab-speclist {
   padding-top: calc(var(--u) * 2);
-  border-top: 1px solid rgba(67, 213, 255, 0.25);
+  border-top: 1px solid color-mix(in srgb, var(--cyan) 25%, transparent);
 }
 .lab-speclist li {
   display: grid;
@@ -5043,7 +5036,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   position: absolute;
   z-index: 3;
   border-radius: 4px;
-  background: repeating-linear-gradient(90deg, #ffd23f 0 14px, #1b2038 14px 28px);
+  background: repeating-linear-gradient(90deg, var(--yellow) 0 14px, #1b2038 14px 28px);
   box-shadow: 0 0 18px -4px var(--bc);
 }
 .hg-tag {
@@ -5092,7 +5085,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   height: 0;
   margin: -6px 0 0 -18px;
   border-radius: 0 0 50% 50%;
-  background: linear-gradient(#fff, #ffd23f 30%, #ff7a2f 70%, transparent);
+  background: linear-gradient(#fff, var(--yellow) 30%, #ff7a2f 70%, transparent);
   opacity: 0;
   filter: blur(1px);
 }
@@ -5141,7 +5134,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   z-index: 6;
   transform: translate(-50%, -50%);
   font: 700 clamp(72px, 14vw, 140px) var(--display);
-  color: #ffd23f;
+  color: var(--yellow);
   text-shadow: 0 0 40px #ff9a57;
   pointer-events: none;
   animation: hg-count 750ms ease-out both;
@@ -5166,13 +5159,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
   gap: 0.9em;
   padding: 1.2em;
   font-size: 13px; /* Hangar shrinks this until the content fits */
-  border: 1px solid rgba(67, 213, 255, 0.75);
+  border: 1px solid color-mix(in srgb, var(--cyan) 75%, transparent);
   border-radius: 12px;
   background:
-    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.06) 0 1px, transparent 1px 4px),
-    linear-gradient(rgba(67, 213, 255, 0.1), rgba(67, 213, 255, 0.03)),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 6%, transparent) 0 1px, transparent 1px 4px),
+    linear-gradient(color-mix(in srgb, var(--cyan) 10%, transparent), color-mix(in srgb, var(--cyan) 3%, transparent)),
     rgba(5, 14, 34, 0.92);
-  box-shadow: 0 0 32px -6px rgba(67, 213, 255, 0.6), inset 0 0 40px -22px #43d5ff;
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
   animation: hg-holo-in 380ms var(--ease) both;
 }
 .hg-holo:focus-visible {
@@ -5327,7 +5320,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .ct-floor.is-lobby {
   background:
-    repeating-linear-gradient(90deg, transparent 0 118px, rgba(124, 255, 107, 0.06) 118px 120px),
+    repeating-linear-gradient(90deg, transparent 0 118px, color-mix(in srgb, var(--lime) 6%, transparent) 118px 120px),
     linear-gradient(#142a24, #0d1c1a);
 }
 .ct-floor > * {
@@ -5415,8 +5408,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   display: block;
   height: 5px;
   border-radius: 2px;
-  background: #7cff6b;
-  box-shadow: 0 0 8px #7cff6b;
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime);
 }
 .ct-term i:nth-child(2) { width: 70%; }
 .ct-term i:nth-child(3) { width: 45%; }
@@ -5435,8 +5428,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: #0a1330;
 }
 .is-modern .ct-term i {
-  background: #43d5ff;
-  box-shadow: 0 0 8px #43d5ff;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
 }
 .is-future .ct-term {
   border: 2px dashed var(--fc);
@@ -5486,7 +5479,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   height: 96px;
   border-radius: 8px 8px 0 0;
   background: linear-gradient(#2d5a4a, #1d3b30);
-  box-shadow: inset 0 6px 0 #7cff6b;
+  box-shadow: inset 0 6px 0 var(--lime);
 }
 
 .ct-car {
@@ -5496,7 +5489,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border: 4px solid #9fb0d4;
   border-radius: 8px 8px 0 0;
   background: linear-gradient(#1a2347, #0d1330);
-  box-shadow: 0 0 24px -6px #43d5ff;
+  box-shadow: 0 0 24px -6px var(--cyan);
 }
 .ct-led {
   position: absolute;
@@ -5507,9 +5500,9 @@ html:not([data-exe-boot="run"]) .exe-boot {
   padding: 2px 10px;
   border-radius: 4px;
   background: #050810;
-  color: #7cff6b;
+  color: var(--lime);
   font: 700 22px var(--mono);
-  text-shadow: 0 0 10px #7cff6b;
+  text-shadow: 0 0 10px var(--lime);
 }
 .ct-glass {
   position: absolute;
@@ -5702,7 +5695,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .gl-wall {
   background:
-    repeating-linear-gradient(90deg, rgba(255, 210, 63, 0.07) 0 2px, transparent 2px 170px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--yellow) 7%, transparent) 0 2px, transparent 2px 170px),
     radial-gradient(ellipse at 50% 0%, rgba(130, 40, 80, 0.4), transparent 62%),
     linear-gradient(#170a1e, #0d0714);
 }
@@ -5711,12 +5704,12 @@ html:not([data-exe-boot="run"]) .exe-boot {
   right: -3000px;
   top: 0;
   height: 28px;
-  border-bottom: 4px solid #ffd23f;
+  border-bottom: 4px solid var(--yellow);
   background: linear-gradient(#34183c, #230f2b);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 .gl-floor {
-  border-top: 4px solid #ffd23f;
+  border-top: 4px solid var(--yellow);
   background:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 130px),
     linear-gradient(#241a38, #0f0b1c);
@@ -5728,7 +5721,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   z-index: 2;
   border-radius: 4px 4px 0 0;
   background: linear-gradient(90deg, #cfc9dc, #f2eff8 45%, #a9a2bb);
-  box-shadow: 0 0 20px -6px rgba(255, 210, 63, 0.5);
+  box-shadow: 0 0 20px -6px color-mix(in srgb, var(--yellow) 50%, transparent);
 }
 .gl-ped i {
   position: absolute;
@@ -5862,16 +5855,16 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .exe .gl-plaque.is-sel,
 .exe .gl-plaque:hover {
   box-shadow:
-    inset 0 0 0 3px #7a5c14,
+    inset 0 0 0 3px #c9a227,
     inset 0 0 14px rgba(70, 45, 10, 0.3),
-    0 0 36px 2px rgba(255, 226, 122, 0.75);
+    0 10px 26px rgba(0, 0, 0, 0.5);
 }
 .gl-post {
   z-index: 2;
   width: 8px;
   height: 72px;
   border-radius: 2px;
-  background: linear-gradient(90deg, #8a6a1a, #ffd23f, #8a6a1a);
+  background: linear-gradient(90deg, #8a6a1a, var(--yellow), #8a6a1a);
 }
 .gl-post::before {
   content: "";
@@ -5895,7 +5888,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   margin-top: 4px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(255, 210, 63, 0.12);
+  background: color-mix(in srgb, var(--yellow) 12%, transparent);
   color: #ffe9a0;
   font: 600 1em var(--mono);
   word-break: break-all;
@@ -5988,7 +5981,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   top: -34px;
   width: 68px;
   height: 34px;
-  border: 3px solid #7cff6b;
+  border: 3px solid var(--lime);
   border-bottom: 0;
   border-radius: 68px 68px 0 0;
   transform-origin: 50% 100%;
@@ -6022,12 +6015,12 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .is-lock .rt-target,
 .is-send .rt-target {
-  border-color: #43d5ff;
+  border-color: var(--cyan);
   animation: rt-lock 700ms ease-in-out infinite alternate;
 }
 .is-ok .rt-target {
-  border-color: #7cff6b;
-  box-shadow: 0 0 24px 4px rgba(124, 255, 107, 0.7);
+  border-color: var(--lime);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--lime) 35%, transparent);
 }
 @keyframes rt-lock {
   from { transform: scale(1.5); }
@@ -6039,7 +6032,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border: 3px solid #6c7396;
   border-radius: 10px 10px 0 0;
   background: linear-gradient(#3c4368, #232846);
-  box-shadow: 0 0 30px -8px #43d5ff;
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.6);
 }
 .rt-scope {
   position: absolute;
@@ -6055,13 +6048,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border: 4px solid #1c2236;
   border-radius: 8px;
   background: #04140e;
-  box-shadow: 0 0 18px -4px #7cff6b;
+  box-shadow: 0 0 18px -4px var(--lime);
 }
 .rt-scope i {
   flex: 1;
   height: 70%;
-  background: #7cff6b;
-  box-shadow: 0 0 6px #7cff6b;
+  background: var(--lime);
+  box-shadow: 0 0 6px var(--lime);
   transform-origin: bottom;
   animation: rt-eq 900ms ease-in-out infinite alternate;
 }
@@ -6089,8 +6082,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   background: #ff9a57;
   box-shadow: 0 0 8px #ff9a57;
 }
-.rt-leds i:nth-child(2) { background: #7cff6b; box-shadow: 0 0 8px #7cff6b; }
-.rt-leds i:nth-child(3) { background: #43d5ff; box-shadow: 0 0 8px #43d5ff; }
+.rt-leds i:nth-child(2) { background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+.rt-leds i:nth-child(3) { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
 .rt-grille {
   position: absolute;
   right: 12px;
@@ -6121,7 +6114,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
   border-radius: 50%;
   background:
     radial-gradient(circle, #1a2040 52%, transparent 54%),
-    repeating-conic-gradient(from -140deg, #ffd23f 0 2deg, transparent 2deg 20deg);
+    repeating-conic-gradient(from -140deg, var(--yellow) 0 2deg, transparent 2deg 20deg);
   transition: box-shadow 200ms, transform 400ms var(--ease);
 }
 .rt-dial svg {
@@ -6138,7 +6131,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .rt-dial:hover .rt-dial-ring,
 .rt-dial:focus-visible .rt-dial-ring {
-  box-shadow: 0 0 18px 2px #43d5ff;
+  box-shadow: 0 0 18px 2px var(--cyan);
   transform: rotate(40deg);
 }
 .rt-dial:focus-visible {
@@ -6149,13 +6142,13 @@ html:not([data-exe-boot="run"]) .exe-boot {
 .rt-term {
   gap: 12px;
   width: min(440px, calc(100% - 24px));
-  border-color: rgba(124, 255, 107, 0.7);
-  box-shadow: 0 0 32px -6px rgba(124, 255, 107, 0.55), inset 0 0 40px -22px #7cff6b;
+  border-color: color-mix(in srgb, var(--lime) 70%, transparent);
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
 }
 .rt-prompt {
   margin: 0;
   font: 500 12px / 1.45 var(--mono);
-  color: #7cff6b;
+  color: var(--lime);
 }
 .rt-prompt span {
   margin-right: 6px;
@@ -6172,14 +6165,14 @@ html:not([data-exe-boot="run"]) .exe-boot {
   gap: 4px;
   font: 600 11px var(--mono);
   letter-spacing: 0.12em;
-  color: #7cff6b;
+  color: var(--lime);
 }
 .rt-fields input,
 .rt-fields textarea {
   box-sizing: border-box;
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid rgba(124, 255, 107, 0.5);
+  border: 1px solid color-mix(in srgb, var(--lime) 50%, transparent);
   border-radius: 6px;
   background: rgba(4, 20, 14, 0.85);
   color: #e6ffe9;
@@ -6188,7 +6181,7 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .rt-fields input:focus,
 .rt-fields textarea:focus {
-  outline: 2px solid #7cff6b;
+  outline: 2px solid var(--lime);
   outline-offset: 1px;
 }
 .rt-term .x-btn {
@@ -6198,22 +6191,22 @@ html:not([data-exe-boot="run"]) .exe-boot {
   min-height: 1.4em;
   margin: 0;
   font: 600 12px / 1.4 var(--mono);
-  color: #7cff6b;
+  color: var(--lime);
 }
 .rt-blip.is-ok {
   padding: 8px 10px;
-  border: 1px solid #7cff6b;
+  border: 1px solid var(--lime);
   border-radius: 6px;
-  background: rgba(124, 255, 107, 0.12);
+  background: color-mix(in srgb, var(--lime) 12%, transparent);
   animation: rt-blip 500ms ease-out both;
 }
 @keyframes rt-blip {
-  from { opacity: 0; transform: scale(0.92); box-shadow: 0 0 0 0 rgba(124, 255, 107, 0.8); }
-  to { opacity: 1; transform: none; box-shadow: 0 0 24px -4px rgba(124, 255, 107, 0.7); }
+  from { opacity: 0; transform: scale(0.92); box-shadow: 0 0 0 0 color-mix(in srgb, var(--lime) 80%, transparent); }
+  to { opacity: 1; transform: none; box-shadow: 0 0 24px -4px color-mix(in srgb, var(--lime) 70%, transparent); }
 }
 .room-status.is-ok {
-  border-color: #7cff6b;
-  color: #7cff6b;
+  border-color: var(--lime);
+  color: var(--lime);
 }
 @media (max-width: 640px) {
   .rt-term {
@@ -6298,8 +6291,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   z-index: 2;
   pointer-events: none;
   background:
-    repeating-linear-gradient(0deg, rgba(67, 213, 255, 0.05) 0 1px, transparent 1px 4px),
-    radial-gradient(ellipse at 16% 56%, rgba(67, 213, 255, 0.22), transparent 60%);
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 5%, transparent) 0 1px, transparent 1px 4px),
+    radial-gradient(ellipse at 16% 56%, color-mix(in srgb, var(--cyan) 22%, transparent), transparent 60%);
   animation: sr-veil 1100ms ease-out forwards;
 }
 @keyframes sr-rack {
@@ -6445,4 +6438,24 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 .gl-room.is-compact .gl-plaque span {
   -webkit-line-clamp: 4;
+}
+
+/* A plain line of facts under a heading; items sit apart by spacing, never joined by dots. */
+.x-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font: 400 14px / 1.4 var(--body);
+}
+.x-meta > span:first-child:not(:only-child) {
+  color: var(--accent);
+  font-weight: 600;
+}
+.x-foot-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
 }

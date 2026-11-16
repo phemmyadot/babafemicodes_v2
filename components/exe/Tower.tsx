@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { sfx } from "./audio";
-import { Head, useArcade } from "./ExeScreens";
+import { Head, Meta, useArcade } from "./ExeScreens";
 import { Player, Stars } from "./GameWorld";
 
 // Career Tower: a cross-section of a skyscraper, oldest job at the bottom. A glass elevator rides the
@@ -490,10 +490,8 @@ export function Tower({ selected }: { selected?: string }) {
           >
             <header className="hg-holo-head">
               <div>
-                <p className="x-kicker">
-                  <span>Floor {String(panel).padStart(2, "0")}</span> {[open.period, open.location].filter(Boolean).join(" · ")}
-                </p>
                 <h2 className="hg-holo-title">{open.org}</h2>
+                <Meta items={[`Floor ${String(panel).padStart(2, "0")}`, open.period, open.location]} />
                 <p className="ct-role">{open.role}</p>
               </div>
               <button type="button" className="x-icon-btn" onClick={closePanel} aria-label="Close terminal (Esc)">

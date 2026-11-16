@@ -5,7 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { GithubIcon } from "../ui/BrandIcons";
 import { hush, sfx } from "./audio";
 import type { Mission } from "./data";
-import { Head, useArcade } from "./ExeScreens";
+import { Head, Meta, useArcade } from "./ExeScreens";
 import { Player, Stars } from "./GameWorld";
 
 // Side-view hangar, in design units; the room scales to fit the screen (and follows the engineer on
@@ -405,10 +405,8 @@ export function Hangar() {
           >
             <header className="hg-holo-head">
               <div>
-                <p className="x-kicker">
-                  <span>Mission {open.code}</span> {[open.domain, open.featured ? "Featured" : null].filter(Boolean).join(" · ") || "Project"}
-                </p>
                 <h2 className="hg-holo-title">{open.title}</h2>
+                <Meta items={[`Mission ${open.code}`, open.domain, open.featured ? "Featured" : null]} />
               </div>
               <button type="button" className="x-icon-btn" onClick={closePanel} aria-label="Close blueprint (Esc)">
                 <X size={16} aria-hidden />

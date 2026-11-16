@@ -157,7 +157,6 @@ function Boot({ onDone }: { onDone: () => void }) {
       <div className="gw-moon boot-moon" aria-hidden />
       <div className="boot-floor" aria-hidden />
       <div className="exe-boot-inner">
-        <p className="boot-kicker">Personal engineering universe</p>
         <h2 className="exe-boot-logo">
           {SITE_NAME}
           <span>{SITE_TLD}</span>
@@ -648,15 +647,16 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
       )}
 
       <footer className="x-foot" inert={covered}>
-        <span>© 2026 Babafemi Adojutelegan · Arcade Edition</span>
-        <span>
-          {otherEditions("/").map((e, i) => (
-            <span key={e.href}>
-              {i > 0 && " · "}
-              <a href={e.href}>
-                {e.name}<span className="x-hide-sm"> edition</span>
-              </a>
-            </span>
+        <span className="x-foot-group">
+          <span>© 2026 Babafemi Adojutelegan</span>
+          <span>Arcade Edition</span>
+        </span>
+        <span className="x-foot-group">
+          {otherEditions("/").map((e) => (
+            <a key={e.href} href={e.href}>
+              {e.name}
+              <span className="x-hide-sm"> edition</span>
+            </a>
           ))}
         </span>
       </footer>

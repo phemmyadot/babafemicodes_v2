@@ -50,6 +50,17 @@ function Tags({ list }: { list: string[] }) {
   );
 }
 
+/** A plain line of facts under a heading (code, dates, place); items sit apart by spacing, never joined by dots. */
+export function Meta({ items }: { items: Array<ReactNode> }) {
+  return (
+    <p className="x-meta">
+      {items.filter(Boolean).map((x, i) => (
+        <span key={i}>{x}</span>
+      ))}
+    </p>
+  );
+}
+
 export function ResumeButton({ className = "x-btn x-btn-primary" }: { className?: string }) {
   const { resume } = useArcade().contact;
   if (!resume) return null;
@@ -206,10 +217,8 @@ export function MissionDetail({ mission: m, go, onClose }: { mission: Mission; g
     <article className="x-detail">
       <header className="x-detail-head">
         <div>
-          <p className="x-kicker">
-            <span>Mission {m.code}</span> {i + 1} of {missions.length}
-          </p>
           <h2 className="x-title">{m.title}</h2>
+          <Meta items={[`Mission ${m.code}`, `${i + 1} of ${missions.length}`]} />
         </div>
         <button type="button" className="x-icon-btn" onClick={onClose} aria-label="Close mission">
           <X size={18} />
@@ -251,10 +260,8 @@ export function Career({ go, selected }: { go: Go; selected?: string }) {
         ))}
       </ol>
       <section className="x-panel x-stage" aria-live="polite" aria-label={`${stage.org} details`} key={stage.id}>
-        <p className="x-kicker">
-          <span>Stage {stage.stage}</span> {[stage.period, stage.location].filter(Boolean).join(" · ")}
-        </p>
         <h2 className="x-h2">{stage.org}</h2>
+        <Meta items={[`Stage ${stage.stage}`, stage.period, stage.location]} />
         <p className="x-hero-role">{stage.role}</p>
         <div className="x-stage-body">
           {stage.highlights.length > 0 && (
