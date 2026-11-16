@@ -1,9 +1,9 @@
 "use client";
 
-import { Command, DoorOpen, Home as HomeIcon, Layers, Mail, Rocket, SquareTerminal, Workflow } from "lucide-react";
+import { DoorOpen, Home as HomeIcon, Layers, Mail, Rocket, Workflow } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { type ArcadeData, type Mission, DISTRICTS, EXE_SESSION_KEY, EXE_SKIP_KEY, EXE_VISITED_KEY, PROFILE, SECTIONS, type SectionId } from "./data";
-import { MissionDetail, ArcadeContext, ResumeButton, useArcade, type Go } from "./ExeScreens";
+import { MissionDetail, ArcadeContext, useArcade, type Go } from "./ExeScreens";
 import { Skills } from "./SkillTree";
 import { Profile } from "./Lab";
 import { Hangar } from "./Hangar";
@@ -575,15 +575,7 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
           ))}
         </nav>
         <div className="x-bar-actions">
-          <button type="button" className="x-icon-btn" onClick={() => setPalette(true)} aria-label="Open command palette (Ctrl or Cmd + K)">
-            <Command size={16} aria-hidden />
-            <kbd className="x-hide-sm">K</kbd>
-          </button>
-          <button type="button" className="x-icon-btn" onClick={openTerminal} aria-label="Open terminal (~)">
-            <SquareTerminal size={16} aria-hidden />
-          </button>
           <SoundButton />
-          <ResumeButton className="x-btn x-btn-primary x-btn-sm" />
         </div>
       </header>
 
@@ -661,7 +653,9 @@ export function ExePortfolio({ data }: { data: ArcadeData }) {
           {otherEditions("/").map((e, i) => (
             <span key={e.href}>
               {i > 0 && " · "}
-              <a href={e.href}>{e.name} edition</a>
+              <a href={e.href}>
+                {e.name}<span className="x-hide-sm"> edition</span>
+              </a>
             </span>
           ))}
         </span>

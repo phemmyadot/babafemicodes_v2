@@ -398,14 +398,22 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
     return () => clearInterval(id);
   }, []);
 
+  // `go` is a new function on every render of the page; keep the latest in a ref so the game loop below starts once.
+  const goRef = useRef(go);
+  goRef.current = go;
+
+  // Phones use a narrower billboard; start just past it so it is fully in view. Once, on mount: running this on every
+  // render sent the engineer back to the start whenever he came out of a room.
+  useEffect(() => {
+    if (window.innerWidth < 760) {
+      g.current.x = MOBILE_SPAWN_X;
+      g.current.droneX = MOBILE_SPAWN_X - 60;
+    }
+  }, []);
+
   useEffect(() => {
     const s = g.current;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // Phones use a narrower billboard; start just past it so it is fully in view.
-    if (window.innerWidth < 760) {
-      s.x = MOBILE_SPAWN_X;
-      s.droneX = MOBILE_SPAWN_X - 60;
-    }
     let raf = 0;
     let last = performance.now();
 
@@ -432,7 +440,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
             if (s.enter) {
               const e = s.enter;
               s.enter = null;
-              go(e);
+              goRef.current(e);
             }
           } else {
             dir = Math.sign(d);
@@ -493,7 +501,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
       const k = e.key.toLowerCase();
       if (k === "arrowleft" || k === "a") s.left = true;
       else if (k === "arrowright" || k === "d") s.right = true;
-      else if ((k === "enter" || k === "e" || k === "arrowup") && !onButton && s.near) go(s.near);
+      else if ((k === "enter" || k === "e" || k === "arrowup") && !onButton && s.near) goRef.current(s.near);
       else return;
       e.preventDefault();
     };
@@ -515,7 +523,7 @@ export function GameWorld({ go, visited, active }: { go: Go; visited: Set<string
       window.removeEventListener("keyup", onUp);
       window.removeEventListener("blur", release);
     };
-  }, [go]);
+  }, []);
 
   const nearD = DISTRICTS.find((d) => d.id === near);
   const { missions, skills, career, contact } = useArcade();

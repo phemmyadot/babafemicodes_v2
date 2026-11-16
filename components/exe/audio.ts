@@ -483,11 +483,34 @@ export const sfx = {
       s1.stop(t + secs + 0.05);
       burst(c, o, t, secs, "bandpass", 500, 0.5, 0.012, 300);
     }),
-  /** Quick digital whoosh with a high-pass sweep (rack focus into the Skill Tree). */
+  /** A soft swell as the Skill Tree comes into focus: a slow breath of air and a gentle rising tone, about a second long. */
   whoosh: () =>
     play((c, o, t) => {
-      burst(c, o, t, 0.6, "highpass", 300, 0.9, 0.3, 6500);
-      tone(c, o, t, 400, 2600, 0.35, 0.08, "sine");
+      const src = c.createBufferSource();
+      src.buffer = noiseBuf;
+      const bp = filt(c, "bandpass", 260, 0.6);
+      bp.frequency.linearRampToValueAtTime(900, t + 1.1);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.05, t + 0.5);
+      g.gain.linearRampToValueAtTime(0, t + 1.2);
+      src.connect(bp);
+      bp.connect(g);
+      g.connect(o);
+      src.start(t, rnd(0, 1.5));
+      src.stop(t + 1.25);
+      const tn = c.createOscillator();
+      const tg = c.createGain();
+      tn.type = "sine";
+      tn.frequency.setValueAtTime(196, t);
+      tn.frequency.linearRampToValueAtTime(294, t + 1.1);
+      tg.gain.setValueAtTime(0, t);
+      tg.gain.linearRampToValueAtTime(0.03, t + 0.5);
+      tg.gain.linearRampToValueAtTime(0, t + 1.2);
+      tn.connect(tg);
+      tg.connect(o);
+      tn.start(t);
+      tn.stop(t + 1.25);
     }),
   /** Heavy sliding door. */
   slide: () =>

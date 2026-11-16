@@ -40,7 +40,6 @@ const CHIP_ROW = 44; // 36px chip + 8px gap
 const PAD_X = 36;
 const CHROME = 78 + 28 + 64 + 30;
 const LOBBY_W = 380;
-const LOBBY_P_H = 740; // the lobby's height when it sits on top of the rooms (phones)
 const WALL = 4; // each room is inset by this much, so neighbours leave an 8px wall
 const HOUSE_PAD = 16; // clear space between the house wall and the rooms inside it
 const DOOR = 56; // length of a door opening
@@ -135,10 +134,10 @@ export function planHouse(counts: number[], aspect: number, portrait = false) {
   let W: number;
   let lobby: Rect;
   if (portrait) {
-    // Phones: the lobby on top, then every room full width in one column, as tall as its chips need.
+    // Phones: no lobby, just every room full width in one column, as tall as its chips need.
     W = LOBBY_W;
-    lobby = { x: 0, y: 0, w: W, h: LOBBY_P_H };
-    H = LOBBY_P_H;
+    lobby = { x: 0, y: 0, w: W, h: 0 };
+    H = 0;
     counts.forEach((c, i) => {
       rects[i] = { x: 0, y: H, w: W, h: needH(c, W) };
       H += rects[i].h;
@@ -354,6 +353,7 @@ export function Skills() {
   const ready = vp.w > 0;
   useEffect(() => {
     if (!ready) return;
+    if (portrait) return setStatus("Skills · scroll, or tap a room tab");
     sequence(async ({ wait, move }) => {
       await wait(reduce() ? 0 : 500);
       setStatus("Entering the skill house");
@@ -368,7 +368,7 @@ export function Skills() {
     });
     return cancel;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, rooms]);
+  }, [ready, rooms, portrait]);
 
   /** Picking a room zooms the camera to it; the engineer stays in the lobby. */
   const goRoom = (i: number | null) => {
@@ -380,6 +380,10 @@ export function Skills() {
 
   /** Leave: walk back to the door, step out, then the scene fades away. */
   const leave = () => {
+    if (portraitRef.current) {
+      window.location.hash = "/home"; // no lobby or walker on phones
+      return;
+    }
     sequence(async ({ wait, move }) => {
       setFocus(null);
       setStatus("Heading out");
@@ -520,6 +524,200 @@ export function Skills() {
   /** Height of the phone scroller: the plan at its fitted scale plus the room above and below it. */
   const scrollH = PORTRAIT_TOP + (H + HOUSE_PAD * 2) * fitView().k + PORTRAIT_BOTTOM;
 
+  const plan = (
+    <>
+        {/* fixed backdrop: it must not scale with the camera (a huge scaled layer flickers) */}
+        <div className="sr-blueprint-grid" style={portrait ? { height: scrollH, bottom: "auto" } : undefined} aria-hidden />
+        {/* rack focus: the room starts close and blurred behind a hologram veil, then pulls back into focus */}
+        <div className="sr-veil" aria-hidden />
+        <div className="sr-pull">
+        <div
+          ref={worldRef}
+          className={`sr-world${smooth ? " is-smooth" : ""}`}
+          style={{ width: W, height: H, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})` }}
+        >
+          {/* Blueprint backdrop: cyberpunk grid, coordinate marks, sector stamps */}
+          <div className="sr-blueprint-markers" style={{ width: W, height: H }} aria-hidden>
+            <span className="sr-mark sr-mark-tl">FLOOR MAP // 2D ARCHITECTURAL BLUEPRINT</span>
+            <span className="sr-mark sr-mark-tr">ELEVATION 0.00M // ALL SYSTEMS NOMINAL</span>
+            <span className="sr-mark sr-mark-bl">ROOT HUB: LOBBY // WINGS 01-0{groups.length}</span>
+            <span className="sr-mark sr-mark-br">GRID: 32PX // CAD_ACTIVE</span>
+          </div>
+
+          {/* The house: outer walls, then rooms sharing walls, with door openings between them */}
+          <div className="sr-house" style={{ left: -HOUSE_PAD, top: -HOUSE_PAD, width: W + HOUSE_PAD * 2, height: H + HOUSE_PAD * 2 }} aria-hidden />
+
+          {/* Central Lobby Wing (Sector 00 — Root Hub of the Facility); phones skip it */}
+          {!portrait && (
+          <div
+            className={`sr-lobby-wing ${focus === null ? "is-focused" : ""}`}
+            style={{ left: lobby.x + WALL, top: lobby.y + WALL, width: lobby.w - WALL * 2, height: lobby.h - WALL * 2 }}
+          >
+            <div className="sr-card-head">
+              <div className="sr-card-meta">
+                <span className="sr-room-code sr-code-green">RM-00</span>
+              </div>
+              <div className="sr-room-title-row">
+                <Building2 size={18} className="sr-icon-green" aria-hidden />
+                <span className="sr-room-title">Entry</span>
+                <b className="sr-badge-green">{groups.length} ROOMS</b>
+              </div>
+              <div className="sr-card-divider sr-div-green" />
+            </div>
+
+            {/* Directory: one big button per room, filling the hall */}
+            <div className="sr-kiosk" role="region" aria-label="Rooms">
+              <div className="sr-kiosk-sub">SECTIONS</div>
+              <div className="sr-kiosk-items" role="list">
+                {groups.map((g, i) => {
+                  const Icon = iconFor(g.title);
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      className={`sr-kiosk-row ${focus === i ? "is-selected" : ""}`}
+                      style={{ "--bc": COLORS[i % COLORS.length] } as CSSProperties}
+                      onClick={clicked(() => goRoom(i))}
+                      aria-label={`${g.title}, ${g.skills.length} skills`}
+                    >
+                      <span className="sr-kiosk-icon">
+                        <Icon size={18} aria-hidden />
+                      </span>
+                      <div className="sr-kiosk-info">
+                        <span className="sr-kiosk-tag">
+                          RM-0{i + 1}
+                        </span>
+                        <span className="sr-kiosk-name">{g.title}</span>
+                      </div>
+                      <span className="sr-kiosk-count">{g.skills.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Lobby floor: the front door, with a little room to walk */}
+            <div className="sr-lobby-floor">
+              <button
+                type="button"
+                ref={doorRef}
+                className={`room-door sr-front-door${door ? " is-open" : ""}`}
+                onClick={(e) => exit(e.currentTarget)}
+                aria-label="Leave the skill house through the front door"
+              >
+                <span className="room-door-gap" />
+                <span className="room-door-panel">
+                  <i />
+                </span>
+                <span className="room-door-sign">Exit</span>
+              </button>
+            </div>
+
+            {/* Lobby Footer Status Bar */}
+            <div className="sr-card-foot">
+              <div className="sr-card-leds">
+                <span className="sr-led sr-led-ok" />
+                <span className="sr-led sr-led-act" />
+                <span className="sr-led sr-led-pwr" />
+              </div>
+              <span className="sr-lobby-concourse-exit">CONCOURSE ──▶</span>
+            </div>
+          </div>
+          )}
+
+          {/* Connected Skill Rooms across 2D Space (North, South, East) */}
+          {groups.map((g, i) => {
+            const r = rooms[i];
+            if (!r) return null;
+            const Icon = iconFor(g.title);
+            const color = COLORS[i % COLORS.length];
+
+            return (
+              <div
+                key={g.id}
+                className={`sr-room ${focus === i ? "is-focus" : ""}`}
+                style={
+                  {
+                    left: r.x + WALL,
+                    top: r.y + WALL,
+                    width: r.w - WALL * 2,
+                    height: r.h - WALL * 2,
+                    "--bc": color,
+                    "--cols": r.cols,
+                  } as CSSProperties
+                }
+                onClick={clicked(() => goRoom(i))}
+                role="region"
+                aria-label={`Room 0${i + 1}: ${g.title}, ${g.skills.length} technologies`}
+              >
+                {/* Consistent Card Header */}
+                <div className="sr-card-head">
+                  <div className="sr-card-meta">
+                    <span className="sr-room-code">RM-0{i + 1}</span>
+                  </div>
+                  <div className="sr-room-title-row">
+                    <Icon size={18} className="sr-room-icon" aria-hidden />
+                    <span className="sr-room-title">{g.title}</span>
+                    <b className="sr-room-badge">{g.skills.length} TECH</b>
+                  </div>
+                  <div className="sr-card-divider" />
+                </div>
+
+                {/* Card Body: Consistent, balanced grid filling the card (NO SCROLLS!) */}
+                <div className="sr-card-body">
+                  <div className="sr-chips">
+                    {g.skills.map((s, n) => (
+                      <div
+                        key={s}
+                        className="sr-chip"
+                        title={s}
+                        // the last chip takes the rest of its row, so no empty cell is left over
+                        style={n === g.skills.length - 1 && g.skills.length % r.cols ? { gridColumn: `span ${r.cols - (g.skills.length % r.cols) + 1}` } : undefined}
+                      >
+                        <span className="sr-chip-indicator" />
+                        <span className="sr-chip-text">{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card Footer: Status Bar & Micro Diagnostics */}
+                <div className="sr-card-foot">
+                  <div className="sr-card-leds">
+                    <span className="sr-led sr-led-ok" />
+                    <span className="sr-led sr-led-act" />
+                    <span className="sr-led sr-led-pwr" />
+                  </div>
+                  <span className="sr-card-foot-text">NODE 0{i + 1} // ACTIVE</span>
+                </div>
+
+              </div>
+            );
+          })}
+
+          {/* The engineer in the lobby */}
+          {walker && (
+            <div
+              className={`sr-walker ${walker.walking ? "is-walking" : ""}${walker.visible ? "" : " is-hidden"}`}
+              style={{
+                transform: `translate(${walker.x}px, ${walker.y}px)`,
+                transitionDuration: `${walker.dur}ms`,
+              }}
+              aria-hidden
+            >
+              <div className="sr-walker-avatar" style={{ transform: `scale(${0.9 * walker.facing}, 0.9)` }}>
+                <Player gradId="plv-skills" />
+              </div>
+              <div className="sr-walker-shadow" />
+            </div>
+          )}
+        </div>
+
+        </div>
+
+    </>
+  );
+
   return (
     <>
       <Head
@@ -542,384 +740,10 @@ export function Skills() {
         {portrait ? (
           <div className="sr-scroll" ref={scrollRef}>
             <div style={{ height: scrollH }} aria-hidden />
-        {/* fixed backdrop: it must not scale with the camera (a huge scaled layer flickers) */}
-        <div className="sr-blueprint-grid" style={portrait ? { height: scrollH, bottom: "auto" } : undefined} aria-hidden />
-        {/* rack focus: the room starts close and blurred behind a hologram veil, then pulls back into focus */}
-        <div className="sr-veil" aria-hidden />
-        <div className="sr-pull">
-        <div
-          ref={worldRef}
-          className={`sr-world${smooth ? " is-smooth" : ""}`}
-          style={{ width: W, height: H, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})` }}
-        >
-          {/* Blueprint backdrop: cyberpunk grid, coordinate marks, sector stamps */}
-          <div className="sr-blueprint-markers" style={{ width: W, height: H }} aria-hidden>
-            <span className="sr-mark sr-mark-tl">FLOOR MAP // 2D ARCHITECTURAL BLUEPRINT</span>
-            <span className="sr-mark sr-mark-tr">ELEVATION 0.00M // ALL SYSTEMS NOMINAL</span>
-            <span className="sr-mark sr-mark-bl">ROOT HUB: LOBBY // WINGS 01-0{groups.length}</span>
-            <span className="sr-mark sr-mark-br">GRID: 32PX // CAD_ACTIVE</span>
-          </div>
-
-          {/* The house: outer walls, then rooms sharing walls, with door openings between them */}
-          <div className="sr-house" style={{ left: -HOUSE_PAD, top: -HOUSE_PAD, width: W + HOUSE_PAD * 2, height: H + HOUSE_PAD * 2 }} aria-hidden />
-
-          {/* Central Lobby Wing (Sector 00 — Root Hub of the Facility) */}
-          <div
-            className={`sr-lobby-wing ${focus === null ? "is-focused" : ""}`}
-            style={{ left: lobby.x + WALL, top: lobby.y + WALL, width: lobby.w - WALL * 2, height: lobby.h - WALL * 2 }}
-          >
-            <div className="sr-card-head">
-              <div className="sr-card-meta">
-                <span className="sr-room-code sr-code-green">RM-00</span>
-              </div>
-              <div className="sr-room-title-row">
-                <Building2 size={18} className="sr-icon-green" aria-hidden />
-                <span className="sr-room-title">Entry</span>
-                <b className="sr-badge-green">{groups.length} ROOMS</b>
-              </div>
-              <div className="sr-card-divider sr-div-green" />
-            </div>
-
-            {/* Directory: one big button per room, filling the hall */}
-            <div className="sr-kiosk" role="region" aria-label="Rooms">
-              <div className="sr-kiosk-sub">SECTIONS</div>
-              <div className="sr-kiosk-items" role="list">
-                {groups.map((g, i) => {
-                  const Icon = iconFor(g.title);
-                  return (
-                    <button
-                      key={g.id}
-                      type="button"
-                      className={`sr-kiosk-row ${focus === i ? "is-selected" : ""}`}
-                      style={{ "--bc": COLORS[i % COLORS.length] } as CSSProperties}
-                      onClick={clicked(() => goRoom(i))}
-                      aria-label={`${g.title}, ${g.skills.length} skills`}
-                    >
-                      <span className="sr-kiosk-icon">
-                        <Icon size={18} aria-hidden />
-                      </span>
-                      <div className="sr-kiosk-info">
-                        <span className="sr-kiosk-tag">
-                          RM-0{i + 1}
-                        </span>
-                        <span className="sr-kiosk-name">{g.title}</span>
-                      </div>
-                      <span className="sr-kiosk-count">{g.skills.length}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Lobby floor: the front door, with a little room to walk */}
-            <div className="sr-lobby-floor">
-              <button
-                type="button"
-                ref={doorRef}
-                className={`room-door sr-front-door${door ? " is-open" : ""}`}
-                onClick={(e) => exit(e.currentTarget)}
-                aria-label="Leave the skill house through the front door"
-              >
-                <span className="room-door-gap" />
-                <span className="room-door-panel">
-                  <i />
-                </span>
-                <span className="room-door-sign">Exit</span>
-              </button>
-            </div>
-
-            {/* Lobby Footer Status Bar */}
-            <div className="sr-card-foot">
-              <div className="sr-card-leds">
-                <span className="sr-led sr-led-ok" />
-                <span className="sr-led sr-led-act" />
-                <span className="sr-led sr-led-pwr" />
-              </div>
-              <span className="sr-lobby-concourse-exit">CONCOURSE ──▶</span>
-            </div>
-          </div>
-
-          {/* Connected Skill Rooms across 2D Space (North, South, East) */}
-          {groups.map((g, i) => {
-            const r = rooms[i];
-            if (!r) return null;
-            const Icon = iconFor(g.title);
-            const color = COLORS[i % COLORS.length];
-
-            return (
-              <div
-                key={g.id}
-                className={`sr-room ${focus === i ? "is-focus" : ""}`}
-                style={
-                  {
-                    left: r.x + WALL,
-                    top: r.y + WALL,
-                    width: r.w - WALL * 2,
-                    height: r.h - WALL * 2,
-                    "--bc": color,
-                    "--cols": r.cols,
-                  } as CSSProperties
-                }
-                onClick={clicked(() => goRoom(i))}
-                role="region"
-                aria-label={`Room 0${i + 1}: ${g.title}, ${g.skills.length} technologies`}
-              >
-                {/* Consistent Card Header */}
-                <div className="sr-card-head">
-                  <div className="sr-card-meta">
-                    <span className="sr-room-code">RM-0{i + 1}</span>
-                  </div>
-                  <div className="sr-room-title-row">
-                    <Icon size={18} className="sr-room-icon" aria-hidden />
-                    <span className="sr-room-title">{g.title}</span>
-                    <b className="sr-room-badge">{g.skills.length} TECH</b>
-                  </div>
-                  <div className="sr-card-divider" />
-                </div>
-
-                {/* Card Body: Consistent, balanced grid filling the card (NO SCROLLS!) */}
-                <div className="sr-card-body">
-                  <div className="sr-chips">
-                    {g.skills.map((s, n) => (
-                      <div
-                        key={s}
-                        className="sr-chip"
-                        title={s}
-                        // the last chip takes the rest of its row, so no empty cell is left over
-                        style={n === g.skills.length - 1 && g.skills.length % r.cols ? { gridColumn: `span ${r.cols - (g.skills.length % r.cols) + 1}` } : undefined}
-                      >
-                        <span className="sr-chip-indicator" />
-                        <span className="sr-chip-text">{s}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Card Footer: Status Bar & Micro Diagnostics */}
-                <div className="sr-card-foot">
-                  <div className="sr-card-leds">
-                    <span className="sr-led sr-led-ok" />
-                    <span className="sr-led sr-led-act" />
-                    <span className="sr-led sr-led-pwr" />
-                  </div>
-                  <span className="sr-card-foot-text">NODE 0{i + 1} // ACTIVE</span>
-                </div>
-
-              </div>
-            );
-          })}
-
-          {/* The engineer in the lobby */}
-          {walker && (
-            <div
-              className={`sr-walker ${walker.walking ? "is-walking" : ""}${walker.visible ? "" : " is-hidden"}`}
-              style={{
-                transform: `translate(${walker.x}px, ${walker.y}px)`,
-                transitionDuration: `${walker.dur}ms`,
-              }}
-              aria-hidden
-            >
-              <div className="sr-walker-avatar" style={{ transform: `scale(${0.9 * walker.facing}, 0.9)` }}>
-                <Player gradId="plv-skills" />
-              </div>
-              <div className="sr-walker-shadow" />
-            </div>
-          )}
-        </div>
-
-        </div>
-
+            {plan}
           </div>
         ) : (
-          <>
-        {/* fixed backdrop: it must not scale with the camera (a huge scaled layer flickers) */}
-        <div className="sr-blueprint-grid" style={portrait ? { height: scrollH, bottom: "auto" } : undefined} aria-hidden />
-        {/* rack focus: the room starts close and blurred behind a hologram veil, then pulls back into focus */}
-        <div className="sr-veil" aria-hidden />
-        <div className="sr-pull">
-        <div
-          ref={worldRef}
-          className={`sr-world${smooth ? " is-smooth" : ""}`}
-          style={{ width: W, height: H, transform: `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})` }}
-        >
-          {/* Blueprint backdrop: cyberpunk grid, coordinate marks, sector stamps */}
-          <div className="sr-blueprint-markers" style={{ width: W, height: H }} aria-hidden>
-            <span className="sr-mark sr-mark-tl">FLOOR MAP // 2D ARCHITECTURAL BLUEPRINT</span>
-            <span className="sr-mark sr-mark-tr">ELEVATION 0.00M // ALL SYSTEMS NOMINAL</span>
-            <span className="sr-mark sr-mark-bl">ROOT HUB: LOBBY // WINGS 01-0{groups.length}</span>
-            <span className="sr-mark sr-mark-br">GRID: 32PX // CAD_ACTIVE</span>
-          </div>
-
-          {/* The house: outer walls, then rooms sharing walls, with door openings between them */}
-          <div className="sr-house" style={{ left: -HOUSE_PAD, top: -HOUSE_PAD, width: W + HOUSE_PAD * 2, height: H + HOUSE_PAD * 2 }} aria-hidden />
-
-          {/* Central Lobby Wing (Sector 00 — Root Hub of the Facility) */}
-          <div
-            className={`sr-lobby-wing ${focus === null ? "is-focused" : ""}`}
-            style={{ left: lobby.x + WALL, top: lobby.y + WALL, width: lobby.w - WALL * 2, height: lobby.h - WALL * 2 }}
-          >
-            <div className="sr-card-head">
-              <div className="sr-card-meta">
-                <span className="sr-room-code sr-code-green">RM-00</span>
-              </div>
-              <div className="sr-room-title-row">
-                <Building2 size={18} className="sr-icon-green" aria-hidden />
-                <span className="sr-room-title">Entry</span>
-                <b className="sr-badge-green">{groups.length} ROOMS</b>
-              </div>
-              <div className="sr-card-divider sr-div-green" />
-            </div>
-
-            {/* Directory: one big button per room, filling the hall */}
-            <div className="sr-kiosk" role="region" aria-label="Rooms">
-              <div className="sr-kiosk-sub">SECTIONS</div>
-              <div className="sr-kiosk-items" role="list">
-                {groups.map((g, i) => {
-                  const Icon = iconFor(g.title);
-                  return (
-                    <button
-                      key={g.id}
-                      type="button"
-                      className={`sr-kiosk-row ${focus === i ? "is-selected" : ""}`}
-                      style={{ "--bc": COLORS[i % COLORS.length] } as CSSProperties}
-                      onClick={clicked(() => goRoom(i))}
-                      aria-label={`${g.title}, ${g.skills.length} skills`}
-                    >
-                      <span className="sr-kiosk-icon">
-                        <Icon size={18} aria-hidden />
-                      </span>
-                      <div className="sr-kiosk-info">
-                        <span className="sr-kiosk-tag">
-                          RM-0{i + 1}
-                        </span>
-                        <span className="sr-kiosk-name">{g.title}</span>
-                      </div>
-                      <span className="sr-kiosk-count">{g.skills.length}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Lobby floor: the front door, with a little room to walk */}
-            <div className="sr-lobby-floor">
-              <button
-                type="button"
-                ref={doorRef}
-                className={`room-door sr-front-door${door ? " is-open" : ""}`}
-                onClick={(e) => exit(e.currentTarget)}
-                aria-label="Leave the skill house through the front door"
-              >
-                <span className="room-door-gap" />
-                <span className="room-door-panel">
-                  <i />
-                </span>
-                <span className="room-door-sign">Exit</span>
-              </button>
-            </div>
-
-            {/* Lobby Footer Status Bar */}
-            <div className="sr-card-foot">
-              <div className="sr-card-leds">
-                <span className="sr-led sr-led-ok" />
-                <span className="sr-led sr-led-act" />
-                <span className="sr-led sr-led-pwr" />
-              </div>
-              <span className="sr-lobby-concourse-exit">CONCOURSE ──▶</span>
-            </div>
-          </div>
-
-          {/* Connected Skill Rooms across 2D Space (North, South, East) */}
-          {groups.map((g, i) => {
-            const r = rooms[i];
-            if (!r) return null;
-            const Icon = iconFor(g.title);
-            const color = COLORS[i % COLORS.length];
-
-            return (
-              <div
-                key={g.id}
-                className={`sr-room ${focus === i ? "is-focus" : ""}`}
-                style={
-                  {
-                    left: r.x + WALL,
-                    top: r.y + WALL,
-                    width: r.w - WALL * 2,
-                    height: r.h - WALL * 2,
-                    "--bc": color,
-                    "--cols": r.cols,
-                  } as CSSProperties
-                }
-                onClick={clicked(() => goRoom(i))}
-                role="region"
-                aria-label={`Room 0${i + 1}: ${g.title}, ${g.skills.length} technologies`}
-              >
-                {/* Consistent Card Header */}
-                <div className="sr-card-head">
-                  <div className="sr-card-meta">
-                    <span className="sr-room-code">RM-0{i + 1}</span>
-                  </div>
-                  <div className="sr-room-title-row">
-                    <Icon size={18} className="sr-room-icon" aria-hidden />
-                    <span className="sr-room-title">{g.title}</span>
-                    <b className="sr-room-badge">{g.skills.length} TECH</b>
-                  </div>
-                  <div className="sr-card-divider" />
-                </div>
-
-                {/* Card Body: Consistent, balanced grid filling the card (NO SCROLLS!) */}
-                <div className="sr-card-body">
-                  <div className="sr-chips">
-                    {g.skills.map((s, n) => (
-                      <div
-                        key={s}
-                        className="sr-chip"
-                        title={s}
-                        // the last chip takes the rest of its row, so no empty cell is left over
-                        style={n === g.skills.length - 1 && g.skills.length % r.cols ? { gridColumn: `span ${r.cols - (g.skills.length % r.cols) + 1}` } : undefined}
-                      >
-                        <span className="sr-chip-indicator" />
-                        <span className="sr-chip-text">{s}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Card Footer: Status Bar & Micro Diagnostics */}
-                <div className="sr-card-foot">
-                  <div className="sr-card-leds">
-                    <span className="sr-led sr-led-ok" />
-                    <span className="sr-led sr-led-act" />
-                    <span className="sr-led sr-led-pwr" />
-                  </div>
-                  <span className="sr-card-foot-text">NODE 0{i + 1} // ACTIVE</span>
-                </div>
-
-              </div>
-            );
-          })}
-
-          {/* The engineer in the lobby */}
-          {walker && (
-            <div
-              className={`sr-walker ${walker.walking ? "is-walking" : ""}${walker.visible ? "" : " is-hidden"}`}
-              style={{
-                transform: `translate(${walker.x}px, ${walker.y}px)`,
-                transitionDuration: `${walker.dur}ms`,
-              }}
-              aria-hidden
-            >
-              <div className="sr-walker-avatar" style={{ transform: `scale(${0.9 * walker.facing}, 0.9)` }}>
-                <Player gradId="plv-skills" />
-              </div>
-              <div className="sr-walker-shadow" />
-            </div>
-          )}
-        </div>
-
-        </div>
-
-          </>
+          plan
         )}
 
         {/* Status HUD Header */}
@@ -962,6 +786,7 @@ export function Skills() {
 
         {/* Room Navigation Tabs along the bottom */}
         <div className="sr-tabs" role="tablist" aria-label="Facility Rooms">
+          {!portrait && (
           <button
             type="button"
             role="tab"
@@ -972,6 +797,7 @@ export function Skills() {
             <Building2 size={13} className="mr-1" />
             <span>Central Lobby</span>
           </button>
+          )}
           {groups.map((g, i) => (
             <button
               key={g.id}
