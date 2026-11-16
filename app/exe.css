@@ -4944,16 +4944,19 @@ html:not([data-exe-boot="run"]) .exe-boot {
 /* =========================================================== launch pad: the hangar */
 
 .exe .scene-missions,
-.exe .scene-career {
+.exe .scene-career,
+.exe .scene-achievements {
   background: #05071a;
 }
 .exe .scene-missions .x-main,
-.exe .scene-career .x-main {
+.exe .scene-career .x-main,
+.exe .scene-achievements .x-main {
   padding: 0 !important;
   max-width: none;
 }
 .scene-missions .x-head,
-.scene-career .x-head {
+.scene-career .x-head,
+.scene-achievements .x-head {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -4961,7 +4964,8 @@ html:not([data-exe-boot="run"]) .exe-boot {
   clip: rect(0 0 0 0);
 }
 .scene-missions .lab-viewport,
-.scene-career .lab-viewport {
+.scene-career .lab-viewport,
+.scene-achievements .lab-viewport {
   border: 0;
   border-radius: 0;
   background: linear-gradient(#04061a, #0e1033 70%, #1a1240);
@@ -5671,4 +5675,213 @@ html:not([data-exe-boot="run"]) .exe-boot {
 }
 @media (prefers-reduced-motion: reduce) {
   .ct-mate, .ct-arm, .ct-bubble, .ct-bubble i { animation: none; }
+}
+
+/* =========================================================== trophy hall: the gallery */
+
+.scene-achievements .gl-viewport {
+  background: #0e0816;
+}
+.gl-wall {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 210, 63, 0.07) 0 2px, transparent 2px 170px),
+    radial-gradient(ellipse at 50% 0%, rgba(130, 40, 80, 0.4), transparent 62%),
+    linear-gradient(#170a1e, #0d0714);
+}
+.gl-cornice {
+  left: -3000px;
+  right: -3000px;
+  top: 0;
+  height: 28px;
+  border-bottom: 4px solid #ffd23f;
+  background: linear-gradient(#34183c, #230f2b);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+.gl-floor {
+  border-top: 4px solid #ffd23f;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 130px),
+    linear-gradient(#241a38, #0f0b1c);
+}
+.gl-room > * {
+  position: absolute;
+}
+.gl-ped {
+  z-index: 2;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, #cfc9dc, #f2eff8 45%, #a9a2bb);
+  box-shadow: 0 0 20px -6px rgba(255, 210, 63, 0.5);
+}
+.gl-ped i {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  top: 0;
+  height: 9px;
+  border-radius: 3px;
+  background: linear-gradient(#ffe27a, #c9a227);
+}
+.gl-trophy {
+  z-index: 3;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: filter 400ms;
+}
+.gl-trophy:focus-visible,
+.gl-plaque:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 6px;
+}
+.gl-case {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(190, 225, 255, 0.55);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, rgba(160, 200, 255, 0.2), rgba(160, 200, 255, 0.04));
+  transition: opacity 500ms, transform 500ms var(--ease);
+}
+.gl-art {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  width: 88px;
+  height: 88px;
+  margin-left: -44px;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gc) 70%, transparent));
+  transition: transform 600ms var(--ease);
+  animation: gl-float 3.2s ease-in-out infinite alternate;
+}
+.gl-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.gl-trophy.is-sel .gl-case {
+  opacity: 0.2;
+  transform: translateY(-14px);
+}
+.gl-trophy.is-sel .gl-art {
+  transform: translateY(-34px) scale(1.18);
+  animation: none;
+}
+@keyframes gl-float {
+  to { transform: translateY(-5px); }
+}
+.gl-viewport.has-sel .gl-trophy:not(.is-sel),
+.gl-viewport.has-sel .gl-plaque:not(.is-sel) {
+  filter: brightness(0.45);
+}
+.gl-spot {
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(rgba(255, 244, 200, 0.5), rgba(255, 244, 200, 0.08) 88%, transparent);
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  animation: gl-spot-in 700ms ease-out both;
+}
+@keyframes gl-spot-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.exe .gl-plaque {
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  /* a gilded frame round a cream mat, like a framed certificate */
+  border: 9px solid #c9a227;
+  border-image: linear-gradient(135deg, #ffe27a, #a8801c 45%, #ffe27a 70%, #8a6a1a) 1;
+  background: linear-gradient(#f3ead2, #e2d5b3);
+  box-shadow:
+    inset 0 0 0 3px #7a5c14,
+    inset 0 0 14px rgba(70, 45, 10, 0.45),
+    0 10px 22px rgba(0, 0, 0, 0.6);
+  color: #3a2a12;
+  font: 700 14px / 1.2 var(--display);
+  text-align: center;
+  cursor: pointer;
+  transition: filter 400ms, box-shadow 400ms;
+}
+/* the picture wire */
+.gl-plaque::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -34px;
+  width: 70px;
+  height: 26px;
+  margin-left: -35px;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1px), #8a6a1a 50%, transparent calc(50% + 1px)),
+    linear-gradient(to top left, transparent calc(50% - 1px), #8a6a1a 50%, transparent calc(50% + 1px));
+}
+/* a brass picture light over the frame */
+.gl-light {
+  position: absolute;
+  left: 50%;
+  top: -16px;
+  width: 80px;
+  height: 7px;
+  margin-left: -40px;
+  border-radius: 4px;
+  background: linear-gradient(#ffe27a, #8a6a1a);
+  box-shadow: 0 6px 18px 2px rgba(255, 226, 122, 0.5);
+}
+.gl-plaque svg {
+  color: #a8801c;
+}
+.gl-plaque span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.exe .gl-plaque.is-sel,
+.exe .gl-plaque:hover {
+  box-shadow:
+    inset 0 0 0 3px #7a5c14,
+    inset 0 0 14px rgba(70, 45, 10, 0.3),
+    0 0 36px 2px rgba(255, 226, 122, 0.75);
+}
+.gl-post {
+  z-index: 2;
+  width: 8px;
+  height: 72px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #8a6a1a, #ffd23f, #8a6a1a);
+}
+.gl-post::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff2a8, #c9a227);
+}
+.gl-rope {
+  z-index: 2;
+}
+.gl-panel {
+  border-color: color-mix(in srgb, var(--bc) 75%, transparent);
+  box-shadow: 0 0 32px -6px var(--bc), inset 0 0 40px -22px var(--bc);
+}
+.gl-code {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 210, 63, 0.12);
+  color: #ffe9a0;
+  font: 600 1em var(--mono);
+  word-break: break-all;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-art, .gl-spot { animation: none; }
 }
